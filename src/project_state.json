@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 53,
+  "projectStateVersion": 65,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "existing_features": [
     {
@@ -210,8 +210,8 @@
       "version": 1
     },
     {
-      "id": "feature-replace-the-maui-lane-care-home-logo-used-in-the-app-header-with-the-user-provided-image-and-ensure-the-application-consistently-references-the-updated-logo-asset-path",
-      "title": "Replace the Maui Lane Care Home logo used in the app header with the user-provided image, and ensure the application consistently references the updated logo asset path.",
+      "id": "feature-fix-the-maui-lane-care-home-header-logo-so-it-reliably-loads-and-displays-in-frontend-src-components-maui-mauiappshell-tsx-in-both-local-development-and-production-deployments-including-when-the-app-is-hosted-under-a-non-root-base-url-ensure-the-logo-source-path-is-constructed-safely-with-import-meta-env-base-url-no-double-missing-slashes-references-only-existing-files-under-frontend-public-assets-generated-and-that-the-fallback-behavior-displays-the-app-icon-if-the-logo-fails-to-load",
+      "title": "Fix the Maui Lane Care Home header logo so it reliably loads and displays in `frontend/src/components/maui/MauiAppShell.tsx` in both local development and production deployments (including when the app is hosted under a non-root base URL). Ensure the logo source path is constructed safely with `import.meta.env.BASE_URL` (no double/missing slashes), references only existing files under `frontend/public/assets/generated/`, and that the fallback behavior displays the app icon if the logo fails to load.",
       "reqIds": [
         "REQ-6"
       ],
@@ -251,19 +251,19 @@
     },
     {
       "id": "AR-7",
-      "summary": "Remove the Moritz reference-capture UI/link from the home page navigation area beside the Dashboard (and related entry point) in the Maui Lane app experience.",
+      "summary": "Remove the Moritz reference-capture entry/link from the homepage next to the Dashboard in the Maui Lane app shell/navigation.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-8",
-      "summary": "Add resident lifecycle actions on the Residents Dashboard: enable deletion and allow toggling resident status between Active and Discharged.",
+      "summary": "Support resident lifecycle actions from the dashboard: delete resident and toggle resident status between Active and Discharged.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-9",
-      "summary": "Replace the current generated Maui Lane logo and app icon with the user-provided uploaded image and apply it across the application shell.",
+      "summary": "Allow replacing the app logo and icon with a user-uploaded image and apply it consistently across the application (app shell + favicon/app icon usage).",
       "reqIds": [],
       "status": "pending"
     }
@@ -280,15 +280,28 @@
     "Frontend: Added Maui resident profile/detail page with supporting mock profile + medications data modules as a stand-in for backend detail endpoints.",
     "Frontend: Added Maui residents add/edit dialogs (AddNewResidentDialog/EditResidentInformationDialog) as UI-only components pending backend persistence/integration."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
-  "imageRequirements": "## Edit Images\n- Replace the existing Maui Lane logo asset with the user-provided image (frontend/public/assets/generated/maui-lane-logo.dim_512x512.png > frontend/public/assets/generated/maui-lane-logo-provided.dim_512x512.png)",
+  "known_issues": [
+    "Uploaded/replaced logo asset is not loading/showing in the UI (app shell/icon)."
+  ],
+  "isFixRequest": true,
   "generatedImages": [
     {
-      "filename": "frontend/public/assets/generated/maui-lane-logo-provided.dim_512x512.png",
-      "description": "Replace the existing Maui Lane logo asset with the user-provided image",
+      "filename": "frontend/public/assets/generated/maui-lane-app-icon.dim_256x256.png",
+      "description": "Generated application icon (256x256).",
+      "targetWidth": 256,
+      "targetHeight": 256
+    },
+    {
+      "filename": "frontend/public/assets/generated/maui-lane-logo.dim_512x512.png",
+      "description": "Generated application logo (512x512).",
       "targetWidth": 512,
       "targetHeight": 512
+    },
+    {
+      "filename": "frontend/public/assets/generated/maui-lane-hero.dim_1600x600.png",
+      "description": "Generated hero/banner image (1600x600).",
+      "targetWidth": 1600,
+      "targetHeight": 600
     }
   ],
   "projectName": "Recreate Moritz Care Home UI as a separate Maui Lane Care Home application",

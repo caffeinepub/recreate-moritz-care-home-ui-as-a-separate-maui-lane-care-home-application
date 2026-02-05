@@ -1,33 +1,26 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:48:32.095Z",
-  "summary": "REQ-6 (swap the header logo to the user-provided asset, keeping English alt text) appears implemented in MauiAppShell.tsx. However, the diff summary also indicates several unrelated UI/navigation/icon changes that were not requested and may violate stated constraints/non-goals.",
+  "generatedAt": "2026-02-05T00:58:35.772Z",
+  "summary": "REQ-6 appears implemented in MauiAppShell.tsx: the logo URL is constructed using import.meta.env.BASE_URL with safe slash handling, it references assets under frontend/public/assets/generated/, and an onError fallback swaps to the app icon without retry/flicker. No missing REQ-6 acceptance criteria are evident from the provided diff summary. Two ancillary files were modified that were not requested by the BuildRequest.",
   "missing_requirements": [],
   "hallucinated_features": [
     {
-      "description": "Navigation change: MauiNav now displays only the Dashboard tab and removes the Reference Capture link.",
-      "reason": "BuildRequest only asked to replace the Maui Lane logo asset reference; it explicitly constrained not to change routing behavior as part of the logo swap.",
+      "description": "Updated repository metadata/summary files (frontend-file-summaries.txt)",
+      "reason": "BuildRequest only asks to fix the header logo loading behavior in MauiAppShell.tsx; updating a file-summary artifact was not requested.",
       "evidence": [
-        "frontend-file-summaries.txt (entry for \"frontend/src/components/maui/MauiNav.tsx\")"
+        "frontend-file-summaries.txt"
       ]
     },
     {
-      "description": "Dashboard behavior changes: added state management handlers for deleting residents and toggling Active/Discharged status, updating KPIs/filtering in real time.",
-      "reason": "Not requested; out of scope for a logo swap.",
+      "description": "Updated project state tracking (project_state.json)",
+      "reason": "BuildRequest does not request changes to project state/versioning metadata; only the logo loading fix is specified.",
       "evidence": [
-        "frontend-file-summaries.txt (entry for \"frontend/src/pages/maui/Dashboard.tsx\")"
-      ]
-    },
-    {
-      "description": "Favicon/app icon reference updated to a v2 generated app icon.",
-      "reason": "Explicit non-goal: \"Do not change the app icon/favicon unless explicitly requested.\"",
-      "evidence": [
-        "frontend-file-summaries.txt (entry for \"frontend/index.html\")"
+        "project_state.json"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
     "frontend/src/components/maui/MauiAppShell.tsx",

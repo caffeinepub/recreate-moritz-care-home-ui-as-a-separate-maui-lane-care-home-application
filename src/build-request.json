@@ -1,39 +1,37 @@
 {
   "kind": "build_request",
-  "title": "Replace Maui Lane logo with the user-provided image",
+  "title": "Fix Maui Lane header logo not loading",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-6",
-      "text": "Replace the Maui Lane Care Home logo used in the app header with the user-provided image, and ensure the application consistently references the updated logo asset path.",
+      "text": "Fix the Maui Lane Care Home header logo so it reliably loads and displays in `frontend/src/components/maui/MauiAppShell.tsx` in both local development and production deployments (including when the app is hosted under a non-root base URL). Ensure the logo source path is constructed safely with `import.meta.env.BASE_URL` (no double/missing slashes), references only existing files under `frontend/public/assets/generated/`, and that the fallback behavior displays the app icon if the logo fails to load.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-3"
         ],
         "quotes": [
-          "replace logo with the image provided"
+          "logo is not loaded"
         ]
       },
       "acceptanceCriteria": [
-        "The header logo in `frontend/src/components/maui/MauiAppShell.tsx` displays the user-provided logo image.",
-        "No part of the UI references non-existent or outdated logo filenames (e.g., `/assets/generated/maui-lane-logo-v2.dim_512x512.png`) after the change.",
-        "The logo `alt` text remains in English and continues to read \"Maui Lane Care Home\"."
+        "When loading the app, the header displays `maui-lane-logo.dim_512x512.png` without broken-image UI.",
+        "If the logo file fails to load, the header automatically falls back to `maui-lane-app-icon.dim_256x256.png` and does not continuously retry or flicker.",
+        "The resolved logo URL works correctly when the app is served from a non-root base path (i.e., `import.meta.env.BASE_URL` is not `/`)."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under `frontend/src/components/ui` (shadcn UI components are read-only).",
-    "Do not change authentication gating or routing behavior as part of this logo swap."
+    "Do not modify any files under `frontend/src/components/ui` (read-only shadcn components).",
+    "Use only the existing generated assets in `frontend/public/assets/generated/` for the header logo and fallback icon."
   ],
   "nonGoals": [
-    "Do not redesign the overall app shell layout or navigation.",
-    "Do not change the app icon/favicon unless explicitly requested."
+    "Do not redesign the application shell layout or navigation beyond what is required to make the logo load reliably.",
+    "Do not add new authentication flows or change Internet Identity gating."
   ],
   "imageRequirements": {
     "required": [],
-    "edits": [
-      "Replace the existing Maui Lane logo asset with the user-provided image (frontend/public/assets/generated/maui-lane-logo.dim_512x512.png > frontend/public/assets/generated/maui-lane-logo-provided.dim_512x512.png)"
-    ]
+    "edits": []
   }
 }

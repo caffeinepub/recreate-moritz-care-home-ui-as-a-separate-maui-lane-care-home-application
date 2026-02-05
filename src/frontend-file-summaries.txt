@@ -1,7 +1,7 @@
 {
   "frontend/src/App.tsx": "Main application component setting up TanStack Router with routes for Dashboard, Reference Capture, and Resident Profile pages, wrapped with React Query, authentication gate, and toast notifications.",
   "frontend/src/components/auth/ProtectedGate.tsx": "Authentication gate component that displays a login screen for unauthenticated users and renders protected content for authenticated users using Internet Identity.",
-  "frontend/src/components/maui/MauiAppShell.tsx": "Main application shell providing the header with user-provided Maui Lane logo, navigation, main content outlet, and footer layout structure, with no-print classes applied to hide UI chrome during printing.",
+  "frontend/src/components/maui/MauiAppShell.tsx": "Main application shell providing the header with Maui Lane logo using a robust base-URL-safe path helper function (with fallback to app icon on error), navigation, main content outlet, and footer layout structure, with no-print classes applied to hide UI chrome during printing.",
   "frontend/src/components/maui/MauiNav.tsx": "Navigation component displaying only the Dashboard tab with active state styling, with the Reference Capture link removed.",
   "frontend/src/pages/maui/Dashboard.tsx": "Main dashboard page displaying the Resident Management interface with KPI cards, filter/sort controls, status tabs, and a responsive grid of resident cards, now with state management handlers for deleting residents and toggling their Active/Discharged status that update KPIs and filtering in real-time.",
   "frontend/src/pages/references/MoritzReferenceCapture.tsx": "Comprehensive reference capture page listing all required screenshots, design details, and information needed to recreate the Maui Lane Care Home UI, with updated page title and copy reflecting the Maui Lane branding.",
@@ -9,7 +9,7 @@
   "frontend/src/lib/utils.ts": "Utility module providing the cn() function for merging Tailwind CSS classes using clsx and tailwind-merge.",
   "frontend/src/hooks/useQueries.ts": "Placeholder file for React Query hooks to interact with the backend (currently empty as backend has no methods).",
   "frontend/src/index.css": "Global styles defining the Maui Lane Care Home design system with warm coral and teal color palette in OKLCH format for both light and dark modes, plus comprehensive print media queries for clean, paginated A4/Letter report output with table styling and section dividers.",
-  "frontend/index.html": "HTML entry point with Maui Lane Care Home title and favicon reference updated to the v2 generated app icon.",
+  "frontend/index.html": "HTML entry point with Maui Lane Care Home title and base-URL-safe favicon reference pointing to the existing generated app icon.",
   "frontend/tailwind.config.js": "Tailwind configuration extending the theme with OKLCH color tokens, custom border radius, shadows, and Inter font family.",
   "frontend/src/pages/maui/residents/mockResidents.ts": "Mock resident dataset containing 9 residents with properties including name, age, ID, room assignment, status, physician count, and medication count.",
   "frontend/src/pages/maui/residents/residentListUtils.ts": "Pure utility functions for filtering residents by status and room, sorting by different criteria, computing KPI counts, and extracting unique room numbers.",

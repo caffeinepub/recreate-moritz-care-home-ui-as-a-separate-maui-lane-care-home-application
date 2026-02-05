@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:48:32.129Z",
+  "generatedAt": "2026-02-05T00:58:35.818Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,11 +12,9 @@
     "items": [
       {
         "id": "REQ-6",
-        "summary": "Replace the Maui Lane Care Home logo used in the app header with the user-provided image, and ensure the application consistently references the updated logo asset path.",
+        "summary": "Fix the Maui Lane Care Home header logo so it reliably loads and displays in `frontend/src/components/maui/MauiAppShell.tsx` in both local development and production deployments (including when the app is hosted under a non-root base URL). Ensure the logo source path is constructed safely with `import.meta.env.BASE_URL` (no double/missing slashes), references only existing files under `frontend/public/assets/generated/`, and that the fallback behavior displays the app icon if the logo fails to load.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/public/assets/generated/maui-lane-logo.dim_512x512.png",
-          "frontend/public/assets/generated/maui-lane-logo-provided.dim_512x512.png",
           "frontend/src/components/maui/MauiAppShell.tsx"
         ],
         "matchedFiles": [
@@ -30,7 +28,6 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-logo-provided.dim_512x512.png",
     "frontend/src/components/maui/MauiAppShell.tsx",
     "project_state.json",
     "scratch/component-selection.json",

@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-the-maui-lane-care-home-logo-used-in-the-app-header-with-the-user-provided-image-and-ensure-the-application-consistently-references-the-updated-logo-asset-path",
-      "featureTitle": "Replace the Maui Lane Care Home logo used in the app header with the user-provided image, and ensure the application consistently references the updated logo asset path.",
+      "featureId": "feature-fix-the-maui-lane-care-home-header-logo-so-it-reliably-loads-and-displays-in-frontend-src-components-maui-mauiappshell-tsx-in-both-local-development-and-production-deployments-including-when-the-app-is-hosted-under-a-non-root-base-url-ensure-the-logo-source-path-is-constructed-safely-with-import-meta-env-base-url-no-double-missing-slashes-references-only-existing-files-under-frontend-public-assets-generated-and-that-the-fallback-behavior-displays-the-app-icon-if-the-logo-fails-to-load",
+      "featureTitle": "Fix the Maui Lane Care Home header logo so it reliably loads and displays in `frontend/src/components/maui/MauiAppShell.tsx` in both local development and production deployments (including when the app is hosted under a non-root base URL). Ensure the logo source path is constructed safely with `import.meta.env.BASE_URL` (no double/missing slashes), references only existing files under `frontend/public/assets/generated/`, and that the fallback behavior displays the app icon if the logo fails to load.",
       "files": [
         "frontend/src/components/maui/MauiAppShell.tsx"
       ],

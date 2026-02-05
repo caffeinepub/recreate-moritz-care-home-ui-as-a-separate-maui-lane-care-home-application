@@ -1,31 +1,21 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Swap Maui Lane header logo to user-provided asset",
+  "title": "Fix Maui Lane header logo base-URL-safe loading with fallback",
   "requirements": [
     {
       "id": "REQ-6",
-      "summary": "Update the app header logo to use the user-provided image and ensure all UI references point to the new logo asset path.",
+      "summary": "Make the Maui Lane Care Home header logo load reliably across base paths and fall back to the app icon without flicker.",
       "acceptanceCriteria": [
-        "The header logo in `frontend/src/components/maui/MauiAppShell.tsx` displays the user-provided logo image.",
-        "No part of the UI references non-existent or outdated logo filenames (e.g., `/assets/generated/maui-lane-logo-v2.dim_512x512.png`) after the change.",
-        "The logo `alt` text remains in English and continues to read \"Maui Lane Care Home\"."
+        "When loading the app, the header displays `maui-lane-logo.dim_512x512.png` without broken-image UI.",
+        "If the logo file fails to load, the header automatically falls back to `maui-lane-app-icon.dim_256x256.png` and does not continuously retry or flicker.",
+        "The resolved logo URL works correctly when the app is served from a non-root base path (i.e., `import.meta.env.BASE_URL` is not `/`)."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/maui-lane-logo.dim_512x512.png",
-          "operation": "rename",
-          "description": "Rename the existing generated logo asset to the new user-provided logo filename so the app can reference the updated asset consistently."
-        },
-        {
-          "path": "frontend/public/assets/generated/maui-lane-logo-provided.dim_512x512.png",
-          "operation": "modify",
-          "description": "Replace the file contents with the user-provided logo image while keeping the same filename and dimensions suffix."
-        },
-        {
           "path": "frontend/src/components/maui/MauiAppShell.tsx",
           "operation": "modify",
-          "description": "Update the header <img> to reference `/assets/generated/maui-lane-logo-provided.dim_512x512.png` instead of any outdated logo filename, while preserving `alt=\"Maui Lane Care Home\"` and leaving authentication gating/routing unchanged."
+          "description": "Update header logo URL construction to be base-URL-safe using `import.meta.env.BASE_URL` with a safe join strategy (e.g., URL-based resolution) to avoid double/missing slashes. Ensure the logo `src` references only existing generated assets: `frontend/public/assets/generated/maui-lane-logo.dim_512x512.png` as primary and `frontend/public/assets/generated/maui-lane-app-icon.dim_256x256.png` as fallback. Adjust the error handling so the fallback is applied exactly once (no continuous retries/flicker) if the primary logo fails to load."
         }
       ]
     }
