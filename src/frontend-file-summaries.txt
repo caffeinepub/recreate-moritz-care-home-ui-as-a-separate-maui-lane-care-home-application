@@ -1,7 +1,7 @@
 {
   "frontend/src/App.tsx": "Main application component setting up TanStack Router with routes for Dashboard, Reference Capture, and Resident Profile pages, wrapped with React Query, authentication gate, and toast notifications.",
-  "frontend/src/components/auth/ProtectedGate.tsx": "Authentication gate component that displays a login screen with the centralized BrandLogo component for unauthenticated users and renders protected content for authenticated users using Internet Identity.",
-  "frontend/src/components/maui/MauiAppShell.tsx": "Main application shell providing header with BrandLogo component, navigation, main content outlet, and footer layout structure, with sign-out handler that clears React Query cache to prevent cross-principal data leakage.",
+  "frontend/src/components/auth/ProtectedGate.tsx": "Authentication gate component that displays a centered login screen with Maui Lane logo and branding for unauthenticated users and renders protected content for authenticated users using Internet Identity.",
+  "frontend/src/components/maui/MauiAppShell.tsx": "Main application shell providing header with Maui Lane logo and branding, navigation, main content outlet, and footer layout structure, with sign-out handler that clears React Query cache to prevent cross-principal data leakage.",
   "frontend/src/components/maui/MauiNav.tsx": "Navigation component displaying only the Dashboard tab with active state styling, with the Reference Capture link removed.",
   "frontend/src/pages/maui/Dashboard.tsx": "Main dashboard page displaying the Resident Management interface with backend-backed resident data via React Query, KPI cards, filter/sort controls, status tabs, and a responsive grid of resident cards with delete and status toggle mutations.",
   "frontend/src/pages/references/MoritzReferenceCapture.tsx": "Comprehensive reference capture page listing all required screenshots, design details, and information needed to recreate the Maui Lane Care Home UI, with updated page title and copy reflecting the Maui Lane branding.",
@@ -9,7 +9,7 @@
   "frontend/src/lib/utils.ts": "Utility module providing the cn() function for merging Tailwind CSS classes using clsx and tailwind-merge.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for user profiles, residents directory (list/create/update/delete/toggle status), vitals, MAR, and ADL tracking with proper actor/identity dependency handling, principal-scoped query keys, and query invalidation.",
   "frontend/src/index.css": "Global styles defining the Maui Lane Care Home design system with warm coral and teal color palette in OKLCH format for both light and dark modes, plus comprehensive print media queries for clean, paginated A4/Letter report output with table styling and section dividers.",
-  "frontend/index.html": "HTML entry point with Maui Lane Care Home title, favicon reference to the new v1 32x32 asset, and apple-touch-icon reference to the new v1 180x180 asset.",
+  "frontend/index.html": "HTML entry point with Maui Lane Care Home title, favicon, Apple touch icon, and web manifest references pointing to the new photo-based icon assets.",
   "frontend/tailwind.config.js": "Tailwind configuration extending the theme with OKLCH color tokens, custom border radius, shadows, and Inter font family.",
   "frontend/src/pages/maui/residents/mockResidents.ts": "Mock resident dataset containing 9 residents with properties including name, age, ID, room assignment, status, physician count, and medication count.",
   "frontend/src/pages/maui/residents/residentListUtils.ts": "Pure utility functions for filtering residents by status and room, sorting by different criteria, computing KPI counts, and extracting unique room numbers, now operating on ResidentViewModel type.",
@@ -37,8 +37,9 @@
   "frontend/src/components/maui/residents/adl/index.ts": "Barrel export for ADL components to keep ResidentProfile imports clean.",
   "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx": "Modal dialog component for adding medications with fields for medication name, dosage, administration route, dynamic administration times list, optional prescribing physician select, and notes textarea, now accepting Physician array with contactNumber instead of phone property.",
   "frontend/src/components/maui/residents/medications/index.ts": "Barrel export for medication components to keep ResidentProfile imports clean.",
-  "frontend/src/lib/brand.ts": "Centralized branding constants module exporting the updated logo path pointing to the new v3 asset, alt text, and care home name for consistent usage across the application.",
+  "frontend/src/lib/brand.ts": "Centralized branding constants module exporting the care home name and the relative logo asset path pointing to MauiLaneCareHome-4.jpg as the single source of truth for consistent branding across the application.",
   "frontend/src/hooks/residentQueryKeys.ts": "Centralized query key factory for Residents Directory queries with principal-scoped cache isolation to prevent cross-login data leakage.",
   "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts": "View model adapter that maps backend Resident records to UI display format, calculating age from birth date and formatting room display from roomNumber and roomType fields with fallback for legacy data.",
-  "frontend/src/components/brand/BrandLogo.tsx": "Reusable brand logo component with size variants (sm/md/lg), error handling, and graceful fallback to initials when the image fails to load."
+  "frontend/src/components/brand/BrandLogo.tsx": "Reusable brand logo component with responsive size variants (sm/md/lg), robust base-path-safe URL resolution for IC deployment (supporting both relative and absolute URLs), error handling with fallback to initials, development-only log-once error diagnostics, and automatic error state reset when logo source changes.",
+  "frontend/public/site.webmanifest": "Web manifest configuration file referencing the new photo-based app icon for PWA support and home screen installation."
 }

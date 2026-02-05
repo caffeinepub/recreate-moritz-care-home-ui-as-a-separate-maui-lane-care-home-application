@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-centralized-branding-configuration-so-all-in-app-logo-renders-including-the-sign-in-screen-and-the-authenticated-app-header-use-the-newly-generated-logo-asset-derived-from-mauilanecarehome-0-1-png",
-      "featureTitle": "Update the centralized branding configuration so all in-app logo renders (including the sign-in screen and the authenticated app header) use the newly generated logo asset derived from \"MauiLaneCareHome 0-1.png\".",
+      "featureId": "feature-update-the-branding-configuration-so-the-global-logo-path-points-to-assets-generated-mauilanecarehome-4-jpg-replacing-the-current-logo-path-so-brandlogo-renders-this-uploaded-image-everywhere-it-is-used",
+      "featureTitle": "Update the branding configuration so the global logo path points to \"assets/generated/MauiLaneCareHome-4.jpg\" (replacing the current logo path) so BrandLogo renders this uploaded image everywhere it is used.",
       "files": [
         "frontend/src/lib/brand.ts"
       ],
@@ -17,25 +17,6 @@
       ],
       "testIds": [
         "REQ-21"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-set-the-application-icon-to-the-new-maui-lane-logo-derived-from-mauilanecarehome-0-1-png-by-updating-the-html-head-to-include-favicon-and-touch-app-icon-links-that-reference-the-generated-assets-in-frontend-public-assets-generated",
-      "featureTitle": "Set the application icon to the new Maui Lane logo derived from \"MauiLaneCareHome 0-1.png\" by updating the HTML head to include favicon and touch/app icon links that reference the generated assets in frontend/public/assets/generated/.",
-      "files": [
-        "frontend/index.html"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-22"
       ],
       "confidence": "high"
     }

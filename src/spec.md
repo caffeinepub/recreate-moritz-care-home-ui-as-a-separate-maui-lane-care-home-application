@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Replace all Maui Lane logos throughout the app (including favicon/app icons) with assets derived from the user-provided image "MauiLaneCareHome 0-1.png".
+**Goal:** Use the uploaded `MauiLaneCareHome-4.jpg` as the application logo on the login page and authenticated header.
 
 **Planned changes:**
-- Generate new static logo/icon image files (primary logo + favicon/touch/app icon sizes) under `frontend/public/assets/generated/` with consistent filenames, derived from `MauiLaneCareHome 0-1.png`.
-- Update the centralized branding config to point all in-app logo renders (e.g., sign-in screen and authenticated header) to the new generated primary logo via an absolute `/assets/generated/...` path.
-- Update `frontend/index.html` to reference the new generated favicon (32x32) and Apple touch/app icons using absolute `/assets/generated/...` paths.
+- Add `MauiLaneCareHome-4.jpg` to `frontend/public/assets/generated/` so it is reliably served in IC deployments.
+- Update the branding configuration to set the global `logoPath` to `assets/generated/MauiLaneCareHome-4.jpg`.
+- Ensure the login/sign-in screen (ProtectedGate) and authenticated header (MauiAppShell) render the logo via the existing `BrandLogo` component, preserving sizing and fallback behavior.
 
-**User-visible outcome:** The new Maui Lane logo appears everywhere in the UI where the logo is shown, and the browser tab/app icons update to the new Maui Lane logo after a hard refresh.
+**User-visible outcome:** When logged out, the login card shows the Maui Lane Care Home logo image; when logged in, the sticky header shows the same logo, with no broken-image icons in production.

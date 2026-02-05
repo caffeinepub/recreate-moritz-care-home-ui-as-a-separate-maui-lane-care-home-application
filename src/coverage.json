@@ -1,30 +1,27 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T03:50:34.134Z",
+  "generatedAt": "2026-02-05T04:49:40.194Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 2,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-20",
-        "summary": "Generate new Maui Lane Care Home logo image assets from the uploaded image \"MauiLaneCareHome 0-1.png\" and add them as static files under frontend/public/assets/generated/ with consistent, explicit filenames for use across the app (primary logo + favicon/app-icon sizes).",
+        "summary": "Add the uploaded image file \"MauiLaneCareHome-4.jpg\" to the frontend static assets so it is served reliably in IC deployments (place it under frontend/public/assets/generated/).",
         "status": "missing",
         "plannedFiles": [
-          "frontend/public/assets/generated/maui-lane-logo.v3.dim_512x512.png",
-          "frontend/public/assets/generated/maui-lane-favicon.v1.dim_32x32.png",
-          "frontend/public/assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png",
-          "frontend/public/assets/generated/maui-lane-app-icon.v1.dim_192x192.png"
+          "frontend/public/assets/generated/MauiLaneCareHome-4.jpg"
         ],
         "matchedFiles": []
       },
       {
         "id": "REQ-21",
-        "summary": "Update the centralized branding configuration so all in-app logo renders (including the sign-in screen and the authenticated app header) use the newly generated logo asset derived from \"MauiLaneCareHome 0-1.png\".",
+        "summary": "Update the branding configuration so the global logo path points to \"assets/generated/MauiLaneCareHome-4.jpg\" (replacing the current logo path) so BrandLogo renders this uploaded image everywhere it is used.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/lib/brand.ts"
@@ -35,14 +32,13 @@
       },
       {
         "id": "REQ-22",
-        "summary": "Set the application icon to the new Maui Lane logo derived from \"MauiLaneCareHome 0-1.png\" by updating the HTML head to include favicon and touch/app icon links that reference the generated assets in frontend/public/assets/generated/.",
-        "status": "implemented",
+        "summary": "Ensure the login/sign-in screen (ProtectedGate) and the authenticated header (MauiAppShell) display the uploaded logo image via the existing BrandLogo component, without regressions to sizing or fallback behavior.",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/index.html"
+          "frontend/src/components/auth/ProtectedGate.tsx",
+          "frontend/src/components/maui/MauiAppShell.tsx"
         ],
-        "matchedFiles": [
-          "frontend/index.html"
-        ]
+        "matchedFiles": []
       }
     ]
   },
@@ -51,11 +47,6 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
-    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-app-icon.v1.dim_192x192.png",
-    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png",
-    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-favicon.v1.dim_32x32.png",
-    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-logo.v3.dim_512x512.png",
     "frontend/src/lib/brand.ts",
     "project_state.json",
     "scratch/component-selection.json",

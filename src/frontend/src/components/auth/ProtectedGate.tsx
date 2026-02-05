@@ -29,12 +29,14 @@ export function ProtectedGate({ children }: ProtectedGateProps) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="mb-4 flex justify-center">
+          <CardHeader className="text-center space-y-4">
+            <div className="flex justify-center">
               <BrandLogo size="lg" />
             </div>
-            <CardTitle className="text-2xl">Welcome to {BRAND.name}</CardTitle>
-            <CardDescription>Please sign in to access the application</CardDescription>
+            <div className="space-y-2">
+              <CardTitle className="text-3xl font-bold">{BRAND.name}</CardTitle>
+              <CardDescription>Please sign in to access the application</CardDescription>
+            </div>
           </CardHeader>
           <CardContent>
             <Button

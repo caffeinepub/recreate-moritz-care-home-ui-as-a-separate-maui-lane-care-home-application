@@ -1,67 +1,56 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Swap Maui Lane branding to user-provided logo (including favicon/app icons)",
+  "title": "Use uploaded MauiLaneCareHome-4.jpg as logo on login page and header",
   "requirements": [
     {
       "id": "REQ-20",
-      "summary": "Add generated static logo/icon assets derived from MauiLaneCareHome 0-1.png under frontend/public/assets/generated/ with explicit filenames and required sizes.",
+      "summary": "Add uploaded MauiLaneCareHome-4.jpg to frontend static assets under frontend/public/assets/generated for reliable IC serving.",
       "acceptanceCriteria": [
-        "New logo assets exist in frontend/public/assets/generated/ derived from \"MauiLaneCareHome 0-1.png\" at the required sizes (at minimum: 512x512 for primary logo, 32x32 for favicon, 180x180 for Apple touch icon, 192x192 for app icon).",
-        "All generated files are referenced via absolute public paths (e.g., /assets/generated/...) and load without 404s in the running app."
+        "The file exists at frontend/public/assets/generated/MauiLaneCareHome-4.jpg in the codebase.",
+        "The image is accessible at runtime via the app’s BASE_URL-prefixed path (no 404 in browser network panel)."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/maui-lane-logo.v3.dim_512x512.png",
+          "path": "frontend/public/assets/generated/MauiLaneCareHome-4.jpg",
           "operation": "create",
-          "description": "Create square primary logo asset derived from the uploaded \"MauiLaneCareHome 0-1.png\" at 512x512 for in-app branding and header usage."
-        },
-        {
-          "path": "frontend/public/assets/generated/maui-lane-favicon.v1.dim_32x32.png",
-          "operation": "create",
-          "description": "Create favicon asset derived from the uploaded \"MauiLaneCareHome 0-1.png\" at 32x32 for browser tab icon usage."
-        },
-        {
-          "path": "frontend/public/assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png",
-          "operation": "create",
-          "description": "Create Apple touch icon asset derived from the uploaded \"MauiLaneCareHome 0-1.png\" at 180x180 for iOS homescreen usage."
-        },
-        {
-          "path": "frontend/public/assets/generated/maui-lane-app-icon.v1.dim_192x192.png",
-          "operation": "create",
-          "description": "Create app icon asset derived from the uploaded \"MauiLaneCareHome 0-1.png\" at 192x192 for app icon/PWA-related usage."
+          "description": "Add the uploaded logo image file to the committed static assets directory so it is served by the frontend in IC deployments."
         }
       ]
     },
     {
       "id": "REQ-21",
-      "summary": "Update centralized branding config so all in-app logo renders use the new generated primary logo asset.",
+      "summary": "Update global branding configuration to point the logoPath to assets/generated/MauiLaneCareHome-4.jpg so BrandLogo renders it everywhere.",
       "acceptanceCriteria": [
-        "frontend/src/lib/brand.ts points BRAND.logo.path to the new generated 512x512 logo asset path under /assets/generated/.",
-        "The login (ProtectedGate) and header (MauiAppShell) display the new logo (no old logo visible anywhere those surfaces render).",
-        "BrandLogo fallback initials are not shown when assets are present (no image load error)."
+        "frontend/src/lib/brand.ts uses logoPath: \"assets/generated/MauiLaneCareHome-4.jpg\".",
+        "No other code path overrides the logo on the login screen or header."
       ],
       "file_operations": [
         {
           "path": "frontend/src/lib/brand.ts",
           "operation": "modify",
-          "description": "Update BRAND.logo.path to reference the new static public path /assets/generated/maui-lane-logo.v3.dim_512x512.png so BrandLogo renders the updated image everywhere it is used (e.g., ProtectedGate and MauiAppShell)."
+          "description": "Replace the current BRAND.logoPath value with \"assets/generated/MauiLaneCareHome-4.jpg\" so BrandLogo resolves the new asset via BASE_URL consistently."
         }
       ]
     },
     {
       "id": "REQ-22",
-      "summary": "Set favicon and touch/app icon links in the HTML head to reference the generated logo assets.",
+      "summary": "Ensure ProtectedGate (logged out) and MauiAppShell header (logged in) show the uploaded logo via the existing BrandLogo with correct sizing and fallback behavior.",
       "acceptanceCriteria": [
-        "frontend/index.html includes a favicon link referencing the new 32x32 logo asset under /assets/generated/.",
-        "frontend/index.html includes an apple-touch-icon link referencing the new 180x180 logo asset under /assets/generated/.",
-        "Reloading the app shows the new icon in the browser tab (favicon) after cache refresh/hard reload."
+        "When logged out, the login card shows MauiLaneCareHome-4.jpg as the large logo (no initials fallback unless the image fails to load).",
+        "When logged in, the sticky header shows MauiLaneCareHome-4.jpg as the small logo.",
+        "No broken-image icon appears on either screen in a production build."
       ],
       "file_operations": [
         {
-          "path": "frontend/index.html",
+          "path": "frontend/src/components/auth/ProtectedGate.tsx",
           "operation": "modify",
-          "description": "Add/update head link tags to reference the static assets at /assets/generated/maui-lane-favicon.v1.dim_32x32.png (favicon) and /assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png (apple-touch-icon); ensure these load as static public assets without routing through the backend."
+          "description": "Verify the login/sign-in screen continues to render the logo using the existing BrandLogo component (size \"lg\") and that no local override changes the logo source or breaks BASE_URL compatibility."
+        },
+        {
+          "path": "frontend/src/components/maui/MauiAppShell.tsx",
+          "operation": "modify",
+          "description": "Verify the authenticated header continues to render the logo using the existing BrandLogo component (size \"sm\") and that no local override changes the logo source or breaks BASE_URL compatibility."
         }
       ]
     }

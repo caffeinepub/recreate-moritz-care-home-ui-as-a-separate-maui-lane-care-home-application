@@ -1,33 +1,24 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T03:50:34.094Z",
-  "summary": "The diff updates branding configuration (BRAND.logo.path) and updates frontend/index.html to reference new favicon and apple-touch-icon assets under /assets/generated. However, the required generated image files are not added in this diff, and the 192x192 app icon link is not present in index.html. Evidence is insufficient to confirm that all in-app logo renders (login/header) now display the new logo beyond the brand config change.",
+  "generatedAt": "2026-02-05T04:49:40.150Z",
+  "summary": "Diff updates branding config to point logoPath to assets/generated/MauiLaneCareHome-4.jpg, but does not add the requested JPG asset file and provides no direct evidence of login/header rendering behavior changes beyond the shared brand config.",
   "missing_requirements": [
     {
       "id": "REQ-20",
-      "requirement": "Generate new Maui Lane Care Home logo image assets from the uploaded image \"MauiLaneCareHome 0-1.png\" and add them as static files under frontend/public/assets/generated/ (at minimum: 512x512 primary logo, 32x32 favicon, 180x180 Apple touch icon, 192x192 app icon).",
-      "reason": "No new static image files were added under frontend/public/assets/generated/ in the provided diff (Added files: none), so the required generated assets are not evidenced as present.",
+      "requirement": "Add the uploaded image file \"MauiLaneCareHome-4.jpg\" under frontend/public/assets/generated/ so it is served reliably in IC deployments.",
+      "reason": "The diff shows no added files; therefore the required static asset file is not present in the changes, and runtime accessibility (BASE_URL-prefixed) cannot be satisfied from this diff.",
       "evidence": [
-        "<file-diff>: Added: 0, Modified: 4, Removed: 0",
-        "frontend/src/lib/brand.ts (references /assets/generated/maui-lane-logo.v3.dim_512x512.png but file not shown as added)",
-        "frontend/index.html (references /assets/generated/maui-lane-favicon.v1.dim_32x32.png and /assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png but files not shown as added)"
-      ]
-    },
-    {
-      "id": "REQ-21",
-      "requirement": "Ensure all in-app logo renders (including sign-in screen and authenticated app header) use the newly generated logo asset via centralized branding configuration, with no fallback initials shown when assets are present.",
-      "reason": "The centralized branding path was updated, but there are no code changes shown for the components that render the logo (e.g., ProtectedGate, MauiAppShell, BrandLogo) to verify they pick up the new path and that no fallback initials appear due to image load errors.",
-      "evidence": [
-        "frontend/src/lib/brand.ts"
+        "<file-diff>: ADDED FILES: none"
       ]
     },
     {
       "id": "REQ-22",
-      "requirement": "Set the application icon by updating the HTML head to include favicon and touch/app icon links referencing generated assets (favicon 32x32, apple-touch-icon 180x180, and app icon 192x192).",
-      "reason": "index.html includes favicon and apple-touch-icon links, but there is no link for the required 192x192 app icon asset in the provided HTML.",
+      "requirement": "Ensure the login/sign-in screen (ProtectedGate) and authenticated header (MauiAppShell) display the uploaded logo via the existing BrandLogo component, without sizing/fallback regressions.",
+      "reason": "The diff does not include modifications to ProtectedGate or MauiAppShell, and only shows a change to frontend/src/lib/brand.ts. From the diff alone, there is no direct evidence that both screens use BrandLogo in the intended way and that sizing/fallback behavior is preserved.",
       "evidence": [
-        "frontend/index.html"
+        "frontend/src/lib/brand.ts",
+        "frontend-file-summaries.txt (shows ProtectedGate.tsx and MauiAppShell.tsx descriptions but no code diff confirming behavior)"
       ]
     }
   ],
@@ -35,7 +26,6 @@
   "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/index.html",
     "frontend/src/lib/brand.ts",
     "project_state.json"
   ]

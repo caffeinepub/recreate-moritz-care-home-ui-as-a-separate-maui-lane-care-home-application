@@ -22,7 +22,7 @@ export function MauiAppShell() {
       <header className="no-print sticky top-0 z-50 border-b bg-card shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <BrandLogo size="md" />
+            <BrandLogo size="sm" />
             <h1 className="text-xl font-semibold text-foreground">{BRAND.name}</h1>
           </div>
           <div className="flex items-center gap-4">
