@@ -1,34 +1,77 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:58:35.818Z",
+  "generatedAt": "2026-02-05T01:23:26.823Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 3,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-6",
-        "summary": "Fix the Maui Lane Care Home header logo so it reliably loads and displays in `frontend/src/components/maui/MauiAppShell.tsx` in both local development and production deployments (including when the app is hosted under a non-root base URL). Ensure the logo source path is constructed safely with `import.meta.env.BASE_URL` (no double/missing slashes), references only existing files under `frontend/public/assets/generated/`, and that the fallback behavior displays the app icon if the logo fails to load.",
+        "summary": "Replace the current \"Daily vitals tracking coming soon...\" placeholder in `frontend/src/pages/maui/residents/ResidentProfile.tsx` (Daily Vitals tab) with a functional Daily Vitals tracking UI that matches the provided reference image, including a \"Record Daily Vitals\" modal dialog for data entry.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/maui/MauiAppShell.tsx"
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+          "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/maui/MauiAppShell.tsx"
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+          "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx"
+        ]
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Implement backend persistence for vitals records in the single Motoko actor (`backend/main.mo`), including authenticated CRUD needed by the UI: create a vitals entry for a resident, list vitals entries for a resident, and delete a vitals entry for a resident.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Wire the Daily Vitals tab UI to the backend using React Query (queries + mutations) so that: recording vitals creates a persistent entry, the tab displays the resident’s recorded vitals history, and deleting an entry updates the UI immediately after success.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+          "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "frontend/src/backend.d.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+          "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "frontend/src/backend.d.ts"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/authorization/MixinAuthorization.mo",
+    "backend/authorization/access-control.mo",
+    "backend/main.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/maui/MauiAppShell.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+    "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+    "frontend/src/utils/urlParams.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,29 +1,80 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:58:35.772Z",
-  "summary": "REQ-6 appears implemented in MauiAppShell.tsx: the logo URL is constructed using import.meta.env.BASE_URL with safe slash handling, it references assets under frontend/public/assets/generated/, and an onError fallback swaps to the app icon without retry/flicker. No missing REQ-6 acceptance criteria are evident from the provided diff summary. Two ancillary files were modified that were not requested by the BuildRequest.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-05T01:23:26.784Z",
+  "summary": "REQ-6/7/8 are only partially implemented. Frontend adds a vitals dialog and history list components and replaces the placeholder, but backend vitals persistence and resident-specific wiring are incorrect/incomplete. Additionally, immutable hook path constraints were violated and unrelated URL-parameter/admin-token handling was introduced.",
+  "missing_requirements": [
     {
-      "description": "Updated repository metadata/summary files (frontend-file-summaries.txt)",
-      "reason": "BuildRequest only asks to fix the header logo loading behavior in MauiAppShell.tsx; updating a file-summary artifact was not requested.",
+      "id": "REQ-7",
+      "requirement": "Backend must persist vitals records per resident: add a vitals entry for a given residentId, list vitals entries for a given residentId, and delete a vitals entry by an entry identifier.",
+      "reason": "Backend methods are implemented without any residentId parameter and are keyed off `caller` instead. Also `createVitalsEntry` does not actually append/store the provided record (it replaces state with an empty list).",
       "evidence": [
-        "frontend-file-summaries.txt"
+        "backend/main.mo"
       ]
     },
     {
-      "description": "Updated project state tracking (project_state.json)",
-      "reason": "BuildRequest does not request changes to project state/versioning metadata; only the logo loading fix is specified.",
+      "id": "REQ-7",
+      "requirement": "List vitals entries for a resident in newest-first order or clearly document the order.",
+      "reason": "Backend `listVitalsEntries` simply returns `vitals.toArray()` with no sorting and no documented ordering guarantee in the diff.",
       "evidence": [
-        "project_state.json"
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Vitals history must be resident-specific (switching residents shows different vitals histories).",
+      "reason": "React Query query key is a constant `['vitalsEntries']` and hooks call backend methods that do not take `residentId`; `ResidentProfile` calls `useListVitalsEntries()` without passing residentId.",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "requirement": "Deleting an entry must use an entry identifier that matches backend API and update UI accordingly.",
+      "reason": "Frontend delete mutation calls `actor.deleteVitalsEntry(timestamp)` with a `bigint` timestamp, while backend signature is `deleteVitalsEntry(timestamp : Int)`. This mismatch suggests deletion wiring is not correctly implemented as specified (entry identifier contract is inconsistent).",
+      "evidence": [
+        "frontend/src/hooks/useQueries.ts",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "requirement": "Modal field set must match the reference: include respiratory rate, oxygen saturation, optional blood glucose, measurement date, measurement time, optional notes; required fields visibly indicated and enforced (all required except Blood Glucose and Notes).",
+      "reason": "The dialog state includes fields for respiratory rate, blood glucose, notes, date, time, but the submitted `VitalsRecord` only includes timestamp, temperature, bloodPressure, pulse, bloodOxygen—no respiratory rate, blood glucose, or notes are persisted. Also the truncated diff does not show visible required indicators for fields (only a toast validation message and description text).",
+      "evidence": [
+        "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+        "backend/main.mo"
       ]
     }
   ],
-  "confidence": 0.74,
+  "hallucinated_features": [
+    {
+      "description": "Introduced URL parameter/sessionStorage utilities unrelated to daily vitals tracking.",
+      "reason": "BuildRequest does not request any URL parameter parsing/session persistence utilities; a new `urlParams.ts` is added and appears aimed at persisting tokens/params.",
+      "evidence": [
+        "frontend/src/utils/urlParams.ts"
+      ]
+    },
+    {
+      "description": "Modified an immutable hook path (`frontend/src/hooks/useActor.ts`) and added admin-token initialization logic.",
+      "reason": "BuildRequest constraints explicitly forbid editing `frontend/src/hooks/useActor.ts`. The diff modifies it substantially and introduces `caffeineAdminToken` handling and calls `_initializeAccessControlWithSecret`, which is not part of REQ-6/7/8.",
+      "evidence": [
+        "frontend/src/hooks/useActor.ts"
+      ]
+    }
+  ],
+  "confidence": 0.78,
   "changed_files": [
+    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/maui/MauiAppShell.tsx",
+    "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+    "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+    "frontend/src/utils/urlParams.ts",
     "project_state.json"
   ]
 }

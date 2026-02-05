@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 65,
+  "projectStateVersion": 73,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "existing_features": [
     {
@@ -210,10 +210,18 @@
       "version": 1
     },
     {
-      "id": "feature-fix-the-maui-lane-care-home-header-logo-so-it-reliably-loads-and-displays-in-frontend-src-components-maui-mauiappshell-tsx-in-both-local-development-and-production-deployments-including-when-the-app-is-hosted-under-a-non-root-base-url-ensure-the-logo-source-path-is-constructed-safely-with-import-meta-env-base-url-no-double-missing-slashes-references-only-existing-files-under-frontend-public-assets-generated-and-that-the-fallback-behavior-displays-the-app-icon-if-the-logo-fails-to-load",
-      "title": "Fix the Maui Lane Care Home header logo so it reliably loads and displays in `frontend/src/components/maui/MauiAppShell.tsx` in both local development and production deployments (including when the app is hosted under a non-root base URL). Ensure the logo source path is constructed safely with `import.meta.env.BASE_URL` (no double/missing slashes), references only existing files under `frontend/public/assets/generated/`, and that the fallback behavior displays the app icon if the logo fails to load.",
+      "id": "feature-replace-the-current-daily-vitals-tracking-coming-soon-placeholder-in-frontend-src-pages-maui-residents-residentprofile-tsx-daily-vitals-tab-with-a-functional-daily-vitals-tracking-ui-that-matches-the-provided-reference-image-including-a-record-daily-vitals-modal-dialog-for-data-entry",
+      "title": "Replace the current \"Daily vitals tracking coming soon...\" placeholder in `frontend/src/pages/maui/residents/ResidentProfile.tsx` (Daily Vitals tab) with a functional Daily Vitals tracking UI that matches the provided reference image, including a \"Record Daily Vitals\" modal dialog for data entry.",
       "reqIds": [
         "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-daily-vitals-tab-ui-to-the-backend-using-react-query-queries-mutations-so-that-recording-vitals-creates-a-persistent-entry-the-tab-displays-the-resident-s-recorded-vitals-history-and-deleting-an-entry-updates-the-ui-immediately-after-success",
+      "title": "Wire the Daily Vitals tab UI to the backend using React Query (queries + mutations) so that: recording vitals creates a persistent entry, the tab displays the resident’s recorded vitals history, and deleting an entry updates the UI immediately after success.",
+      "reqIds": [
+        "REQ-8"
       ],
       "version": 1
     }
@@ -251,20 +259,28 @@
     },
     {
       "id": "AR-7",
-      "summary": "Remove the Moritz reference-capture entry/link from the homepage next to the Dashboard in the Maui Lane app shell/navigation.",
+      "summary": "Enable resident deletion and support discharge/active status toggling from the residents dashboard (matching the provided reference UI).",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-8",
-      "summary": "Support resident lifecycle actions from the dashboard: delete resident and toggle resident status between Active and Discharged.",
+      "summary": "Remove the Moritz reference-capture UI/link from the home page (beside the Dashboard) in the Maui Lane Care Home app.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-9",
-      "summary": "Allow replacing the app logo and icon with a user-uploaded image and apply it consistently across the application (app shell + favicon/app icon usage).",
+      "summary": "Enable Vitals Tracking in the Maui Lane Care Home app to match the layout/behavior shown in the provided reference image.",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Implement backend persistence for vitals records in the single Motoko actor (`backend/main.mo`), including authenticated CRUD needed by the UI: create a vitals entry for a resident, list vitals entries for a resident, and delete a vitals entry for a resident.",
+      "reqIds": [
+        "REQ-7"
+      ],
       "status": "pending"
     }
   ],
@@ -281,9 +297,9 @@
     "Frontend: Added Maui residents add/edit dialogs (AddNewResidentDialog/EditResidentInformationDialog) as UI-only components pending backend persistence/integration."
   ],
   "known_issues": [
-    "Uploaded/replaced logo asset is not loading/showing in the UI (app shell/icon)."
+    "Uploaded/replaced Maui Lane logo is not appearing/loading across application pages (regression persists after multiple deploys)."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "generatedImages": [
     {
       "filename": "frontend/public/assets/generated/maui-lane-app-icon.dim_256x256.png",

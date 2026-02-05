@@ -1,10 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Maui Lane Care Home header logo so it reliably loads in `frontend/src/components/maui/MauiAppShell.tsx` across local dev and production, including non-root base URLs, with a stable fallback to the app icon.
+**Goal:** Replace the “Daily vitals tracking coming soon...” placeholder with a functional Daily Vitals tracking feature (record modal + vitals history list) on the Resident Profile page.
 
 **Planned changes:**
-- Update header logo URL construction to safely prefix with `import.meta.env.BASE_URL` (avoiding double/missing slashes) and point only to existing files in `frontend/public/assets/generated/`.
-- Implement image error handling so if `maui-lane-logo.dim_512x512.png` fails to load, the header switches once to `maui-lane-app-icon.dim_256x256.png` without retry loops or flicker.
+- Update `frontend/src/pages/maui/residents/ResidentProfile.tsx` (Daily Vitals tab) to display a vitals history list and a “Record Daily Vitals” action that opens a modal.
+- Implement a “Record Daily Vitals” modal matching the provided reference layout/fields: temperature (with unit selector), blood pressure (systolic/diastolic), pulse rate, respiratory rate, oxygen saturation, optional blood glucose, measurement date, measurement time, optional notes, and Cancel/Record actions (plus close icon).
+- Enforce validation: all fields required except Blood Glucose and Notes; clearly indicate required fields.
+- Add backend persistence in `backend/main.mo` for vitals entries with authenticated methods to create, list (resident-specific), and delete entries.
+- Wire the Daily Vitals UI to the backend via React Query (queries + mutations) with success/error toasts; update the list immediately on create/delete.
 
-**User-visible outcome:** The app header consistently shows the Maui Lane logo without broken-image UI, and automatically shows the app icon if the logo can’t be loaded, even when hosted under a non-root base path.
+**User-visible outcome:** Users can record a resident’s daily vitals in a modal, see a resident-specific vitals history list, and delete vitals entries, with data persisting across refreshes.

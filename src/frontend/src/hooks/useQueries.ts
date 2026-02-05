@@ -1,14 +1,54 @@
-// This file is reserved for React Query hooks that interact with the backend
-// Currently, the backend has no methods, so no queries are needed yet
-// Example structure:
-// export function useGetData() {
-//   const { actor, isFetching } = useActor();
-//   return useQuery({
-//     queryKey: ['data'],
-//     queryFn: async () => {
-//       if (!actor) return [];
-//       return actor.getData();
-//     },
-//     enabled: !!actor && !isFetching,
-//   });
-// }
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useActor } from './useActor';
+import type { VitalsRecord } from '../backend';
+
+// Vitals Queries
+export function useListVitalsEntries() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  const query = useQuery<VitalsRecord[]>({
+    queryKey: ['vitalsEntries'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.listVitalsEntries();
+    },
+    enabled: !!actor && !actorFetching,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
+export function useCreateVitalsEntry() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (record: VitalsRecord) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.createVitalsEntry(record);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vitalsEntries'] });
+    },
+  });
+}
+
+export function useDeleteVitalsEntry() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (timestamp: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.deleteVitalsEntry(timestamp);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vitalsEntries'] });
+    },
+  });
+}

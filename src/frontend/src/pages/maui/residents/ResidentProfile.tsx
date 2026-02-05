@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { ArrowLeft, Printer, Edit, User, Stethoscope, Building2, Users, FileText, Pill } from 'lucide-react';
+import { ArrowLeft, Printer, Edit, User, Stethoscope, Building2, Users, FileText, Pill, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,16 +14,23 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { EditResidentInformationDialog, EditResidentFormData } from '@/components/maui/residents/EditResidentInformationDialog';
 import { ResidentProfilePrintReport } from './ResidentProfilePrintReport';
+import { RecordDailyVitalsDialog } from '@/components/maui/residents/vitals/RecordDailyVitalsDialog';
+import { VitalsHistoryList } from '@/components/maui/residents/vitals/VitalsHistoryList';
+import { useListVitalsEntries } from '@/hooks/useQueries';
 
 export function ResidentProfile() {
   const navigate = useNavigate();
   const { residentId } = useParams({ from: '/resident/$residentId' });
   const [includeSignature, setIncludeSignature] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [vitalsDialogOpen, setVitalsDialogOpen] = useState(false);
 
   const initialProfileData = getResidentProfileData(Number(residentId));
   const [profileData, setProfileData] = useState<ResidentProfileData | null>(initialProfileData);
   const medications = getResidentMedications(Number(residentId));
+
+  // Fetch vitals data
+  const { data: vitalsData = [], isLoading: vitalsLoading } = useListVitalsEntries();
 
   if (!profileData) {
     return (
@@ -434,10 +441,18 @@ export function ResidentProfile() {
           <TabsContent value="vitals" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Daily Vitals</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" />
+                    Daily Vitals
+                  </CardTitle>
+                  <Button onClick={() => setVitalsDialogOpen(true)} size="sm">
+                    Record Daily Vitals
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">Daily vitals tracking coming soon...</p>
+                <VitalsHistoryList vitals={vitalsData} isLoading={vitalsLoading} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -472,6 +487,9 @@ export function ResidentProfile() {
           initialValues={getFormDataFromProfile()}
           onSave={handleSaveProfile}
         />
+
+        {/* Record Daily Vitals Dialog */}
+        <RecordDailyVitalsDialog open={vitalsDialogOpen} onOpenChange={setVitalsDialogOpen} />
       </div>
 
       {/* Print Report (hidden on screen, visible when printing) */}
