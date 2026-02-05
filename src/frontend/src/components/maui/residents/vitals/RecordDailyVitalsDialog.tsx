@@ -15,14 +15,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateVitalsEntry } from '@/hooks/useQueries';
 import { toast } from 'sonner';
-import type { VitalsRecord } from '@/backend';
+import type { VitalsRecord, ResidentId } from '@/backend';
 
 interface RecordDailyVitalsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  residentId: ResidentId;
 }
 
-export function RecordDailyVitalsDialog({ open, onOpenChange }: RecordDailyVitalsDialogProps) {
+export function RecordDailyVitalsDialog({ open, onOpenChange, residentId }: RecordDailyVitalsDialogProps) {
   const createVitals = useCreateVitalsEntry();
 
   const [temperature, setTemperature] = useState('98.6');
@@ -91,7 +92,7 @@ export function RecordDailyVitalsDialog({ open, onOpenChange }: RecordDailyVital
     };
 
     try {
-      await createVitals.mutateAsync(record);
+      await createVitals.mutateAsync({ residentId, record });
       toast.success('Vitals recorded successfully');
       resetForm();
       onOpenChange(false);

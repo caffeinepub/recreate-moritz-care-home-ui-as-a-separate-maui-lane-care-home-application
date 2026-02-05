@@ -14,17 +14,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useDeleteAdlRecord } from '@/hooks/useQueries';
+import { useListAdlRecords, useDeleteAdlRecord } from '@/hooks/useQueries';
 import { toast } from 'sonner';
-import type { AdlRecord, ResidentId } from '@/backend';
+import type { ResidentId } from '@/backend';
 
 interface AdlHistoryListProps {
-  adlRecords: AdlRecord[];
-  isLoading: boolean;
   residentId: ResidentId;
 }
 
-export function AdlHistoryList({ adlRecords, isLoading, residentId }: AdlHistoryListProps) {
+export function AdlHistoryList({ residentId }: AdlHistoryListProps) {
+  const { data: adlRecords = [], isLoading } = useListAdlRecords(residentId);
   const deleteAdlRecord = useDeleteAdlRecord();
 
   const handleDelete = async (timestamp: bigint) => {

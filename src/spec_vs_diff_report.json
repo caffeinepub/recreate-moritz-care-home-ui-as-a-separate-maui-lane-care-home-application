@@ -1,30 +1,93 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T02:21:36.882Z",
-  "summary": "REQ-9 and REQ-10 appear implemented: the Maui app shell header is now text-only with no logo <img>, and the HTML entrypoint no longer references the generated Maui icon as a favicon. Some unrelated UI behavior may have been changed (navigation and footer content) that was not requested.",
-  "missing_requirements": [],
-  "hallucinated_features": [
+  "generatedAt": "2026-02-05T03:01:46.397Z",
+  "summary": "Diff adds a new backend Residents Directory type and some canister APIs plus frontend React Query wiring for listing/creating residents with principal-scoped query keys. However, evidence for stable persistent storage and resident delete/status-toggle/update backend methods is incomplete/absent in the provided diff excerpt, and several unrelated UI/branding changes appear beyond the stated scope.",
+  "missing_requirements": [
     {
-      "description": "Navigation change: MauiNav now displays only the Dashboard tab and removes the Reference Capture link.",
-      "reason": "The BuildRequest only asked to remove logo/icon rendering in the header and remove the generated app-icon favicon reference; it did not request navigation changes.",
+      "id": "REQ-12",
+      "requirement": "Backend Residents Directory must be stored in stable canister state so deletions persist across sessions (not just in-memory).",
+      "reason": "The diff shows `let residentsDirectory = Map.empty<ResidentId, Resident>();` with no visible `stable` state, `preupgrade/postupgrade`, or other stable persistence mechanism for the directory in the shown excerpt.",
       "evidence": [
-        "frontend-file-summaries.txt (\"frontend/src/components/maui/MauiNav.tsx\": \"Navigation component displaying only the Dashboard tab... with the Reference Capture link removed.\")"
+        "backend/main.mo"
       ]
     },
     {
-      "description": "Footer content includes a marketing-style line and external link (\"Built with love using caffeine.ai\").",
-      "reason": "The BuildRequest did not ask for footer content or external links; only header logo/icon removal and favicon changes.",
+      "id": "REQ-12",
+      "requirement": "Backend must implement Residents Directory delete resident method such that deleted residents never reappear after sign-out/sign-in.",
+      "reason": "The provided `backend/main.mo` excerpt shows `createResident`, `listActiveResidents`, and `getResident`, but does not show any `deleteResident` method implementation; the file is truncated before any delete method appears.",
       "evidence": [
-        "frontend/src/components/maui/MauiAppShell.tsx"
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "requirement": "Backend must implement Residents Directory update (including status toggle).",
+      "reason": "`backend/main.mo` shows the start of an `update` function (`public shared ({ caller }) func updat...`) but the implementation is truncated; no concrete evidence of update/status-toggle behavior is present in the diff excerpt.",
+      "evidence": [
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "requirement": "Deleting a resident also removes or invalidates any Residents Directory entry so it cannot be reconstructed from defaults/mocks on the backend.",
+      "reason": "Because the backend delete behavior is not visible in the provided diff excerpt, there is no evidence that deletion removes/invalidates the resident directory entry in stable state.",
+      "evidence": [
+        "backend/main.mo"
       ]
     }
   ],
-  "confidence": 0.74,
+  "hallucinated_features": [
+    {
+      "description": "Sign-out handler clears the entire React Query cache (`queryClient.clear()`).",
+      "reason": "The BuildRequest requires principal-scoped query keys to avoid cross-login cache reuse, but does not request globally clearing all cached queries on sign-out.",
+      "evidence": [
+        "frontend/src/components/maui/MauiAppShell.tsx"
+      ]
+    },
+    {
+      "description": "Large set of UI behavior/content changes in MAR/ADL/Vitals components (dialogs/history lists) unrelated to resident deletion persistence.",
+      "reason": "BuildRequest non-goals request avoiding unrelated Maui UI redesign beyond what is necessary to stop deleted residents from reappearing; these changes appear outside the residents directory persistence/caching scope.",
+      "evidence": [
+        "frontend/src/components/maui/residents/adl/AdlHistoryList.tsx",
+        "frontend/src/components/maui/residents/mar/AddMarRecordDialog.tsx",
+        "frontend/src/components/maui/residents/mar/MarHistoryList.tsx",
+        "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+        "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx"
+      ]
+    },
+    {
+      "description": "Branding/navigation/print styling work (e.g., footer copy, reference capture page summary, global OKLCH palette/print CSS) not requested by this BuildRequest.",
+      "reason": "The BuildRequest is narrowly focused on resident deletion persistence across sign-out/sign-in; these appear to be broader UI/branding changes.",
+      "evidence": [
+        "frontend/src/components/maui/MauiAppShell.tsx",
+        "frontend-file-summaries.txt"
+      ]
+    }
+  ],
+  "confidence": 0.62,
   "changed_files": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.html",
     "frontend/src/components/maui/MauiAppShell.tsx",
+    "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
+    "frontend/src/components/maui/residents/ResidentCard.tsx",
+    "frontend/src/components/maui/residents/ResidentGrid.tsx",
+    "frontend/src/components/maui/residents/adl/AdlHistoryList.tsx",
+    "frontend/src/components/maui/residents/mar/AddMarRecordDialog.tsx",
+    "frontend/src/components/maui/residents/mar/MarHistoryList.tsx",
+    "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+    "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
+    "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
+    "frontend/src/hooks/residentQueryKeys.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/maui/Dashboard.tsx",
+    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+    "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
+    "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
+    "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
+    "frontend/src/pages/maui/residents/residentListUtils.ts",
     "project_state.json"
   ]
 }

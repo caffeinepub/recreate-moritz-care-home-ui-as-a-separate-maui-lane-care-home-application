@@ -2,6 +2,7 @@ import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Loader2 } from 'lucide-react';
+import { BRAND } from '../../lib/brand';
 
 interface ProtectedGateProps {
   children: React.ReactNode;
@@ -30,12 +31,12 @@ export function ProtectedGate({ children }: ProtectedGateProps) {
           <CardHeader className="text-center">
             <div className="mb-4 flex justify-center">
               <img
-                src="/assets/generated/maui-lane-logo.dim_512x512.png"
-                alt="Maui Lane Care Home"
+                src={BRAND.logo.path}
+                alt={BRAND.logo.alt}
                 className="h-24 w-24 object-contain"
               />
             </div>
-            <CardTitle className="text-2xl">Welcome to Maui Lane Care Home</CardTitle>
+            <CardTitle className="text-2xl">Welcome to {BRAND.name}</CardTitle>
             <CardDescription>Please sign in to access the application</CardDescription>
           </CardHeader>
           <CardContent>

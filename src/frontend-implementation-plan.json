@@ -1,36 +1,87 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Remove Maui Lane logo/icon rendering from header and favicon",
+  "title": "Residents Dashboard: use backend Residents Directory via React Query and fix cache/persistence across identity changes",
   "requirements": [
     {
-      "id": "REQ-9",
-      "summary": "Remove Maui Lane Care Home logo rendering and any fallback-to-icon behavior from the authenticated app shell header, leaving a text-only header title.",
+      "id": "REQ-14",
+      "summary": "Replace Maui Residents Dashboard mock resident state with backend-backed Residents Directory list/create/delete/status toggle via React Query; ensure identity changes refetch and do not reuse mock data or cross-principal cache.",
       "acceptanceCriteria": [
-        "The Maui app header no longer renders an image element for the logo/icon and displays the title as text only.",
-        "There is no broken image placeholder in the header on any route.",
-        "The app no longer attempts to load /assets/generated/maui-lane-logo.dim_512x512.png or /assets/generated/maui-lane-app-icon.dim_256x256.png as part of the header rendering."
+        "After deleting a resident in the UI and signing out then signing back in, the deleted resident does not reappear in the Residents Dashboard list.",
+        "On identity change (sign-out/sign-in), the Residents Dashboard resident list is refetched from the canister and reflects only the currently authenticated principal’s data.",
+        "Resident list React Query keys are scoped such that different principals do not share cached resident lists."
       ],
       "file_operations": [
         {
+          "path": "frontend/src/pages/maui/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Replace local useState(mockResidents) resident source with backend-backed React Query hooks for residents. Use the Residents Directory list hook as the single source of truth, and wire UI actions to create/delete/toggle mutations. Remove any logic that initializes or re-initializes the visible resident list from mock data."
+        },
+        {
+          "path": "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
+          "operation": "modify",
+          "description": "Update the dialog to create residents through the backend-backed create resident mutation instead of calling onAddResident with a locally fabricated resident object. Keep existing form UI, but on submit call the create mutation and close the dialog on success; ensure the residents list query invalidates/refetches so the new resident appears without manual refresh."
+        },
+        {
+          "path": "frontend/src/components/maui/residents/ResidentCard.tsx",
+          "operation": "modify",
+          "description": "Wire ResidentCard actions to work with backend resident identifiers (string/Principal text) and resident active status coming from the backend-backed view model. Ensure delete confirmation triggers the backend delete mutation and status toggle triggers the backend status toggle mutation via parent handlers."
+        },
+        {
+          "path": "frontend/src/components/maui/residents/ResidentGrid.tsx",
+          "operation": "modify",
+          "description": "Update ResidentGrid prop types to accept the backend-backed resident view model and pass the appropriate resident identifier type through to ResidentCard for delete/toggle actions."
+        },
+        {
+          "path": "frontend/src/pages/maui/residents/residentListUtils.ts",
+          "operation": "modify",
+          "description": "Update filtering/sorting/KPI utilities to operate on the backend-backed resident view model (including mapping backend 'active' to UI 'Active/Discharged'). Ensure utilities do not import or depend on mockResidents."
+        },
+        {
+          "path": "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
+          "operation": "create",
+          "description": "Create a small view-model adapter layer that maps backend Residents Directory records into the UI shape needed by the dashboard (e.g., name, derived age from birthDate, display room fallback, derived status from active). This keeps the dashboard UI stable while removing mock initialization logic."
+        },
+        {
           "path": "frontend/src/components/maui/MauiAppShell.tsx",
           "operation": "modify",
-          "description": "Remove the <img> logo element and the logo state/error fallback logic so the header renders only the text title (and preserves existing sign-out behavior and authenticated shell structure)."
+          "description": "Ensure sign-out clears React Query cached application data so residents data cannot be reused across principals. Use the authorization component guidance to clear cached data on logout (use React Query's QueryClient). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "operation": "modify",
+          "description": "Prevent broken navigation after switching dashboard resident IDs to backend identifiers by parsing the route param as a Principal text value and using a backend-backed resident fetch (or a minimal fallback) for the header/identity-dependent resident context. Keep the rest of the page unchanged unless needed to avoid crashes due to non-numeric resident IDs."
+        },
+        {
+          "path": "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
+          "operation": "modify",
+          "description": "Adjust mock profile lookup so the page does not assume the route residentId is numeric (e.g., accept a string ID and provide a safe fallback mock profile if no numeric match exists), to avoid rendering failures while the dashboard switches to backend resident IDs."
         }
       ]
     },
     {
-      "id": "REQ-10",
-      "summary": "Remove Maui Lane generated app-icon usage as the HTML favicon so the app does not reference the generated icon file in the icon link tag.",
+      "id": "REQ-15",
+      "summary": "Add Residents Directory React Query hooks (list/create/delete/update/status toggle) with principal-scoped query keys and proper invalidation/refetch behavior.",
       "acceptanceCriteria": [
-        "frontend/index.html no longer references %BASE_URL%assets/generated/maui-lane-app-icon.dim_256x256.png as the favicon.",
-        "Loading the app does not trigger a favicon request for the generated Maui icon file."
+        "Resident delete mutation invalidates the resident list query and the UI updates without requiring a manual refresh.",
+        "Resident list query is disabled until an authenticated actor is available (consistent with existing patterns in useQueries.ts).",
+        "Resident list query key includes the authenticated principal so cache is not reused across logins."
       ],
       "file_operations": [
         {
-          "path": "frontend/index.html",
+          "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update the <link rel=\"icon\"> declaration to remove the reference to %BASE_URL%assets/generated/maui-lane-app-icon.dim_256x256.png (either remove the tag entirely or switch it to a non-generated default favicon path)."
+          "description": "Add Residents Directory hooks for list/create/delete/update (including status toggle) using the backend actor. Ensure: (1) list queryKey includes the authenticated principal string, (2) list query is enabled only when actor is available and identity is present (consistent with existing actorFetching pattern), and (3) all resident mutations invalidate the principal-scoped residents list query on success."
+        },
+        {
+          "path": "frontend/src/hooks/residentQueryKeys.ts",
+          "operation": "create",
+          "description": "Create a small helper module for consistent Residents Directory React Query keys (including principal scoping) to avoid accidental cross-principal cache reuse."
+        },
+        {
+          "path": "frontend/src/backend.d.ts",
+          "operation": "modify",
+          "description": "Update frontend backend type declarations as needed to reflect the new Residents Directory backend capabilities used by the new hooks (list/create/update/delete/status toggle). Keep changes limited to typing so the frontend can compile against the updated canister interface."
         }
       ]
     }

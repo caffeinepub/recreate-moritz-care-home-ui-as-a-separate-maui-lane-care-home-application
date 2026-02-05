@@ -2,15 +2,15 @@ import Map "mo:core/Map";
 import List "mo:core/List";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
+import Time "mo:core/Time";
+import Iter "mo:core/Iter";
+import Migration "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-
-
+// Enable data migration
+(with migration = Migration.run)
 actor {
-  let accessControlState = AccessControl.initState();
-  include MixinAuthorization(accessControlState);
-
   public type UserProfile = {
     name : Text;
   };
@@ -39,16 +39,404 @@ actor {
     supervisorId : Principal;
   };
 
-  type ResidentId = Principal;
+  public type ResidentId = Principal;
 
+  public type Resident = {
+    id : ResidentId;
+    name : Text;
+    birthDate : Text;
+    createdAt : Int;
+    active : Bool;
+    owner : Principal;
+  };
+
+  public type ResidentCreateRequest = {
+    id : ResidentId;
+    name : Text;
+    birthDate : Text;
+  };
+
+  public type ResidentUpdateRequest = {
+    name : Text;
+    birthDate : Text;
+  };
+
+  public type ResidentStatus = {
+    #active;
+    #terminated;
+    #unknown;
+  };
+
+  public type ResidentUpdateResult = {
+    #notFound;
+    #updated;
+  };
+
+  public type ResidentStatusUpdateResult = {
+    #notFound;
+    #activated;
+    #terminated;
+  };
+
+  let accessControlState = AccessControl.initState();
+  include MixinAuthorization(accessControlState);
+
+  let residentsDirectory = Map.empty<ResidentId, Resident>();
   let userProfiles = Map.empty<Principal, UserProfile>();
-  let residents = Map.empty<ResidentId, List.List<VitalsRecord>>();
+  let vitalsRecords = Map.empty<ResidentId, List.List<VitalsRecord>>();
   let marRecords = Map.empty<ResidentId, List.List<MarRecord>>();
   let adlRecords = Map.empty<ResidentId, List.List<AdlRecord>>();
 
+  private func canAccessResident(caller : Principal, residentId : ResidentId) : Bool {
+    if (AccessControl.isAdmin(accessControlState, caller)) {
+      return true;
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { false };
+      case (?resident) { resident.owner == caller };
+    };
+  };
+
+  //-----------------------------------
+  // Resident Management (Directory)
+  //-----------------------------------
+
+  public shared ({ caller }) func createResident(request : ResidentCreateRequest) : async Resident {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create residents");
+    };
+
+    switch (residentsDirectory.get(request.id)) {
+      case (?_) { Runtime.trap("Resident already exists") };
+      case (null) {
+        let resident : Resident = {
+          id = request.id;
+          name = request.name;
+          birthDate = request.birthDate;
+          createdAt = Time.now();
+          active = true;
+          owner = caller;
+        };
+        residentsDirectory.add(request.id, resident);
+        resident;
+      };
+    };
+  };
+
+  public query ({ caller }) func listActiveResidents() : async [Resident] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can list residents");
+    };
+
+    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
+
+    residentsDirectory.values().toArray().filter(func(resident) { resident.active and (isAdmin or resident.owner == caller) });
+  };
+
+  public query ({ caller }) func getResident(id : ResidentId) : async ?Resident {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view residents");
+    };
+
+    if (not canAccessResident(caller, id)) {
+      Runtime.trap("Unauthorized: Cannot access this resident");
+    };
+
+    residentsDirectory.get(id);
+  };
+
+  public shared ({ caller }) func updateResident(id : ResidentId, updateRequest : ResidentUpdateRequest) : async ResidentUpdateResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update residents");
+    };
+
+    if (not canAccessResident(caller, id)) {
+      Runtime.trap("Unauthorized: Cannot update this resident");
+    };
+
+    switch (residentsDirectory.get(id)) {
+      case (null) { #notFound };
+      case (?existing) {
+        let updatedResident : Resident = {
+          id = existing.id;
+          name = updateRequest.name;
+          birthDate = updateRequest.birthDate;
+          createdAt = existing.createdAt;
+          active = existing.active;
+          owner = existing.owner;
+        };
+        residentsDirectory.add(id, updatedResident);
+        #updated;
+      };
+    };
+  };
+
+  public shared ({ caller }) func toggleResidentStatus(id : ResidentId) : async ResidentStatusUpdateResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can toggle resident status");
+    };
+
+    if (not canAccessResident(caller, id)) {
+      Runtime.trap("Unauthorized: Cannot modify this resident");
+    };
+
+    switch (residentsDirectory.get(id)) {
+      case (null) { #notFound };
+      case (?resident) {
+        let updatedResident : Resident = {
+          resident with active = not resident.active;
+        };
+        residentsDirectory.add(id, updatedResident);
+        if (updatedResident.active) { #activated } else { #terminated };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteResident(id : ResidentId) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete residents");
+    };
+
+    if (not canAccessResident(caller, id)) {
+      Runtime.trap("Unauthorized: Cannot delete this resident");
+    };
+
+    residentsDirectory.remove(id);
+    vitalsRecords.remove(id);
+    marRecords.remove(id);
+    adlRecords.remove(id);
+  };
+
+  // Vitals Management Functions
+  public shared ({ caller }) func createVitalsEntry(residentId : ResidentId, record : VitalsRecord) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create vitals entries");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot add vitals for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (?resident) {
+        if (not resident.active) {
+          Runtime.trap("Cannot add records to inactive resident");
+        };
+
+        let currentVitals = switch (vitalsRecords.get(residentId)) {
+          case (null) { List.empty<VitalsRecord>() };
+          case (?vitals) { vitals };
+        };
+
+        let updatedVitals = currentVitals.clone();
+        updatedVitals.add(record);
+
+        vitalsRecords.add(residentId, updatedVitals);
+      };
+    };
+  };
+
+  public query ({ caller }) func listVitalsEntries(residentId : ResidentId) : async [VitalsRecord] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can list vitals entries");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot view vitals for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (?_) {
+        switch (vitalsRecords.get(residentId)) {
+          case (null) { [] };
+          case (?vitals) { vitals.toArray() };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteVitalsEntry(residentId : ResidentId, timestamp : Int) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete vitals entries");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot delete vitals for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (_) {
+        switch (vitalsRecords.get(residentId)) {
+          case (null) { Runtime.trap("No vitals record found for resident") };
+          case (?vitals) {
+            let filteredVitals = vitals.filter(
+              func(record : VitalsRecord) : Bool { record.timestamp != timestamp },
+            );
+            vitalsRecords.add(residentId, filteredVitals);
+          };
+        };
+      };
+    };
+  };
+
+  // MAR Record Management
+  public shared ({ caller }) func createMarRecord(residentId : ResidentId, record : MarRecord) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create MAR records");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot add MAR records for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (?resident) {
+        if (not resident.active) {
+          Runtime.trap("Cannot add records to inactive resident");
+        };
+
+        let currentRecords = switch (marRecords.get(residentId)) {
+          case (null) { List.empty<MarRecord>() };
+          case (?records) { records };
+        };
+
+        let updatedRecords = currentRecords.clone();
+        updatedRecords.add(record);
+
+        marRecords.add(residentId, updatedRecords);
+      };
+    };
+  };
+
+  public query ({ caller }) func listMarRecords(residentId : ResidentId) : async [MarRecord] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can list MAR records");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot view MAR records for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (_) {
+        switch (marRecords.get(residentId)) {
+          case (null) { [] };
+          case (?records) { records.toArray() };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteMarRecord(residentId : ResidentId, timestamp : Int) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete MAR records");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot delete MAR records for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (_) {
+        switch (marRecords.get(residentId)) {
+          case (null) { Runtime.trap("No MAR records found for resident") };
+          case (?records) {
+            let filteredRecords = records.filter(
+              func(record : MarRecord) : Bool { record.timestamp != timestamp },
+            );
+            marRecords.add(residentId, filteredRecords);
+          };
+        };
+      };
+    };
+  };
+
+  // ADL Record Management
+  public shared ({ caller }) func createAdlRecord(residentId : ResidentId, record : AdlRecord) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can create ADL records");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot add ADL records for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (?resident) {
+        if (not resident.active) {
+          Runtime.trap("Cannot add records to inactive resident");
+        };
+
+        let currentRecords = switch (adlRecords.get(residentId)) {
+          case (null) { List.empty<AdlRecord>() };
+          case (?records) { records };
+        };
+
+        let updatedRecords = currentRecords.clone();
+        updatedRecords.add(record);
+
+        adlRecords.add(residentId, updatedRecords);
+      };
+    };
+  };
+
+  public query ({ caller }) func listAdlRecords(residentId : ResidentId) : async [AdlRecord] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can list ADL records");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot view ADL records for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (_) {
+        switch (adlRecords.get(residentId)) {
+          case (null) { [] };
+          case (?records) { records.toArray() };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteAdlRecord(residentId : ResidentId, timestamp : Int) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete ADL records");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot delete ADL records for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident does not exist") };
+      case (_) {
+        switch (adlRecords.get(residentId)) {
+          case (null) { Runtime.trap("No ADL records found for resident") };
+          case (?records) {
+            let filteredRecords = records.filter(
+              func(record : AdlRecord) : Bool { record.timestamp != timestamp },
+            );
+            adlRecords.add(residentId, filteredRecords);
+          };
+        };
+      };
+    };
+  };
+
+  // User Profile Support
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+      Runtime.trap("Unauthorized: Only users can view profiles");
     };
     userProfiles.get(caller);
   };
@@ -67,218 +455,12 @@ actor {
     userProfiles.add(caller, profile);
   };
 
-  public shared ({ caller }) func createVitalsEntry(residentId : ResidentId, record : VitalsRecord) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create vitals entries");
-    };
-
-    // Authorization: Users can only create vitals for themselves, admins can create for anyone
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only create vitals entries for yourself or as admin");
-    };
-
-    let currentVitals = switch (residents.get(residentId)) {
-      case (null) { List.empty<VitalsRecord>() };
-      case (?vitals) { vitals };
-    };
-
-    let updatedVitals = currentVitals.clone();
-    updatedVitals.add(record);
-
-    residents.add(residentId, updatedVitals);
-  };
-
-  public query ({ caller }) func listVitalsEntries(residentId : ResidentId) : async [VitalsRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view vitals entries");
-    };
-
-    // Authorization: Users can only view their own vitals, admins can view anyone's
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own vitals entries or as admin");
-    };
-
-    switch (residents.get(residentId)) {
-      case (null) { [] };
-      case (?vitals) {
-        vitals.toArray();
-      };
-    };
-  };
-
-  public shared ({ caller }) func deleteVitalsEntry(residentId : ResidentId, timestamp : Int) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can delete vitals entries");
-    };
-
-    // Authorization: Users can only delete their own vitals, admins can delete anyone's
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only delete your own vitals entries or as admin");
-    };
-
-    switch (residents.get(residentId)) {
-      case (null) {
-        Runtime.trap("No vitals record found for resident");
-      };
-      case (?vitals) {
-        let filteredVitals = vitals.filter(
-          func(record : VitalsRecord) : Bool { record.timestamp != timestamp },
-        );
-        residents.add(residentId, filteredVitals);
-      };
-    };
-  };
-
-  public shared ({ caller }) func createMarRecord(residentId : ResidentId, record : MarRecord) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create MAR records");
-    };
-
-    // Authorization: Users can only create MAR records for themselves, admins can create for anyone
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only create MAR records for yourself or as admin");
-    };
-
-    let currentRecords = switch (marRecords.get(residentId)) {
-      case (null) { List.empty<MarRecord>() };
-      case (?records) { records };
-    };
-
-    let updatedRecords = currentRecords.clone();
-    updatedRecords.add(record);
-
-    marRecords.add(residentId, updatedRecords);
-  };
-
-  public query ({ caller }) func listMarRecords(residentId : ResidentId) : async [MarRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view MAR records");
-    };
-
-    // Authorization: Users can only view their own MAR records, admins can view anyone's
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own MAR records or as admin");
-    };
-
-    switch (marRecords.get(residentId)) {
-      case (null) { [] };
-      case (?records) {
-        records.toArray();
-      };
-    };
-  };
-
-  public shared ({ caller }) func deleteMarRecord(residentId : ResidentId, timestamp : Int) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can delete MAR records");
-    };
-
-    // Authorization: Users can only delete their own MAR records, admins can delete anyone's
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only delete your own MAR records or as admin");
-    };
-
-    let records = switch (marRecords.get(residentId)) {
-      case (null) {
-        return Runtime.trap("No MAR records found for resident");
-      };
-      case (?records) {
-        let filteredRecords = records.filter(
-          func(record : MarRecord) : Bool { record.timestamp != timestamp },
-        );
-        marRecords.add(residentId, filteredRecords);
-        filteredRecords;
-      };
-    };
-
-    if (records.size() == 0) {
-      marRecords.remove(residentId);
-    };
-  };
-
-  public shared ({ caller }) func createResidentProfile(residentId : ResidentId) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create resident profiles");
-    };
-
-    // Authorization: Users can only create their own profile, admins can create for anyone
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only create your own profile or as admin");
-    };
-
-    if (residents.containsKey(residentId)) {
-      Runtime.trap("Resident profile already exists");
-    };
-
-    residents.add(residentId, List.empty<VitalsRecord>());
-  };
-
-  // ADL Record Management
-
-  public shared ({ caller }) func createAdlRecord(residentId : ResidentId, record : AdlRecord) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create ADL records");
-    };
-
-    // Authorization: Users can only create ADL records for themselves, admins can create for anyone
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only create ADL records for yourself or as admin");
-    };
-
-    let currentRecords = switch (adlRecords.get(residentId)) {
-      case (null) { List.empty<AdlRecord>() };
-      case (?records) { records };
-    };
-
-    let updatedRecords = currentRecords.clone();
-    updatedRecords.add(record);
-
-    adlRecords.add(residentId, updatedRecords);
-  };
-
-  public query ({ caller }) func listAdlRecords(residentId : ResidentId) : async [AdlRecord] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view ADL records");
-    };
-
-    // Authorization: Users can only view their own ADL records, admins can view anyone's
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own ADL records or as admin");
-    };
-
-    switch (adlRecords.get(residentId)) {
-      case (null) { [] };
-      case (?records) {
-        records.toArray();
-      };
-    };
-  };
-
-  public shared ({ caller }) func deleteAdlRecord(residentId : ResidentId, timestamp : Int) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can delete ADL records");
-    };
-
-    // Authorization: Users can only delete their own ADL records, admins can delete anyone's
-    if (caller != residentId and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only delete your own ADL records or as admin");
-    };
-
-    let records = switch (adlRecords.get(residentId)) {
-      case (null) {
-        return Runtime.trap("No ADL records found for resident");
-      };
-      case (?records) {
-        let filteredRecords = records.filter(
-          func(record : AdlRecord) : Bool { record.timestamp != timestamp },
-        );
-        adlRecords.add(residentId, filteredRecords);
-        filteredRecords;
-      };
-    };
-
-    if (records.size() == 0) {
-      adlRecords.remove(residentId);
+  // Helper Functions
+  public func isResidentActive(residentId : ResidentId) : async Bool {
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { false };
+      case (?resident) { resident.active };
     };
   };
 };
+

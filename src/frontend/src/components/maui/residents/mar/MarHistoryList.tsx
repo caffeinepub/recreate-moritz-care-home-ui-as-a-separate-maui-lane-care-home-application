@@ -13,17 +13,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useDeleteMarRecord } from '@/hooks/useQueries';
+import { useListMarRecords, useDeleteMarRecord } from '@/hooks/useQueries';
 import { toast } from 'sonner';
-import type { MarRecord, ResidentId } from '@/backend';
+import type { ResidentId } from '@/backend';
 
 interface MarHistoryListProps {
-  marRecords: MarRecord[];
-  isLoading: boolean;
   residentId: ResidentId;
 }
 
-export function MarHistoryList({ marRecords, isLoading, residentId }: MarHistoryListProps) {
+export function MarHistoryList({ residentId }: MarHistoryListProps) {
+  const { data: marRecords = [], isLoading } = useListMarRecords(residentId);
   const deleteMarRecord = useDeleteMarRecord();
 
   const handleDelete = async (timestamp: bigint) => {

@@ -2,10 +2,18 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-remove-disable-maui-lane-care-home-logo-rendering-in-the-authenticated-app-shell-header-so-the-ui-uses-a-text-only-header-no-img-logo-and-no-fallback-to-icon-behavior",
-      "featureTitle": "Remove/disable Maui Lane Care Home logo rendering in the authenticated app shell header so the UI uses a text-only header (no <img> logo and no fallback-to-icon behavior).",
+      "featureId": "feature-frontend-wire-the-maui-residents-dashboard-to-use-backend-backed-residents-directory-queries-mutations-list-create-delete-status-toggle-via-react-query-and-remove-any-logic-that-re-initializes-the-visible-resident-list-from-mock-data-on-login-sign-in-changes",
+      "featureTitle": "Frontend: Wire the Maui Residents Dashboard to use backend-backed Residents Directory queries/mutations (list/create/delete/status toggle) via React Query, and remove any logic that re-initializes the visible resident list from mock data on login/sign-in changes.",
       "files": [
-        "frontend/src/components/maui/MauiAppShell.tsx"
+        "frontend/src/components/maui/MauiAppShell.tsx",
+        "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
+        "frontend/src/components/maui/residents/ResidentCard.tsx",
+        "frontend/src/components/maui/residents/ResidentGrid.tsx",
+        "frontend/src/pages/maui/Dashboard.tsx",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+        "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
+        "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
+        "frontend/src/pages/maui/residents/residentListUtils.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -16,15 +24,16 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-9"
+        "REQ-14"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-remove-disable-maui-lane-generated-app-icon-usage-as-the-site-favicon-in-the-html-entrypoint-do-not-reference-the-generated-icon-file-in-the-link-rel-icon-tag",
-      "featureTitle": "Remove/disable Maui Lane generated app-icon usage as the site favicon in the HTML entrypoint (do not reference the generated icon file in the <link rel=\"icon\"> tag).",
+      "featureId": "feature-frontend-add-extend-react-query-hooks-in-frontend-src-hooks-usequeries-ts-for-residents-directory-list-create-delete-update-status-toggle-that-call-the-new-backend-residents-directory-apis-and-invalidate-refetch-resident-list-queries-on-mutation-success",
+      "featureTitle": "Frontend: Add/extend React Query hooks in frontend/src/hooks/useQueries.ts for Residents Directory list/create/delete/update (status toggle) that call the new backend Residents Directory APIs and invalidate/refetch resident list queries on mutation success.",
       "files": [
-        "frontend/index.html"
+        "frontend/src/hooks/residentQueryKeys.ts",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -35,7 +44,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-10"
+        "REQ-15"
       ],
       "confidence": "high"
     }

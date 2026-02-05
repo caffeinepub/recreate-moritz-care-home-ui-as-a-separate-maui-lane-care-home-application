@@ -1,10 +1,10 @@
-import { Resident } from '@/pages/maui/residents/mockResidents';
+import type { ResidentViewModel } from '@/pages/maui/residents/residentDirectoryViewModel';
 import { ResidentCard } from './ResidentCard';
 
 interface ResidentGridProps {
-  residents: Resident[];
-  onDeleteResident: (residentId: number) => void;
-  onToggleResidentStatus: (residentId: number) => void;
+  residents: ResidentViewModel[];
+  onDeleteResident: (residentId: string) => void;
+  onToggleResidentStatus: (residentId: string) => void;
 }
 
 export function ResidentGrid({ residents, onDeleteResident, onToggleResidentStatus }: ResidentGridProps) {

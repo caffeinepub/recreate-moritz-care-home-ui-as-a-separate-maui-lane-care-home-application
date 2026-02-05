@@ -28,6 +28,19 @@ export const MarRecord = IDL.Record({
   'timestamp' : IDL.Int,
   'administrationTime' : IDL.Text,
 });
+export const ResidentCreateRequest = IDL.Record({
+  'id' : ResidentId,
+  'birthDate' : IDL.Text,
+  'name' : IDL.Text,
+});
+export const Resident = IDL.Record({
+  'id' : ResidentId,
+  'active' : IDL.Bool,
+  'birthDate' : IDL.Text,
+  'owner' : IDL.Principal,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+});
 export const VitalsRecord = IDL.Record({
   'temperature' : IDL.Float64,
   'bloodPressure' : IDL.Text,
@@ -36,25 +49,42 @@ export const VitalsRecord = IDL.Record({
   'bloodOxygen' : IDL.Nat,
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const ResidentStatusUpdateResult = IDL.Variant({
+  'activated' : IDL.Null,
+  'terminated' : IDL.Null,
+  'notFound' : IDL.Null,
+});
+export const ResidentUpdateRequest = IDL.Record({
+  'birthDate' : IDL.Text,
+  'name' : IDL.Text,
+});
+export const ResidentUpdateResult = IDL.Variant({
+  'notFound' : IDL.Null,
+  'updated' : IDL.Null,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'createAdlRecord' : IDL.Func([ResidentId, AdlRecord], [], []),
   'createMarRecord' : IDL.Func([ResidentId, MarRecord], [], []),
-  'createResidentProfile' : IDL.Func([ResidentId], [], []),
+  'createResident' : IDL.Func([ResidentCreateRequest], [Resident], []),
   'createVitalsEntry' : IDL.Func([ResidentId, VitalsRecord], [], []),
   'deleteAdlRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
   'deleteMarRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
+  'deleteResident' : IDL.Func([ResidentId], [], []),
   'deleteVitalsEntry' : IDL.Func([ResidentId, IDL.Int], [], []),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getResident' : IDL.Func([ResidentId], [IDL.Opt(Resident)], ['query']),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'isResidentActive' : IDL.Func([ResidentId], [IDL.Bool], []),
+  'listActiveResidents' : IDL.Func([], [IDL.Vec(Resident)], ['query']),
   'listAdlRecords' : IDL.Func([ResidentId], [IDL.Vec(AdlRecord)], ['query']),
   'listMarRecords' : IDL.Func([ResidentId], [IDL.Vec(MarRecord)], ['query']),
   'listVitalsEntries' : IDL.Func(
@@ -63,6 +93,16 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+  'toggleResidentStatus' : IDL.Func(
+      [ResidentId],
+      [ResidentStatusUpdateResult],
+      [],
+    ),
+  'updateResident' : IDL.Func(
+      [ResidentId, ResidentUpdateRequest],
+      [ResidentUpdateResult],
+      [],
+    ),
 });
 
 export const idlInitArgs = [];
@@ -88,6 +128,19 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : IDL.Int,
     'administrationTime' : IDL.Text,
   });
+  const ResidentCreateRequest = IDL.Record({
+    'id' : ResidentId,
+    'birthDate' : IDL.Text,
+    'name' : IDL.Text,
+  });
+  const Resident = IDL.Record({
+    'id' : ResidentId,
+    'active' : IDL.Bool,
+    'birthDate' : IDL.Text,
+    'owner' : IDL.Principal,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+  });
   const VitalsRecord = IDL.Record({
     'temperature' : IDL.Float64,
     'bloodPressure' : IDL.Text,
@@ -96,25 +149,42 @@ export const idlFactory = ({ IDL }) => {
     'bloodOxygen' : IDL.Nat,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const ResidentStatusUpdateResult = IDL.Variant({
+    'activated' : IDL.Null,
+    'terminated' : IDL.Null,
+    'notFound' : IDL.Null,
+  });
+  const ResidentUpdateRequest = IDL.Record({
+    'birthDate' : IDL.Text,
+    'name' : IDL.Text,
+  });
+  const ResidentUpdateResult = IDL.Variant({
+    'notFound' : IDL.Null,
+    'updated' : IDL.Null,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'createAdlRecord' : IDL.Func([ResidentId, AdlRecord], [], []),
     'createMarRecord' : IDL.Func([ResidentId, MarRecord], [], []),
-    'createResidentProfile' : IDL.Func([ResidentId], [], []),
+    'createResident' : IDL.Func([ResidentCreateRequest], [Resident], []),
     'createVitalsEntry' : IDL.Func([ResidentId, VitalsRecord], [], []),
     'deleteAdlRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
     'deleteMarRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
+    'deleteResident' : IDL.Func([ResidentId], [], []),
     'deleteVitalsEntry' : IDL.Func([ResidentId, IDL.Int], [], []),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getResident' : IDL.Func([ResidentId], [IDL.Opt(Resident)], ['query']),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'isResidentActive' : IDL.Func([ResidentId], [IDL.Bool], []),
+    'listActiveResidents' : IDL.Func([], [IDL.Vec(Resident)], ['query']),
     'listAdlRecords' : IDL.Func([ResidentId], [IDL.Vec(AdlRecord)], ['query']),
     'listMarRecords' : IDL.Func([ResidentId], [IDL.Vec(MarRecord)], ['query']),
     'listVitalsEntries' : IDL.Func(
@@ -123,6 +193,16 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
+    'toggleResidentStatus' : IDL.Func(
+        [ResidentId],
+        [ResidentStatusUpdateResult],
+        [],
+      ),
+    'updateResident' : IDL.Func(
+        [ResidentId, ResidentUpdateRequest],
+        [ResidentUpdateResult],
+        [],
+      ),
   });
 };
 

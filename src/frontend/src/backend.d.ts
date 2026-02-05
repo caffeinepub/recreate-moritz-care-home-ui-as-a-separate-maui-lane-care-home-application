@@ -7,13 +7,9 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
-export type ResidentId = Principal;
-export interface AdlRecord {
-    activityType: string;
-    assistanceLevel: string;
-    notes: string;
-    timestamp: bigint;
-    supervisorId: Principal;
+export interface ResidentUpdateRequest {
+    birthDate: string;
+    name: string;
 }
 export interface MarRecord {
     medicationName: string;
@@ -29,8 +25,38 @@ export interface VitalsRecord {
     pulse: bigint;
     bloodOxygen: bigint;
 }
+export type ResidentId = Principal;
+export interface Resident {
+    id: ResidentId;
+    active: boolean;
+    birthDate: string;
+    owner: Principal;
+    name: string;
+    createdAt: bigint;
+}
+export interface AdlRecord {
+    activityType: string;
+    assistanceLevel: string;
+    notes: string;
+    timestamp: bigint;
+    supervisorId: Principal;
+}
+export interface ResidentCreateRequest {
+    id: ResidentId;
+    birthDate: string;
+    name: string;
+}
 export interface UserProfile {
     name: string;
+}
+export enum ResidentStatusUpdateResult {
+    activated = "activated",
+    terminated = "terminated",
+    notFound = "notFound"
+}
+export enum ResidentUpdateResult {
+    notFound = "notFound",
+    updated = "updated"
 }
 export enum UserRole {
     admin = "admin",
@@ -41,17 +67,23 @@ export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createAdlRecord(residentId: ResidentId, record: AdlRecord): Promise<void>;
     createMarRecord(residentId: ResidentId, record: MarRecord): Promise<void>;
-    createResidentProfile(residentId: ResidentId): Promise<void>;
+    createResident(request: ResidentCreateRequest): Promise<Resident>;
     createVitalsEntry(residentId: ResidentId, record: VitalsRecord): Promise<void>;
     deleteAdlRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
     deleteMarRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
+    deleteResident(id: ResidentId): Promise<void>;
     deleteVitalsEntry(residentId: ResidentId, timestamp: bigint): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getResident(id: ResidentId): Promise<Resident | null>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    isResidentActive(residentId: ResidentId): Promise<boolean>;
+    listActiveResidents(): Promise<Array<Resident>>;
     listAdlRecords(residentId: ResidentId): Promise<Array<AdlRecord>>;
     listMarRecords(residentId: ResidentId): Promise<Array<MarRecord>>;
     listVitalsEntries(residentId: ResidentId): Promise<Array<VitalsRecord>>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    toggleResidentStatus(id: ResidentId): Promise<ResidentStatusUpdateResult>;
+    updateResident(id: ResidentId, updateRequest: ResidentUpdateRequest): Promise<ResidentUpdateResult>;
 }

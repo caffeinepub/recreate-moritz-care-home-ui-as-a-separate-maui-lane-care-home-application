@@ -1,11 +1,19 @@
 import { Outlet } from '@tanstack/react-router';
 import { MauiNav } from './MauiNav';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
+import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../ui/button';
 import { LogOut } from 'lucide-react';
+import { BRAND } from '../../lib/brand';
 
 export function MauiAppShell() {
   const { clear, identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  const handleSignOut = async () => {
+    await clear();
+    queryClient.clear();
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -13,11 +21,16 @@ export function MauiAppShell() {
       <header className="no-print sticky top-0 z-50 border-b bg-card shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-xl font-semibold text-foreground">Maui Lane Care Home</h1>
+            <img
+              src={BRAND.logo.path}
+              alt={BRAND.logo.alt}
+              className="h-10 w-auto object-contain"
+            />
+            <h1 className="text-xl font-semibold text-foreground">{BRAND.name}</h1>
           </div>
           <div className="flex items-center gap-4">
             {identity && (
-              <Button variant="ghost" size="sm" onClick={clear}>
+              <Button variant="ghost" size="sm" onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Sign Out
               </Button>

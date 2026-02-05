@@ -2,7 +2,6 @@ import { Activity, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,21 +13,21 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useDeleteVitalsEntry } from '@/hooks/useQueries';
+import { useListVitalsEntries, useDeleteVitalsEntry } from '@/hooks/useQueries';
 import { toast } from 'sonner';
-import type { VitalsRecord } from '@/backend';
+import type { ResidentId } from '@/backend';
 
 interface VitalsHistoryListProps {
-  vitals: VitalsRecord[];
-  isLoading: boolean;
+  residentId: ResidentId;
 }
 
-export function VitalsHistoryList({ vitals, isLoading }: VitalsHistoryListProps) {
+export function VitalsHistoryList({ residentId }: VitalsHistoryListProps) {
+  const { data: vitals = [], isLoading } = useListVitalsEntries(residentId);
   const deleteVitals = useDeleteVitalsEntry();
 
   const handleDelete = async (timestamp: bigint) => {
     try {
-      await deleteVitals.mutateAsync(timestamp);
+      await deleteVitals.mutateAsync({ residentId, timestamp });
       toast.success('Vitals entry deleted successfully');
     } catch (error) {
       console.error('Error deleting vitals:', error);

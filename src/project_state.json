@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 91,
+  "projectStateVersion": 109,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "existing_features": [
     {
@@ -274,18 +274,29 @@
       "version": 1
     },
     {
-      "id": "feature-remove-disable-maui-lane-care-home-logo-rendering-in-the-authenticated-app-shell-header-so-the-ui-uses-a-text-only-header-no-img-logo-and-no-fallback-to-icon-behavior",
-      "title": "Remove/disable Maui Lane Care Home logo rendering in the authenticated app shell header so the UI uses a text-only header (no <img> logo and no fallback-to-icon behavior).",
+      "id": "IF-23",
+      "title": "Resident medications UI (add-medication dialog components)",
+      "synonyms": [
+        "AddMedicationDialog",
+        "resident medications module UI"
+      ],
+      "description": "Added Maui residents medications UI components (e.g., AddMedicationDialog and medications module index) to support adding/managing medication entries in the resident profile experience; frontend/UI-layer only pending backend persistence/integration.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-frontend-wire-the-maui-residents-dashboard-to-use-backend-backed-residents-directory-queries-mutations-list-create-delete-status-toggle-via-react-query-and-remove-any-logic-that-re-initializes-the-visible-resident-list-from-mock-data-on-login-sign-in-changes",
+      "title": "Frontend: Wire the Maui Residents Dashboard to use backend-backed Residents Directory queries/mutations (list/create/delete/status toggle) via React Query, and remove any logic that re-initializes the visible resident list from mock data on login/sign-in changes.",
       "reqIds": [
-        "REQ-9"
+        "REQ-14"
       ],
       "version": 1
     },
     {
-      "id": "feature-remove-disable-maui-lane-generated-app-icon-usage-as-the-site-favicon-in-the-html-entrypoint-do-not-reference-the-generated-icon-file-in-the-link-rel-icon-tag",
-      "title": "Remove/disable Maui Lane generated app-icon usage as the site favicon in the HTML entrypoint (do not reference the generated icon file in the <link rel=\"icon\"> tag).",
+      "id": "feature-frontend-add-extend-react-query-hooks-in-frontend-src-hooks-usequeries-ts-for-residents-directory-list-create-delete-update-status-toggle-that-call-the-new-backend-residents-directory-apis-and-invalidate-refetch-resident-list-queries-on-mutation-success",
+      "title": "Frontend: Add/extend React Query hooks in frontend/src/hooks/useQueries.ts for Residents Directory list/create/delete/update (status toggle) that call the new backend Residents Directory APIs and invalidate/refetch resident list queries on mutation success.",
       "reqIds": [
-        "REQ-10"
+        "REQ-15"
       ],
       "version": 1
     }
@@ -329,14 +340,42 @@
     },
     {
       "id": "AR-9",
-      "summary": "Remove the Moritz reference-capture UI element/link from the homepage area beside the Dashboard in the Maui Lane app.",
-      "reqIds": [],
+      "summary": "Implement backend persistence for the Residents Directory so that resident deletion survives page reloads, sign-out, and re-sign-in (i.e., residents deleted by a user do not reappear after a new sign-in). Add resident data types and CRUD-style canister methods to create, list, update (including status toggle), and delete residents, with authorization checks consistent with existing access control patterns.",
+      "reqIds": [
+        "REQ-9"
+      ],
       "status": "pending"
     },
     {
       "id": "AR-10",
-      "summary": "Remove/disable the Maui Lane Care Home logo/icon usage across the app (since it is not appearing), reverting to no logo or a text-based header until fixed.",
-      "reqIds": [],
+      "summary": "Wire the Maui Dashboard Residents Directory UI to backend-backed resident list data instead of `mockResidents` local state, using React Query for list + mutations (create, delete, toggle status). Ensure the UI state is consistent after sign-in changes (identity changes) by refetching residents from the canister and not re-initializing from mock data.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Add/extend frontend React Query hooks to support the new backend residents APIs (list/create/delete/toggle or update) and ensure queries are properly keyed by authenticated principal so switching identities results in correct resident lists per user.",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Backend: Add persistent Residents Directory storage (separate from vitals/MAR/ADL records) and implement canister methods to create, list, update (including status toggle), and delete residents so that a deleted resident never reappears after sign-out and re-sign-in.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Backend: Ensure Residents Directory list behavior is correct and deterministic: list should only return non-deleted residents for the authenticated user (or admin-visible behavior if admins are supported by existing access control), and must not leak another user’s residents after a new login with a different Internet Identity principal.",
+      "reqIds": [
+        "REQ-13"
+      ],
       "status": "pending"
     }
   ],
@@ -347,13 +386,14 @@
     "UI stack: Tailwind CSS + shadcn-ui component library.",
     "Build/deploy: Includes Docker/deploy scripts and ICP config; image resize/prune scripts for generated assets.",
     "Frontend: Maui-specific app shell/navigation components (MauiAppShell/MauiNav) layered on the existing React+II scaffold.",
-    "Frontend: Added Moritz reference-capture route and MissingReferencePlaceholder guidance screen for missing UI reference materials.",
     "Frontend: Maui residents module built from composable components (ResidentGrid/Card/Header/KPIs/Tabs/FilterSort) with mock data + list utilities as a stand-in for backend integration.",
     "Frontend: Added Maui resident profile/detail page with supporting mock profile + medications data modules as a stand-in for backend detail endpoints.",
-    "Frontend: Added Maui residents add/edit dialogs (AddNewResidentDialog/EditResidentInformationDialog) as UI-only components pending backend persistence/integration."
+    "Frontend: Added Maui residents add/edit dialogs (AddNewResidentDialog/EditResidentInformationDialog) as UI-only components pending backend persistence/integration.",
+    "Build/template sync: Updated ICP + React/Vite + shadcn-ui build template/tooling and Motoko authorization modules to current component versions (core-infrastructure v1.0.2, authorization v4.0.0)."
   ],
   "known_issues": [
-    "Uploaded/replaced Maui Lane logo is not appearing/loaded across application pages; needs fix to ensure logo renders reliably everywhere."
+    "Uploaded/replaced Maui Lane logo is not appearing/loaded across application pages; needs fix to ensure logo renders reliably everywhere.",
+    "Resident deletion is not persisting across sessions: deleted residents reappear after signing out and signing in again (backend/state persistence issue)."
   ],
   "isFixRequest": true,
   "generatedImages": [

@@ -24,7 +24,26 @@ export interface MarRecord {
   'timestamp' : bigint,
   'administrationTime' : string,
 }
+export interface Resident {
+  'id' : ResidentId,
+  'active' : boolean,
+  'birthDate' : string,
+  'owner' : Principal,
+  'name' : string,
+  'createdAt' : bigint,
+}
+export interface ResidentCreateRequest {
+  'id' : ResidentId,
+  'birthDate' : string,
+  'name' : string,
+}
 export type ResidentId = Principal;
+export type ResidentStatusUpdateResult = { 'activated' : null } |
+  { 'terminated' : null } |
+  { 'notFound' : null };
+export interface ResidentUpdateRequest { 'birthDate' : string, 'name' : string }
+export type ResidentUpdateResult = { 'notFound' : null } |
+  { 'updated' : null };
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -41,19 +60,31 @@ export interface _SERVICE {
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createAdlRecord' : ActorMethod<[ResidentId, AdlRecord], undefined>,
   'createMarRecord' : ActorMethod<[ResidentId, MarRecord], undefined>,
-  'createResidentProfile' : ActorMethod<[ResidentId], undefined>,
+  'createResident' : ActorMethod<[ResidentCreateRequest], Resident>,
   'createVitalsEntry' : ActorMethod<[ResidentId, VitalsRecord], undefined>,
   'deleteAdlRecord' : ActorMethod<[ResidentId, bigint], undefined>,
   'deleteMarRecord' : ActorMethod<[ResidentId, bigint], undefined>,
+  'deleteResident' : ActorMethod<[ResidentId], undefined>,
   'deleteVitalsEntry' : ActorMethod<[ResidentId, bigint], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getResident' : ActorMethod<[ResidentId], [] | [Resident]>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isResidentActive' : ActorMethod<[ResidentId], boolean>,
+  'listActiveResidents' : ActorMethod<[], Array<Resident>>,
   'listAdlRecords' : ActorMethod<[ResidentId], Array<AdlRecord>>,
   'listMarRecords' : ActorMethod<[ResidentId], Array<MarRecord>>,
   'listVitalsEntries' : ActorMethod<[ResidentId], Array<VitalsRecord>>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'toggleResidentStatus' : ActorMethod<
+    [ResidentId],
+    ResidentStatusUpdateResult
+  >,
+  'updateResident' : ActorMethod<
+    [ResidentId, ResidentUpdateRequest],
+    ResidentUpdateResult
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

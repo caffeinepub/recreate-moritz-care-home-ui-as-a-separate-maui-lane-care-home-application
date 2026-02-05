@@ -1,51 +1,90 @@
 {
   "kind": "build_request",
-  "title": "Remove Maui Lane logo/icon rendering from the UI",
-  "priority": "normal",
+  "title": "Fix resident deletion persistence across sign-out/sign-in (deleted residents reappear)",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-9",
-      "text": "Remove/disable Maui Lane Care Home logo rendering in the authenticated app shell header so the UI uses a text-only header (no <img> logo and no fallback-to-icon behavior).",
-      "target": "frontend",
+      "id": "REQ-12",
+      "text": "Backend: Add persistent Residents Directory storage (separate from vitals/MAR/ADL records) and implement canister methods to create, list, update (including status toggle), and delete residents so that a deleted resident never reappears after sign-out and re-sign-in.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "remove the logo as they don't appear"
+          "please check backend and fix - deleted residents are still showing after new login"
         ]
       },
       "acceptanceCriteria": [
-        "The Maui app header no longer renders an image element for the logo/icon and displays the title as text only.",
-        "There is no broken image placeholder in the header on any route.",
-        "The app no longer attempts to load /assets/generated/maui-lane-logo.dim_512x512.png or /assets/generated/maui-lane-app-icon.dim_256x256.png as part of the header rendering."
+        "After calling the backend delete resident method, subsequent backend list residents calls do not include the deleted resident (including after canister idle time and after the user signs out and signs back in).",
+        "Residents are stored in stable canister state so deletions persist across sessions (not just in-memory for the current session).",
+        "Access control follows existing patterns in backend/main.mo (reject unauthorized callers rather than silently succeeding)."
       ]
     },
     {
-      "id": "REQ-10",
-      "text": "Remove/disable Maui Lane generated app-icon usage as the site favicon in the HTML entrypoint (do not reference the generated icon file in the <link rel=\"icon\"> tag).",
-      "target": "frontend",
+      "id": "REQ-13",
+      "text": "Backend: Ensure Residents Directory list behavior is correct and deterministic: list should only return non-deleted residents for the authenticated user (or admin-visible behavior if admins are supported by existing access control), and must not leak another user’s residents after a new login with a different Internet Identity principal.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "remove the logo as they don't appear"
+          "deleted residents are still showing after new login"
         ]
       },
       "acceptanceCriteria": [
-        "frontend/index.html no longer references %BASE_URL%assets/generated/maui-lane-app-icon.dim_256x256.png as the favicon.",
-        "Loading the app does not trigger a favicon request for the generated Maui icon file."
+        "If User A deletes a resident, then signs out, and User B signs in, User B’s resident list does not include User A’s deleted resident (or any of User A’s residents unless explicitly allowed for admin).",
+        "Residents Directory list API output is filtered to exclude deleted residents.",
+        "Deleting a resident also removes or invalidates any Residents Directory entry so it cannot be reconstructed from defaults/mocks on the backend."
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Frontend: Wire the Maui Residents Dashboard to use backend-backed Residents Directory queries/mutations (list/create/delete/status toggle) via React Query, and remove any logic that re-initializes the visible resident list from mock data on login/sign-in changes.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "deleted residents are still showing after new login"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After deleting a resident in the UI and signing out then signing back in, the deleted resident does not reappear in the Residents Dashboard list.",
+        "On identity change (sign-out/sign-in), the Residents Dashboard resident list is refetched from the canister and reflects only the currently authenticated principal’s data.",
+        "Resident list React Query keys are scoped such that different principals do not share cached resident lists."
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Frontend: Add/extend React Query hooks in frontend/src/hooks/useQueries.ts for Residents Directory list/create/delete/update (status toggle) that call the new backend Residents Directory APIs and invalidate/refetch resident list queries on mutation success.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-1"
+        ],
+        "quotes": [
+          "fix - deleted residents are still showing after new login"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Resident delete mutation invalidates the resident list query and the UI updates without requiring a manual refresh.",
+        "Resident list query is disabled until an authenticated actor is available (consistent with existing patterns in useQueries.ts).",
+        "Resident list query key includes the authenticated principal so cache is not reused across logins."
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (immutable paths).",
-    "Keep Internet Identity login gating intact."
+    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
+    "Use English for any user-facing text.",
+    "Do not edit files under frontend/immutablePaths (e.g., frontend/src/hooks/useActor.ts, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/main.tsx, frontend/src/components/ui)."
   ],
   "nonGoals": [
-    "Fixing or troubleshooting why the logo files are not loading/rendering.",
-    "Creating new brand assets or changing the existing generated image files."
+    "Do not add third-party authentication providers (only Internet Identity).",
+    "Do not implement real-time sync (no WebSockets).",
+    "Do not redesign unrelated Maui UI pages beyond what is necessary to stop deleted residents from reappearing."
   ],
   "imageRequirements": {
     "required": [],

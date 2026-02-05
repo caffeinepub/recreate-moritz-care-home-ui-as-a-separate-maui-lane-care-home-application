@@ -13,13 +13,13 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Eye, Trash2 } from 'lucide-react';
-import { Resident } from '@/pages/maui/residents/mockResidents';
+import type { ResidentViewModel } from '@/pages/maui/residents/residentDirectoryViewModel';
 import { useNavigate } from '@tanstack/react-router';
 
 interface ResidentCardProps {
-  resident: Resident;
-  onDeleteResident: (residentId: number) => void;
-  onToggleResidentStatus: (residentId: number) => void;
+  resident: ResidentViewModel;
+  onDeleteResident: (residentId: string) => void;
+  onToggleResidentStatus: (residentId: string) => void;
 }
 
 export function ResidentCard({ resident, onDeleteResident, onToggleResidentStatus }: ResidentCardProps) {
@@ -27,7 +27,7 @@ export function ResidentCard({ resident, onDeleteResident, onToggleResidentStatu
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   const handleViewProfile = () => {
-    navigate({ to: '/resident/$residentId', params: { residentId: String(resident.id) } });
+    navigate({ to: '/resident/$residentId', params: { residentId: resident.id } });
   };
 
   const handleToggleStatus = () => {
@@ -73,7 +73,7 @@ export function ResidentCard({ resident, onDeleteResident, onToggleResidentStatu
             </Button>
           </div>
           <p className="mt-2 text-sm text-muted-foreground">
-            Age: {resident.age} years • ID: {resident.id}
+            Age: {resident.age} years
           </p>
         </CardHeader>
 

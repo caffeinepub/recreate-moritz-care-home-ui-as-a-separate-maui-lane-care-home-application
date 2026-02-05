@@ -17,13 +17,21 @@ import { useCreateMarRecord } from '@/hooks/useQueries';
 import { useInternetIdentity } from '@/hooks/useInternetIdentity';
 import { toast } from 'sonner';
 import type { MarRecord, ResidentId } from '@/backend';
-import type { Medication } from '@/pages/maui/residents/mockResidentMedications';
+
+interface ResidentMedication {
+  name: string;
+  dosage?: string;
+  route?: string;
+  times?: string[];
+  prescriber?: string;
+  notes?: string;
+}
 
 interface AddMarRecordDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   residentId: ResidentId;
-  activeMedications: Medication[];
+  activeMedications: ResidentMedication[];
 }
 
 export function AddMarRecordDialog({
@@ -35,13 +43,13 @@ export function AddMarRecordDialog({
   const createMarRecord = useCreateMarRecord();
   const { identity } = useInternetIdentity();
 
-  const [selectedMedication, setSelectedMedication] = useState('');
+  const [selectedMedicationIndex, setSelectedMedicationIndex] = useState('');
   const [administrationTime, setAdministrationTime] = useState('');
   const [administeredBy, setAdministeredBy] = useState('');
   const [notes, setNotes] = useState('');
 
   const resetForm = () => {
-    setSelectedMedication('');
+    setSelectedMedicationIndex('');
     setAdministrationTime('');
     setAdministeredBy('');
     setNotes('');
@@ -51,7 +59,7 @@ export function AddMarRecordDialog({
     e.preventDefault();
 
     // Validate required fields
-    if (!selectedMedication || !administrationTime || !administeredBy) {
+    if (!selectedMedicationIndex || !administrationTime || !administeredBy) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -61,8 +69,9 @@ export function AddMarRecordDialog({
       return;
     }
 
-    // Find the selected medication to get dosage
-    const medication = activeMedications.find((med) => med.id === selectedMedication);
+    // Find the selected medication
+    const medicationIndex = parseInt(selectedMedicationIndex);
+    const medication = activeMedications[medicationIndex];
     if (!medication) {
       toast.error('Selected medication not found');
       return;
@@ -74,7 +83,7 @@ export function AddMarRecordDialog({
     const record: MarRecord = {
       timestamp,
       medicationName: medication.name,
-      dosage: medication.dosage,
+      dosage: medication.dosage || '',
       administrationTime,
       nurseId: identity.getPrincipal(),
     };
@@ -123,7 +132,7 @@ export function AddMarRecordDialog({
             <Label htmlFor="medication">
               Active Medication <span className="text-destructive">*</span>
             </Label>
-            <Select value={selectedMedication} onValueChange={setSelectedMedication}>
+            <Select value={selectedMedicationIndex} onValueChange={setSelectedMedicationIndex}>
               <SelectTrigger id="medication">
                 <SelectValue placeholder="Select active medication" />
               </SelectTrigger>
@@ -131,9 +140,9 @@ export function AddMarRecordDialog({
                 {activeMedications.length === 0 ? (
                   <div className="p-2 text-sm text-muted-foreground">No active medications</div>
                 ) : (
-                  activeMedications.map((med) => (
-                    <SelectItem key={med.id} value={med.id}>
-                      {med.name} - {med.dosage}
+                  activeMedications.map((med, index) => (
+                    <SelectItem key={index} value={String(index)}>
+                      {med.name} {med.dosage ? `- ${med.dosage}` : ''}
                     </SelectItem>
                   ))
                 )}
