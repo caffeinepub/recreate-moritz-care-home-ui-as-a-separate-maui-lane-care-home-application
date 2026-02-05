@@ -77,6 +77,22 @@ export function EditResidentInformationDialog({
     }
   };
 
+  const handleRoomTypeChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      roomType: value,
+      // Clear bed if room type is not Shared
+      bed: value === 'Shared' ? prev.bed : '',
+    }));
+    if (errors.roomType) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.roomType;
+        return newErrors;
+      });
+    }
+  };
+
   const handlePhysicianChange = (index: number, field: string, value: string) => {
     setFormData((prev) => {
       const newPhysicians = [...prev.physicians];
@@ -115,6 +131,9 @@ export function EditResidentInformationDialog({
     }
     if (!formData.roomType.trim()) {
       newErrors.roomType = 'Room type is required';
+    }
+    if (formData.roomType === 'Shared' && !formData.bed.trim()) {
+      newErrors.bed = 'Bed is required for shared rooms';
     }
 
     setErrors(newErrors);
@@ -252,7 +271,7 @@ export function EditResidentInformationDialog({
                 </Label>
                 <Select
                   value={formData.roomType}
-                  onValueChange={(value) => handleInputChange('roomType', value)}
+                  onValueChange={handleRoomTypeChange}
                   disabled={isSaving}
                 >
                   <SelectTrigger
@@ -271,6 +290,33 @@ export function EditResidentInformationDialog({
                   <p className="text-xs text-destructive">{errors.roomType}</p>
                 )}
               </div>
+
+              {formData.roomType === 'Shared' && (
+                <div className="space-y-2">
+                  <Label htmlFor="bed">
+                    Bed <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.bed}
+                    onValueChange={(value) => handleInputChange('bed', value)}
+                    disabled={isSaving}
+                  >
+                    <SelectTrigger
+                      id="bed"
+                      className={errors.bed ? 'border-destructive' : ''}
+                    >
+                      <SelectValue placeholder="Select bed" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="A">A</SelectItem>
+                      <SelectItem value="B">B</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.bed && (
+                    <p className="text-xs text-destructive">{errors.bed}</p>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="medicaidNumber">Medicaid Number</Label>

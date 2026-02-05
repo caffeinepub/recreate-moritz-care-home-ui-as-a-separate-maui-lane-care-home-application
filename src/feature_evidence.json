@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-an-edit-action-on-the-resident-profile-page-frontend-src-pages-maui-residents-residentprofile-tsx-that-opens-the-existing-editresidentinformationdialog-and-allows-updating-the-currently-viewed-resident-s-information",
-      "featureTitle": "Add an \"Edit\" action on the resident profile page (frontend/src/pages/maui/residents/ResidentProfile.tsx) that opens the existing EditResidentInformationDialog and allows updating the currently-viewed resident’s information.",
+      "featureId": "feature-update-the-centralized-branding-configuration-so-all-in-app-logo-renders-including-the-sign-in-screen-and-the-authenticated-app-header-use-the-newly-generated-logo-asset-derived-from-mauilanecarehome-0-1-png",
+      "featureTitle": "Update the centralized branding configuration so all in-app logo renders (including the sign-in screen and the authenticated app header) use the newly generated logo asset derived from \"MauiLaneCareHome 0-1.png\".",
       "files": [
-        "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        "frontend/src/lib/brand.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,16 +16,15 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-12"
+        "REQ-21"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-wire-the-editresidentinformationdialog-save-action-on-the-resident-profile-page-to-the-existing-updateresident-backend-mutation-useupdateresident-and-refresh-the-profile-view-after-a-successful-save",
-      "featureTitle": "Wire the EditResidentInformationDialog save action on the resident profile page to the existing updateResident backend mutation (useUpdateResident) and refresh the profile view after a successful save.",
+      "featureId": "feature-set-the-application-icon-to-the-new-maui-lane-logo-derived-from-mauilanecarehome-0-1-png-by-updating-the-html-head-to-include-favicon-and-touch-app-icon-links-that-reference-the-generated-assets-in-frontend-public-assets-generated",
+      "featureTitle": "Set the application icon to the new Maui Lane logo derived from \"MauiLaneCareHome 0-1.png\" by updating the HTML head to include favicon and touch/app icon links that reference the generated assets in frontend/public/assets/generated/.",
       "files": [
-        "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        "frontend/index.html"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,26 +35,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-13"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-ensure-the-resident-update-request-preserves-backend-only-fields-not-editable-in-the-dialog-e-g-insurance-responsible-persons-medications-by-reusing-the-existing-backendresident-values-when-constructing-the-residentupdaterequest",
-      "featureTitle": "Ensure the resident update request preserves backend-only fields not editable in the dialog (e.g., insurance, responsible persons, medications) by reusing the existing backendResident values when constructing the ResidentUpdateRequest.",
-      "files": [
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-14"
+        "REQ-22"
       ],
       "confidence": "high"
     }

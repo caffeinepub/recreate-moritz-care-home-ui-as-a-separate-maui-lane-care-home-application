@@ -4,7 +4,7 @@
 
 export const BRAND = {
   logo: {
-    path: '/assets/Maui Lane Care Home LOGO-1.png',
+    path: '/assets/generated/maui-lane-logo.v3.dim_512x512.png',
     alt: 'Maui Lane Care Home logo',
   },
   name: 'Maui Lane Care Home',

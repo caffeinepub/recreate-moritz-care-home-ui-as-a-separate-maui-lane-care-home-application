@@ -48,6 +48,7 @@ export interface Physician {
 }
 export interface Resident {
   'id' : ResidentId,
+  'bed' : [] | [string],
   'active' : boolean,
   'birthDate' : string,
   'owner' : Principal,
@@ -66,6 +67,7 @@ export interface Resident {
 }
 export interface ResidentCreateRequest {
   'id' : ResidentId,
+  'bed' : [] | [string],
   'birthDate' : string,
   'admissionDate' : string,
   'name' : string,
@@ -84,6 +86,7 @@ export type ResidentStatusUpdateResult = { 'activated' : null } |
   { 'terminated' : null } |
   { 'notFound' : null };
 export interface ResidentUpdateRequest {
+  'bed' : [] | [string],
   'birthDate' : string,
   'admissionDate' : string,
   'name' : string,

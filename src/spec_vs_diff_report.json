@@ -1,55 +1,42 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T03:17:34.720Z",
-  "summary": "The diff shows initial wiring for an edit dialog flow on ResidentProfile and significant changes to EditResidentInformationDialog, but the key acceptance-criteria behaviors (Edit button placement/visibility, save wiring to useUpdateResident with correct request construction, refetch/invalidation, and error handling) are not verifiable from the truncated snippets. The dialog also introduces new form fields (e.g., bed) that were explicitly called out as non-goals.",
+  "generatedAt": "2026-02-05T03:50:34.094Z",
+  "summary": "The diff updates branding configuration (BRAND.logo.path) and updates frontend/index.html to reference new favicon and apple-touch-icon assets under /assets/generated. However, the required generated image files are not added in this diff, and the 192x192 app icon link is not present in index.html. Evidence is insufficient to confirm that all in-app logo renders (login/header) now display the new logo beyond the brand config change.",
   "missing_requirements": [
     {
-      "id": "REQ-12",
-      "requirement": "Add an \"Edit\" action on the resident profile page that opens the existing EditResidentInformationDialog and is pre-filled with current backend data (useGetResident).",
-      "reason": "ResidentProfile imports the dialog and tracks isEditDialogOpen, but the truncated diff does not include the header JSX showing an Edit button near \"Print Report\" nor the dialog invocation with initialValues derived from useGetResident.",
+      "id": "REQ-20",
+      "requirement": "Generate new Maui Lane Care Home logo image assets from the uploaded image \"MauiLaneCareHome 0-1.png\" and add them as static files under frontend/public/assets/generated/ (at minimum: 512x512 primary logo, 32x32 favicon, 180x180 Apple touch icon, 192x192 app icon).",
+      "reason": "No new static image files were added under frontend/public/assets/generated/ in the provided diff (Added files: none), so the required generated assets are not evidenced as present.",
       "evidence": [
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        "<file-diff>: Added: 0, Modified: 4, Removed: 0",
+        "frontend/src/lib/brand.ts (references /assets/generated/maui-lane-logo.v3.dim_512x512.png but file not shown as added)",
+        "frontend/index.html (references /assets/generated/maui-lane-favicon.v1.dim_32x32.png and /assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png but files not shown as added)"
       ]
     },
     {
-      "id": "REQ-13",
-      "requirement": "Wire dialog save to useUpdateResident and refresh the profile after successful save; show an English error and keep dialog open on failure.",
-      "reason": "ResidentProfile shows useUpdateResident() and a handleEditSave() stub with an invalid-ID toast, but the truncated diff does not show calling the mutation with (residentId, ResidentUpdateRequest), any query invalidation/refetch, or failure handling that keeps the dialog open with a clear error message.",
+      "id": "REQ-21",
+      "requirement": "Ensure all in-app logo renders (including sign-in screen and authenticated app header) use the newly generated logo asset via centralized branding configuration, with no fallback initials shown when assets are present.",
+      "reason": "The centralized branding path was updated, but there are no code changes shown for the components that render the logo (e.g., ProtectedGate, MauiAppShell, BrandLogo) to verify they pick up the new path and that no fallback initials appear due to image load errors.",
       "evidence": [
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        "frontend/src/lib/brand.ts"
       ]
     },
     {
-      "id": "REQ-14",
-      "requirement": "Preserve backend-only fields when constructing ResidentUpdateRequest (reuse existing backendResident values) and avoid unintentional status changes.",
-      "reason": "The diff snippet does not show how ResidentUpdateRequest is constructed; therefore it is not verifiable that backend-only fields are preserved or that active/discharged status is not altered during profile edits.",
+      "id": "REQ-22",
+      "requirement": "Set the application icon by updating the HTML head to include favicon and touch/app icon links referencing generated assets (favicon 32x32, apple-touch-icon 180x180, and app icon 192x192).",
+      "reason": "index.html includes favicon and apple-touch-icon links, but there is no link for the required 192x192 app icon asset in the provided HTML.",
       "evidence": [
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        "frontend/index.html"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Added a \"bed\" field to EditResidentFormData (and likely to the dialog UI).",
-      "reason": "BuildRequest explicitly lists adding new backend resident fields like \"bed\" as a non-goal; introducing this field in the edit form suggests an unrequested edit surface that may not exist in backend Resident/ResidentUpdateRequest.",
-      "evidence": [
-        "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
-      ]
-    },
-    {
-      "description": "Added a \"status\" field to EditResidentFormData (and likely to the dialog UI).",
-      "reason": "Requirements state resident active/discharged status should not be unintentionally changed by saving profile edits and should remain controlled by the existing status toggle flow; adding an editable status field is unrequested and risks violating that constraint.",
-      "evidence": [
-        "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
-      ]
-    }
-  ],
-  "confidence": 0.58,
+  "hallucinated_features": [],
+  "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
-    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+    "frontend/index.html",
+    "frontend/src/lib/brand.ts",
     "project_state.json"
   ]
 }

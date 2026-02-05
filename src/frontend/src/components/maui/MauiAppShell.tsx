@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../ui/button';
 import { LogOut } from 'lucide-react';
 import { BRAND } from '../../lib/brand';
+import { BrandLogo } from '../brand/BrandLogo';
 
 export function MauiAppShell() {
   const { clear, identity } = useInternetIdentity();
@@ -21,11 +22,7 @@ export function MauiAppShell() {
       <header className="no-print sticky top-0 z-50 border-b bg-card shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <img
-              src={BRAND.logo.path}
-              alt={BRAND.logo.alt}
-              className="h-10 w-auto object-contain"
-            />
+            <BrandLogo size="md" />
             <h1 className="text-xl font-semibold text-foreground">{BRAND.name}</h1>
           </div>
           <div className="flex items-center gap-4">

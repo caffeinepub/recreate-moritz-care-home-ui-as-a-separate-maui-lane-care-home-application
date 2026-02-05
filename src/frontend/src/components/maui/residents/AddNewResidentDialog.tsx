@@ -24,6 +24,7 @@ interface AddResidentFormData {
   admissionDate: string;
   roomNumber: string;
   roomType: string;
+  bed: string;
   medicaidNumber: string;
   medicareNumber: string;
   physicians: Physician[];
@@ -49,6 +50,7 @@ export function AddNewResidentDialog({
     admissionDate: '',
     roomNumber: '',
     roomType: '',
+    bed: '',
     medicaidNumber: '',
     medicareNumber: '',
     physicians: [],
@@ -70,6 +72,7 @@ export function AddNewResidentDialog({
         admissionDate: '',
         roomNumber: '',
         roomType: '',
+        bed: '',
         medicaidNumber: '',
         medicareNumber: '',
         physicians: [],
@@ -88,6 +91,22 @@ export function AddNewResidentDialog({
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleRoomTypeChange = (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      roomType: value,
+      // Clear bed if room type is not Shared
+      bed: value === 'Shared' ? prev.bed : '',
+    }));
+    if (errors.roomType) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.roomType;
         return newErrors;
       });
     }
@@ -175,6 +194,9 @@ export function AddNewResidentDialog({
     if (!formData.roomType.trim()) {
       newErrors.roomType = 'Room type is required';
     }
+    if (formData.roomType === 'Shared' && !formData.bed.trim()) {
+      newErrors.bed = 'Bed is required for shared rooms';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -196,6 +218,7 @@ export function AddNewResidentDialog({
         admissionDate: formData.admissionDate,
         roomNumber: formData.roomNumber,
         roomType: formData.roomType,
+        bed: formData.roomType === 'Shared' && formData.bed ? formData.bed : undefined,
         medicaidNumber: formData.medicaidNumber,
         medicareNumber: formData.medicareNumber,
         physicians: formData.physicians,
@@ -333,9 +356,7 @@ export function AddNewResidentDialog({
                   </Label>
                   <Select
                     value={formData.roomType}
-                    onValueChange={(value) => {
-                      handleInputChange('roomType', value);
-                    }}
+                    onValueChange={handleRoomTypeChange}
                   >
                     <SelectTrigger className={errors.roomType ? 'border-destructive' : ''}>
                       <SelectValue placeholder="Select" />
@@ -350,6 +371,29 @@ export function AddNewResidentDialog({
                     <p className="text-xs text-destructive">{errors.roomType}</p>
                   )}
                 </div>
+
+                {formData.roomType === 'Shared' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="bed">
+                      Bed <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.bed}
+                      onValueChange={(value) => handleInputChange('bed', value)}
+                    >
+                      <SelectTrigger className={errors.bed ? 'border-destructive' : ''}>
+                        <SelectValue placeholder="Select bed" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="A">A</SelectItem>
+                        <SelectItem value="B">B</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.bed && (
+                      <p className="text-xs text-destructive">{errors.bed}</p>
+                    )}
+                  </div>
+                )}
 
                 <div className="space-y-2">
                   <Label htmlFor="medicaidNumber">Medicaid Number</Label>

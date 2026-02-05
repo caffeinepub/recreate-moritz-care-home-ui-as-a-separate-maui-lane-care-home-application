@@ -58,6 +58,7 @@ export const Physician = IDL.Record({
 });
 export const ResidentCreateRequest = IDL.Record({
   'id' : ResidentId,
+  'bed' : IDL.Opt(IDL.Text),
   'birthDate' : IDL.Text,
   'admissionDate' : IDL.Text,
   'name' : IDL.Text,
@@ -73,6 +74,7 @@ export const ResidentCreateRequest = IDL.Record({
 });
 export const Resident = IDL.Record({
   'id' : ResidentId,
+  'bed' : IDL.Opt(IDL.Text),
   'active' : IDL.Bool,
   'birthDate' : IDL.Text,
   'owner' : IDL.Principal,
@@ -103,6 +105,7 @@ export const ResidentStatusUpdateResult = IDL.Variant({
   'notFound' : IDL.Null,
 });
 export const ResidentUpdateRequest = IDL.Record({
+  'bed' : IDL.Opt(IDL.Text),
   'birthDate' : IDL.Text,
   'admissionDate' : IDL.Text,
   'name' : IDL.Text,
@@ -216,6 +219,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const ResidentCreateRequest = IDL.Record({
     'id' : ResidentId,
+    'bed' : IDL.Opt(IDL.Text),
     'birthDate' : IDL.Text,
     'admissionDate' : IDL.Text,
     'name' : IDL.Text,
@@ -231,6 +235,7 @@ export const idlFactory = ({ IDL }) => {
   });
   const Resident = IDL.Record({
     'id' : ResidentId,
+    'bed' : IDL.Opt(IDL.Text),
     'active' : IDL.Bool,
     'birthDate' : IDL.Text,
     'owner' : IDL.Principal,
@@ -261,6 +266,7 @@ export const idlFactory = ({ IDL }) => {
     'notFound' : IDL.Null,
   });
   const ResidentUpdateRequest = IDL.Record({
+    'bed' : IDL.Opt(IDL.Text),
     'birthDate' : IDL.Text,
     'admissionDate' : IDL.Text,
     'name' : IDL.Text,

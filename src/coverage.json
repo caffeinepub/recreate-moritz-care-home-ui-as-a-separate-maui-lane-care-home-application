@@ -1,50 +1,47 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T03:17:34.758Z",
+  "generatedAt": "2026-02-05T03:50:34.134Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 3,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-12",
-        "summary": "Add an \"Edit\" action on the resident profile page (frontend/src/pages/maui/residents/ResidentProfile.tsx) that opens the existing EditResidentInformationDialog and allows updating the currently-viewed resident’s information.",
+        "id": "REQ-20",
+        "summary": "Generate new Maui Lane Care Home logo image assets from the uploaded image \"MauiLaneCareHome 0-1.png\" and add them as static files under frontend/public/assets/generated/ with consistent, explicit filenames for use across the app (primary logo + favicon/app-icon sizes).",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/public/assets/generated/maui-lane-logo.v3.dim_512x512.png",
+          "frontend/public/assets/generated/maui-lane-favicon.v1.dim_32x32.png",
+          "frontend/public/assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png",
+          "frontend/public/assets/generated/maui-lane-app-icon.v1.dim_192x192.png"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-21",
+        "summary": "Update the centralized branding configuration so all in-app logo renders (including the sign-in screen and the authenticated app header) use the newly generated logo asset derived from \"MauiLaneCareHome 0-1.png\".",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
+          "frontend/src/lib/brand.ts"
         ],
         "matchedFiles": [
-          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
+          "frontend/src/lib/brand.ts"
         ]
       },
       {
-        "id": "REQ-13",
-        "summary": "Wire the EditResidentInformationDialog save action on the resident profile page to the existing updateResident backend mutation (useUpdateResident) and refresh the profile view after a successful save.",
+        "id": "REQ-22",
+        "summary": "Set the application icon to the new Maui Lane logo derived from \"MauiLaneCareHome 0-1.png\" by updating the HTML head to include favicon and touch/app icon links that reference the generated assets in frontend/public/assets/generated/.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
+          "frontend/index.html"
         ],
         "matchedFiles": [
-          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
-        ]
-      },
-      {
-        "id": "REQ-14",
-        "summary": "Ensure the resident update request preserves backend-only fields not editable in the dialog (e.g., insurance, responsible persons, medications) by reusing the existing backendResident values when constructing the ResidentUpdateRequest.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+          "frontend/index.html"
         ]
       }
     ]
@@ -54,8 +51,12 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
-    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+    "frontend/index.html",
+    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-app-icon.v1.dim_192x192.png",
+    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png",
+    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-favicon.v1.dim_32x32.png",
+    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-logo.v3.dim_512x512.png",
+    "frontend/src/lib/brand.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

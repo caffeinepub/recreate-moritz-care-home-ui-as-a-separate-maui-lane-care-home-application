@@ -9,6 +9,7 @@ import Time "mo:core/Time";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+// Specify the data migration function in with-clause
 
 actor {
   public type UserProfile = {
@@ -84,6 +85,7 @@ actor {
     admissionDate : Text;
     roomNumber : Text;
     roomType : Text;
+    bed : ?Text; // Optional "A" or "B" for shared rooms
     medicaidNumber : Text;
     medicareNumber : Text;
     physicians : [Physician];
@@ -100,6 +102,7 @@ actor {
     admissionDate : Text;
     roomNumber : Text;
     roomType : Text;
+    bed : ?Text;
     medicaidNumber : Text;
     medicareNumber : Text;
     physicians : [Physician];
@@ -115,6 +118,7 @@ actor {
     admissionDate : Text;
     roomNumber : Text;
     roomType : Text;
+    bed : ?Text;
     medicaidNumber : Text;
     medicareNumber : Text;
     physicians : [Physician];
@@ -183,6 +187,7 @@ actor {
           admissionDate = request.admissionDate;
           roomNumber = request.roomNumber;
           roomType = request.roomType;
+          bed = request.bed;
           medicaidNumber = request.medicaidNumber;
           medicareNumber = request.medicareNumber;
           physicians = request.physicians;
@@ -241,6 +246,7 @@ actor {
           admissionDate = updateRequest.admissionDate;
           roomNumber = updateRequest.roomNumber;
           roomType = updateRequest.roomType;
+          bed = updateRequest.bed;
           medicaidNumber = updateRequest.medicaidNumber;
           medicareNumber = updateRequest.medicareNumber;
           physicians = updateRequest.physicians;

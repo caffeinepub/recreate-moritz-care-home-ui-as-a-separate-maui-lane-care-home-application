@@ -1,72 +1,77 @@
 {
   "kind": "build_request",
-  "title": "Enable editing resident information from the Resident Profile page",
+  "title": "Replace all Maui Lane logos with the user-provided image (including app icon/favicon)",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-12",
-      "text": "Add an \"Edit\" action on the resident profile page (frontend/src/pages/maui/residents/ResidentProfile.tsx) that opens the existing EditResidentInformationDialog and allows updating the currently-viewed resident’s information.",
+      "id": "REQ-20",
+      "text": "Generate new Maui Lane Care Home logo image assets from the uploaded image \"MauiLaneCareHome 0-1.png\" and add them as static files under frontend/public/assets/generated/ with consistent, explicit filenames for use across the app (primary logo + favicon/app-icon sizes).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-6"
         ],
         "quotes": [
-          "allow edit on the resident's profile"
+          "change all logo with the image provided"
         ]
       },
       "acceptanceCriteria": [
-        "When viewing a resident profile that is backed by a valid resident Principal ID, the page shows an Edit button in the header area near the existing \"Print Report\" action.",
-        "Clicking the Edit button opens the existing dialog component (frontend/src/components/maui/residents/EditResidentInformationDialog.tsx).",
-        "The dialog is pre-filled with the current resident data from the backend (useGetResident)."
+        "New logo assets exist in frontend/public/assets/generated/ derived from \"MauiLaneCareHome 0-1.png\" at the required sizes (at minimum: 512x512 for primary logo, 32x32 for favicon, 180x180 for Apple touch icon, 192x192 for app icon).",
+        "All generated files are referenced via absolute public paths (e.g., /assets/generated/...) and load without 404s in the running app."
       ]
     },
     {
-      "id": "REQ-13",
-      "text": "Wire the EditResidentInformationDialog save action on the resident profile page to the existing updateResident backend mutation (useUpdateResident) and refresh the profile view after a successful save.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "allow edit on the resident's profile"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Saving changes in the dialog calls the existing React Query mutation (useUpdateResident) with the current residentId and a ResidentUpdateRequest derived from the dialog values.",
-        "After a successful save, the resident profile displays the updated values without requiring a manual page reload (query invalidation/refetch is acceptable).",
-        "If the backend update fails, the UI shows a clear error message in English (e.g., \"Failed to save changes. Please try again.\") and does not close the dialog automatically."
-      ]
-    },
-    {
-      "id": "REQ-14",
-      "text": "Ensure the resident update request preserves backend-only fields not editable in the dialog (e.g., insurance, responsible persons, medications) by reusing the existing backendResident values when constructing the ResidentUpdateRequest.",
+      "id": "REQ-21",
+      "text": "Update the centralized branding configuration so all in-app logo renders (including the sign-in screen and the authenticated app header) use the newly generated logo asset derived from \"MauiLaneCareHome 0-1.png\".",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-6"
         ],
         "quotes": [
-          "allow edit on the resident's profile"
+          "change all logo with the image provided"
         ]
       },
       "acceptanceCriteria": [
-        "Updating basic fields from the dialog (name, birth date, admission date, room number, room type, Medicaid number, Medicare number, physicians, pharmacy fields) does not overwrite other resident fields with empty/default values in the backend.",
-        "The resident’s active/discharged status is not unintentionally changed by saving profile edits (status toggling remains controlled by the existing status toggle flow)."
+        "frontend/src/lib/brand.ts points BRAND.logo.path to the new generated 512x512 logo asset path under /assets/generated/.",
+        "The login (ProtectedGate) and header (MauiAppShell) display the new logo (no old logo visible anywhere those surfaces render).",
+        "BrandLogo fallback initials are not shown when assets are present (no image load error)."
+      ]
+    },
+    {
+      "id": "REQ-22",
+      "text": "Set the application icon to the new Maui Lane logo derived from \"MauiLaneCareHome 0-1.png\" by updating the HTML head to include favicon and touch/app icon links that reference the generated assets in frontend/public/assets/generated/.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "change all logo with the image provided"
+        ]
+      },
+      "acceptanceCriteria": [
+        "frontend/index.html includes a favicon link referencing the new 32x32 logo asset under /assets/generated/.",
+        "frontend/index.html includes an apple-touch-icon link referencing the new 180x180 logo asset under /assets/generated/.",
+        "Reloading the app shows the new icon in the browser tab (favicon) after cache refresh/hard reload."
       ]
     }
   ],
   "constraints": [
-    "Do not edit any files under frontend/src/components/ui (read-only UI component sources must be composed, not edited).",
-    "Respect the existing single-actor Motoko architecture; do not introduce additional backend canisters."
+    "Do not edit any files under frontend/src/components/ui or any paths listed in frontend.immutablePaths.",
+    "Do not route logo/image fetching through the backend; serve logos as static assets from frontend/public/assets/generated."
   ],
   "nonGoals": [
-    "Implementing edit flows for MAR/ADL/Vitals records from the resident profile (beyond existing create/delete functionality).",
-    "Adding new backend resident fields (e.g., bed) that are not currently present in backend Resident/ResidentUpdateRequest types."
+    "No changes to backend canister logic or schemas.",
+    "No redesign of layout, colors, typography, or UI structure beyond swapping logo/icon assets."
   ],
   "imageRequirements": {
     "required": [],
-    "edits": []
+    "edits": [
+      "Create square primary logo asset (MauiLaneCareHome 0-1.png > frontend/public/assets/generated/maui-lane-logo.v3.dim_512x512.png)",
+      "Create favicon asset (MauiLaneCareHome 0-1.png > frontend/public/assets/generated/maui-lane-favicon.v1.dim_32x32.png)",
+      "Create Apple touch icon asset (MauiLaneCareHome 0-1.png > frontend/public/assets/generated/maui-lane-apple-touch-icon.v1.dim_180x180.png)",
+      "Create app icon asset (MauiLaneCareHome 0-1.png > frontend/public/assets/generated/maui-lane-app-icon.v1.dim_192x192.png)"
+    ]
   }
 }

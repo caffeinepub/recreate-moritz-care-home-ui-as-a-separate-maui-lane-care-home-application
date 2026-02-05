@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Loader2 } from 'lucide-react';
 import { BRAND } from '../../lib/brand';
+import { BrandLogo } from '../brand/BrandLogo';
 
 interface ProtectedGateProps {
   children: React.ReactNode;
@@ -30,11 +31,7 @@ export function ProtectedGate({ children }: ProtectedGateProps) {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="mb-4 flex justify-center">
-              <img
-                src={BRAND.logo.path}
-                alt={BRAND.logo.alt}
-                className="h-24 w-24 object-contain"
-              />
+              <BrandLogo size="lg" />
             </div>
             <CardTitle className="text-2xl">Welcome to {BRAND.name}</CardTitle>
             <CardDescription>Please sign in to access the application</CardDescription>

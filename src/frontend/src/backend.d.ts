@@ -14,6 +14,7 @@ export interface InsuranceInfo {
     policyNumber: string;
 }
 export interface ResidentUpdateRequest {
+    bed?: string;
     birthDate: string;
     admissionDate: string;
     name: string;
@@ -41,6 +42,7 @@ export interface MarRecord {
 }
 export interface Resident {
     id: ResidentId;
+    bed?: string;
     active: boolean;
     birthDate: string;
     owner: Principal;
@@ -77,6 +79,7 @@ export interface AdlRecord {
 }
 export interface ResidentCreateRequest {
     id: ResidentId;
+    bed?: string;
     birthDate: string;
     admissionDate: string;
     name: string;
