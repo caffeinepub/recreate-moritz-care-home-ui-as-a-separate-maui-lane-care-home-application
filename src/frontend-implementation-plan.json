@@ -1,0 +1,52 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "Printable Resident Profile report (layout-matched)",
+  "requirements": [
+    {
+      "id": "REQ-6",
+      "summary": "Make the existing Resident Profile “Print” button open the browser print dialog and print a dedicated report layout matching the provided reference.",
+      "acceptanceCriteria": [
+        "Clicking the “Print” button on Resident Profile triggers the browser print dialog and prints content (not a placeholder toast).",
+        "The printed output matches the reference layout at a high level: a top header area with facility/app name and report title, followed by clearly separated sections with divider lines, and a multi-page print-friendly flow.",
+        "The printed output includes the key sections visible in the reference image: Resident Information, Insurance Information, Active Medications (table-style grid), Discontinued Medications section, Assigned Physicians, Pharmacy Information, and Responsible Contacts.",
+        "The “Include physician printed name & signature” toggle affects the printed output (when enabled, the print layout includes a signature/printed-name area; when disabled, it is omitted).",
+        "Non-print UI elements (app header/nav/footer, page action buttons, tabs UI, edit/add medication buttons) do not appear in the printed document."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "operation": "modify",
+          "description": "Replace the current placeholder toast print handler with a real print flow using window.print(); render a dedicated print-only report container that includes the required sections and reads from the current profile/medication mock data; ensure the “Include physician printed name & signature” toggle controls print output; mark non-print UI regions (header/actions/tabs/medication action buttons) with a consistent class (e.g., no-print) so they are excluded from printing. Uses existing shadcn-ui Button/Switch/etc already present—verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
+          "operation": "create",
+          "description": "Add a print-focused React component that renders the Resident Profile Report layout (facility/app name + report title header; section blocks with dividers; Active Medications in a table/grid; Discontinued Medications; Assigned Physicians; Pharmacy Information; Responsible Contacts), and conditionally includes the physician printed-name/signature area based on a prop. Keep it print-friendly (minimal UI chrome) and designed to paginate across multiple pages. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/maui/MauiAppShell.tsx",
+          "operation": "modify",
+          "description": "Ensure global shell UI (app header, navigation, footer) can be excluded from print by applying a shared non-print class (e.g., no-print) or wrapping them in a no-print container so the Resident Profile report prints without app chrome. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Add print-specific CSS to produce clean pagination and a readable A4/Letter Resident Profile report aligned with the reference layout.",
+      "acceptanceCriteria": [
+        "The print stylesheet uses @media print rules to hide non-print elements and optimize spacing/typography for paper.",
+        "Active Medications prints as a grid/table with column headers and row borders similar to the reference, and it can span multiple pages without overlapping content.",
+        "Sections avoid awkward page breaks where possible (e.g., headings not left orphaned at the bottom of a page).",
+        "The printed page does not include dark backgrounds, shadows, or UI card chrome that reduces legibility on paper."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Add @media print rules to: hide elements marked as no-print; show print-only report containers; reset backgrounds/shadows to paper-friendly defaults; define report typography, spacing, and section divider styling aligned to the reference; implement table/grid print styles for Active Medications (borders, header row, consistent cell padding); and add page-break controls (e.g., avoid breaks inside section blocks and keep headings with content) to improve pagination on A4/Letter."
+        }
+      ]
+    }
+  ]
+}

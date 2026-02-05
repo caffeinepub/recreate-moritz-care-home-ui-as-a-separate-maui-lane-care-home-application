@@ -1,0 +1,281 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --radius: 0.5rem;
+        
+        /* Maui Lane Care Home - Light Theme */
+        /* Warm, welcoming palette inspired by tropical care environments */
+        --background: 0.98 0.01 60;
+        --foreground: 0.25 0.02 60;
+        
+        --card: 1 0 0;
+        --card-foreground: 0.25 0.02 60;
+        
+        --popover: 1 0 0;
+        --popover-foreground: 0.25 0.02 60;
+        
+        /* Warm coral primary - welcoming and energetic */
+        --primary: 0.65 0.18 25;
+        --primary-foreground: 0.99 0.01 60;
+        
+        /* Soft teal secondary - calming and professional */
+        --secondary: 0.88 0.08 180;
+        --secondary-foreground: 0.25 0.02 180;
+        
+        --muted: 0.95 0.01 60;
+        --muted-foreground: 0.55 0.02 60;
+        
+        /* Warm sand accent */
+        --accent: 0.92 0.05 50;
+        --accent-foreground: 0.35 0.02 50;
+        
+        --destructive: 0.58 0.24 25;
+        --destructive-foreground: 0.99 0.01 25;
+        
+        --border: 0.90 0.01 60;
+        --input: 0.90 0.01 60;
+        --ring: 0.65 0.18 25;
+        
+        --chart-1: 0.65 0.18 25;
+        --chart-2: 0.70 0.15 180;
+        --chart-3: 0.75 0.12 280;
+        --chart-4: 0.68 0.16 140;
+        --chart-5: 0.72 0.14 320;
+    }
+
+    .dark {
+        /* Maui Lane Care Home - Dark Theme */
+        /* Sophisticated dark palette with warm accents */
+        --background: 0.18 0.02 60;
+        --foreground: 0.95 0.01 60;
+        
+        --card: 0.22 0.02 60;
+        --card-foreground: 0.95 0.01 60;
+        
+        --popover: 0.20 0.02 60;
+        --popover-foreground: 0.95 0.01 60;
+        
+        /* Bright coral primary for dark mode */
+        --primary: 0.70 0.20 25;
+        --primary-foreground: 0.15 0.02 25;
+        
+        /* Muted teal secondary */
+        --secondary: 0.35 0.08 180;
+        --secondary-foreground: 0.95 0.01 180;
+        
+        --muted: 0.28 0.02 60;
+        --muted-foreground: 0.65 0.02 60;
+        
+        --accent: 0.40 0.06 50;
+        --accent-foreground: 0.95 0.01 50;
+        
+        --destructive: 0.62 0.26 25;
+        --destructive-foreground: 0.15 0.02 25;
+        
+        --border: 0.30 0.02 60;
+        --input: 0.30 0.02 60;
+        --ring: 0.70 0.20 25;
+        
+        --chart-1: 0.70 0.20 25;
+        --chart-2: 0.65 0.18 180;
+        --chart-3: 0.68 0.16 280;
+        --chart-4: 0.72 0.14 140;
+        --chart-5: 0.75 0.12 320;
+    }
+
+    * {
+        @apply border-border;
+    }
+    
+    body {
+        @apply bg-background text-foreground;
+        font-feature-settings: "rlig" 1, "calt" 1;
+    }
+}
+
+/* Print Styles */
+@media print {
+    /* Hide non-print elements */
+    .no-print {
+        display: none !important;
+    }
+
+    /* Show print-only elements */
+    .print-report {
+        display: block !important;
+    }
+
+    /* Reset page styles for printing */
+    body {
+        background: white !important;
+        color: black !important;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Page setup */
+    @page {
+        size: letter;
+        margin: 0.75in;
+    }
+
+    /* Print Report Header */
+    .print-header {
+        text-align: center;
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 3px solid #1a5f7a;
+    }
+
+    .print-facility-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1a5f7a;
+        margin-bottom: 4px;
+    }
+
+    .print-report-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+    }
+
+    /* Print Sections */
+    .print-section {
+        margin-bottom: 24px;
+        page-break-inside: avoid;
+    }
+
+    .print-section-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #1a5f7a;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .print-section-divider {
+        height: 2px;
+        background-color: #1a5f7a;
+        margin-bottom: 12px;
+    }
+
+    /* Info Grid */
+    .print-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px 24px;
+    }
+
+    .print-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .print-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .print-value {
+        font-size: 11px;
+        color: #000;
+        font-weight: 500;
+    }
+
+    /* Medications Table */
+    .print-medications-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 8px;
+        font-size: 10px;
+    }
+
+    .print-medications-table th {
+        background-color: #f0f0f0;
+        border: 1px solid #333;
+        padding: 6px 8px;
+        text-align: left;
+        font-weight: 700;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .print-medications-table td {
+        border: 1px solid #666;
+        padding: 6px 8px;
+        vertical-align: top;
+        font-size: 10px;
+    }
+
+    .print-medications-table tbody tr:nth-child(even) {
+        background-color: #fafafa;
+    }
+
+    .print-no-data {
+        text-align: center;
+        padding: 16px;
+        color: #666;
+        font-style: italic;
+    }
+
+    /* Physician and Contact Blocks */
+    .print-physician-block,
+    .print-contact-block {
+        margin-bottom: 12px;
+    }
+
+    /* Signature Section */
+    .print-signature-section {
+        margin-top: 32px;
+        page-break-inside: avoid;
+    }
+
+    .print-signature-block {
+        margin-top: 16px;
+    }
+
+    .print-signature-line {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+    }
+
+    .print-signature-underline {
+        flex: 1;
+        border-bottom: 1px solid #333;
+        min-width: 300px;
+    }
+
+    .print-signature-underline-short {
+        flex: 1;
+        border-bottom: 1px solid #333;
+        min-width: 150px;
+        max-width: 200px;
+    }
+
+    /* Avoid page breaks */
+    .print-section h2 {
+        page-break-after: avoid;
+    }
+
+    .print-medications-table tr {
+        page-break-inside: avoid;
+    }
+
+    /* Remove shadows and backgrounds */
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+}

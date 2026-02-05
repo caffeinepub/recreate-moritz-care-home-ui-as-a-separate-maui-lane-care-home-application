@@ -1,0 +1,58 @@
+{
+  "kind": "build_request",
+  "title": "Enable printable Resident Profile report matching provided layout",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-6",
+      "text": "Implement working print functionality from the Maui resident profile page so that clicking the existing “Print” button generates a printout that follows the layout and structure shown in the uploaded reference image (print.JPG).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "enable print and follow the layout in the image provided"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Clicking the “Print” button on Resident Profile triggers the browser print dialog and prints content (not a placeholder toast).",
+        "The printed output matches the reference layout at a high level: a top header area with facility/app name and report title, followed by clearly separated sections with divider lines, and a multi-page print-friendly flow.",
+        "The printed output includes the key sections visible in the reference image: Resident Information, Insurance Information, Active Medications (table-style grid), Discontinued Medications section, Assigned Physicians, Pharmacy Information, and Responsible Contacts.",
+        "The “Include physician printed name & signature” toggle affects the printed output (when enabled, the print layout includes a signature/printed-name area; when disabled, it is omitted).",
+        "Non-print UI elements (app header/nav/footer, page action buttons, tabs UI, edit/add medication buttons) do not appear in the printed document."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add print-specific styling so the Resident Profile report paginates cleanly and remains readable when printed (A4/Letter), including consistent typography, spacing, section dividers, and table formatting aligned with the uploaded reference image.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-4"
+        ],
+        "quotes": [
+          "follow the layout in the image provided"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The print stylesheet uses @media print rules to hide non-print elements and optimize spacing/typography for paper.",
+        "Active Medications prints as a grid/table with column headers and row borders similar to the reference, and it can span multiple pages without overlapping content.",
+        "Sections avoid awkward page breaks where possible (e.g., headings not left orphaned at the bottom of a page).",
+        "The printed page does not include dark backgrounds, shadows, or UI card chrome that reduces legibility on paper."
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify files in frontend immutablePaths (including Internet Identity hooks and frontend/src/components/ui). Compose using existing components instead.",
+    "Keep backend unchanged unless strictly required; printing must be achievable entirely on the frontend for the current mock data."
+  ],
+  "nonGoals": [
+    "Do not add PDF generation or server-side rendering/export.",
+    "Do not implement real backend persistence for resident data as part of this print enablement."
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}

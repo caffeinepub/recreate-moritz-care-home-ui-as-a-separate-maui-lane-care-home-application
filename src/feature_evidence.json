@@ -1,0 +1,43 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-implement-working-print-functionality-from-the-maui-resident-profile-page-so-that-clicking-the-existing-print-button-generates-a-printout-that-follows-the-layout-and-structure-shown-in-the-uploaded-reference-image-print-jpg",
+      "featureTitle": "Implement working print functionality from the Maui resident profile page so that clicking the existing “Print” button generates a printout that follows the layout and structure shown in the uploaded reference image (print.JPG).",
+      "files": [
+        "frontend/src/components/maui/MauiAppShell.tsx",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+        "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-print-specific-styling-so-the-resident-profile-report-paginates-cleanly-and-remains-readable-when-printed-a4-letter-including-consistent-typography-spacing-section-dividers-and-table-formatting-aligned-with-the-uploaded-reference-image",
+      "featureTitle": "Add print-specific styling so the Resident Profile report paginates cleanly and remains readable when printed (A4/Letter), including consistent typography, spacing, section dividers, and table formatting aligned with the uploaded reference image.",
+      "files": [
+        "frontend/src/index.css"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

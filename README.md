@@ -1,2 +1,3 @@
-# recreate-moritz-care-home-ui-as-a-separate-maui-lane-care-home-application
-Exported from Caffeine project: Recreate Moritz Care Home UI as a separate Maui Lane Care Home application
+## 
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

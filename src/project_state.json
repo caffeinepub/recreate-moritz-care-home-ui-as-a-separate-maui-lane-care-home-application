@@ -1,0 +1,292 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectStateVersion": 29,
+  "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
+  "existing_features": [
+    {
+      "id": "IF-1",
+      "title": "Motoko backend canister scaffold",
+      "synonyms": [
+        "core infrastructure",
+        "backend main canister"
+      ],
+      "description": "Backend canister structure with main entrypoint and supporting modules wired for the application.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-2",
+      "title": "Authorization & access control (Motoko)",
+      "synonyms": [
+        "mixin authorization",
+        "access-control"
+      ],
+      "description": "Backend authorization layer implementing access control logic for protected operations.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-3",
+      "title": "React (Vite) frontend scaffold with app layout",
+      "synonyms": [
+        "initial app UI",
+        "AppLayout",
+        "ScreenContainer"
+      ],
+      "description": "Frontend application shell including layout, navigation structure, shared loading/error states, and Tailwind styling.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-4",
+      "title": "Internet Identity authentication integration",
+      "synonyms": [
+        "II auth",
+        "useInternetIdentity",
+        "login button"
+      ],
+      "description": "Frontend authentication hooks and UI for Internet Identity login and session handling; actor wiring to backend.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-5",
+      "title": "Protected-access UX (Access Denied screen)",
+      "synonyms": [
+        "AccessDeniedScreen"
+      ],
+      "description": "Frontend handling for unauthorized access scenarios with a dedicated access denied screen.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-6",
+      "title": "Profile setup modal",
+      "synonyms": [
+        "ProfileSetupModal",
+        "onboarding"
+      ],
+      "description": "Frontend modal flow to guide users through initial profile setup after authentication.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-7",
+      "title": "Core application pages",
+      "synonyms": [
+        "HomePage",
+        "AnnouncementsPage",
+        "FacilitiesPage",
+        "ResidentsPage",
+        "ProfilePage"
+      ],
+      "description": "Implemented initial route pages for core sections of the app (home, announcements, facilities, residents, profile).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-8",
+      "title": "Generated brand assets (icon, logo, hero)",
+      "synonyms": [
+        "generated images",
+        "branding assets"
+      ],
+      "description": "Generated static PNG assets for app icon, logo, and hero banner included in the frontend public assets.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-9",
+      "title": "Build/deploy template and tooling",
+      "synonyms": [
+        "Dockerfile",
+        "deploy.sh",
+        "icp.yaml",
+        "build template"
+      ],
+      "description": "Project build template including Docker/deploy scripts, ICP configuration, and frontend build tooling/scripts (e.g., image processing).",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-10",
+      "title": "Shadcn UI component library included",
+      "synonyms": [
+        "shadcn-ui"
+      ],
+      "description": "Shadcn UI component set added to the frontend codebase for consistent UI primitives.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-11",
+      "title": "Maui Lane Care Home branded app shell + navigation",
+      "synonyms": [
+        "MauiAppShell",
+        "MauiNav",
+        "branded layout"
+      ],
+      "description": "Introduced Maui-specific application shell and navigation components and wired them into the React app, using the generated Maui Lane brand assets in the authenticated experience.",
+      "reqIds": [
+        "REQ-3",
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-12",
+      "title": "Moritz reference capture route + missing-reference placeholder",
+      "synonyms": [
+        "MoritzReferenceCapture",
+        "MissingReferencePlaceholder",
+        "reference inputs"
+      ],
+      "description": "Added a dedicated reference-capture page/route and a placeholder UI that documents what Moritz reference screenshots/pages are needed when references have not been provided.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-13",
+      "title": "Maui dashboard page (authenticated)",
+      "synonyms": [
+        "Dashboard",
+        "maui pages"
+      ],
+      "description": "Added an initial Maui-specific dashboard page under the Maui route set, intended to mirror the Moritz app structure within the protected/authenticated experience.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-14",
+      "title": "Maui residents directory UI (dashboard/grid with filtering + KPIs)",
+      "synonyms": [
+        "Maui residents page",
+        "ResidentGrid",
+        "ResidentCard",
+        "ResidentStatusTabs",
+        "ResidentFilterSortBar"
+      ],
+      "description": "Implemented Maui-specific residents UI components including a resident dashboard header, KPI row, status tabs, filter/sort bar, and responsive resident card/grid rendering backed by mock resident data and list utilities.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-15",
+      "title": "Maui resident profile page (detail view) with mock profile + medications data",
+      "synonyms": [
+        "ResidentProfile",
+        "resident detail page",
+        "mockResidentProfileData",
+        "mockResidentMedications"
+      ],
+      "description": "Added a Maui-specific resident profile/detail page with supporting mock profile and medication datasets to complement the residents directory and enable navigation to an individual resident view prior to backend integration.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-16",
+      "title": "Maui residents add/edit resident dialogs (UI-only, mock wiring)",
+      "synonyms": [
+        "AddNewResidentDialog",
+        "EditResidentInformationDialog",
+        "resident CRUD dialogs"
+      ],
+      "description": "Added Maui residents module dialogs for adding a new resident and editing resident information, matching the intended Moritz-style UI patterns; currently frontend-only with mock/non-persistent behavior pending backend integration.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-working-print-functionality-from-the-maui-resident-profile-page-so-that-clicking-the-existing-print-button-generates-a-printout-that-follows-the-layout-and-structure-shown-in-the-uploaded-reference-image-print-jpg",
+      "title": "Implement working print functionality from the Maui resident profile page so that clicking the existing “Print” button generates a printout that follows the layout and structure shown in the uploaded reference image (print.JPG).",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-print-specific-styling-so-the-resident-profile-report-paginates-cleanly-and-remains-readable-when-printed-a4-letter-including-consistent-typography-spacing-section-dividers-and-table-formatting-aligned-with-the-uploaded-reference-image",
+      "title": "Add print-specific styling so the Resident Profile report paginates cleanly and remains readable when printed (A4/Letter), including consistent typography, spacing, section dividers, and table formatting aligned with the uploaded reference image.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    }
+  ],
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Recreate an exact copy of the Moritz Care Home application (layout, UI, and details) as a separate application branded for Maui Lane Care Home.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Create a separate application experience branded as “Maui Lane Care Home” that closely recreates the Moritz Care Home application’s layout, UI, and on-screen details, using the existing React + Motoko + Internet Identity template as the foundation.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Ensure any Moritz-specific data labels, placeholders, and UI copy are replaced with Maui Lane Care Home equivalents while keeping the same UI structure as the Moritz reference.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Maintain compatibility with existing Internet Identity authentication and protected-access UX (do not remove or bypass login gating); the Maui Lane Care Home UI should appear within the authenticated experience where applicable.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Enable printing functionality (print view/layout) matching the provided reference image.",
+      "reqIds": [],
+      "status": "pending"
+    }
+  ],
+  "architectural_notes": [
+    "Architecture: ICP canister app with Motoko backend + React (Vite) frontend.",
+    "Authentication: Internet Identity used on the frontend; actor-based calls to backend canister.",
+    "Authorization: Backend access-control module enforces permissions; frontend includes AccessDenied UX.",
+    "UI stack: Tailwind CSS + shadcn-ui component library.",
+    "Build/deploy: Includes Docker/deploy scripts and ICP config; image resize/prune scripts for generated assets.",
+    "Frontend: Maui-specific app shell/navigation components (MauiAppShell/MauiNav) layered on the existing React+II scaffold.",
+    "Frontend: Added Moritz reference-capture route and MissingReferencePlaceholder guidance screen for missing UI reference materials.",
+    "Frontend: Maui residents module built from composable components (ResidentGrid/Card/Header/KPIs/Tabs/FilterSort) with mock data + list utilities as a stand-in for backend integration.",
+    "Frontend: Added Maui resident profile/detail page with supporting mock profile + medications data modules as a stand-in for backend detail endpoints.",
+    "Frontend: Added Maui residents add/edit dialogs (AddNewResidentDialog/EditResidentInformationDialog) as UI-only components pending backend persistence/integration."
+  ],
+  "known_issues": [],
+  "isFixRequest": false,
+  "generatedImages": [
+    {
+      "filename": "frontend/public/assets/generated/maui-lane-app-icon.dim_256x256.png",
+      "description": "Generated application icon (256x256).",
+      "targetWidth": 256,
+      "targetHeight": 256
+    },
+    {
+      "filename": "frontend/public/assets/generated/maui-lane-logo.dim_512x512.png",
+      "description": "Generated application logo (512x512).",
+      "targetWidth": 512,
+      "targetHeight": 512
+    },
+    {
+      "filename": "frontend/public/assets/generated/maui-lane-hero.dim_1600x600.png",
+      "description": "Generated hero/banner image (1600x600).",
+      "targetWidth": 1600,
+      "targetHeight": 600
+    }
+  ],
+  "projectName": "Recreate Moritz Care Home UI as a separate Maui Lane Care Home application",
+  "clarification_mode": "instant",
+  "clarification_rounds": 0
+}
