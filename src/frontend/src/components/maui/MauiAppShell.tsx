@@ -14,7 +14,7 @@ export function MauiAppShell() {
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
             <img
-              src="/assets/generated/maui-lane-logo-v2.dim_512x512.png"
+              src="/assets/generated/maui-lane-logo-provided.dim_512x512.png"
               alt="Maui Lane Care Home"
               className="h-10 w-10 object-contain"
             />

@@ -39,6 +39,20 @@ export function Dashboard() {
     setResidents((prev) => [...prev, newResident]);
   };
 
+  const handleDeleteResident = (residentId: number) => {
+    setResidents((prev) => prev.filter((r) => r.id !== residentId));
+  };
+
+  const handleToggleResidentStatus = (residentId: number) => {
+    setResidents((prev) =>
+      prev.map((r) =>
+        r.id === residentId
+          ? { ...r, status: r.status === 'Active' ? 'Discharged' : 'Active' }
+          : r
+      )
+    );
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <ResidentDashboardHeader onAddResident={() => setIsAddDialogOpen(true)} />
@@ -51,7 +65,11 @@ export function Dashboard() {
         onSortChange={(value) => setSortBy(value as SortOption)}
       />
       <ResidentStatusTabs value={statusFilter} onValueChange={setStatusFilter} />
-      <ResidentGrid residents={filteredAndSortedResidents} />
+      <ResidentGrid
+        residents={filteredAndSortedResidents}
+        onDeleteResident={handleDeleteResident}
+        onToggleResidentStatus={handleToggleResidentStatus}
+      />
       <AddNewResidentDialog
         open={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}

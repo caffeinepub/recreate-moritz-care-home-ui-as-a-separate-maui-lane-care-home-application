@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-apply-the-updated-maui-lane-care-home-logo-in-the-authenticated-app-header-by-updating-the-header-logo-image-source-in-frontend-src-components-maui-mauiappshell-tsx-to-use-the-newly-generated-logo-asset",
-      "featureTitle": "Apply the updated Maui Lane Care Home logo in the authenticated app header by updating the header logo image source in frontend/src/components/maui/MauiAppShell.tsx to use the newly generated logo asset.",
+      "featureId": "feature-replace-the-maui-lane-care-home-logo-used-in-the-app-header-with-the-user-provided-image-and-ensure-the-application-consistently-references-the-updated-logo-asset-path",
+      "featureTitle": "Replace the Maui Lane Care Home logo used in the app header with the user-provided image, and ensure the application consistently references the updated logo asset path.",
       "files": [
         "frontend/src/components/maui/MauiAppShell.tsx"
       ],
@@ -15,25 +15,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-8"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-apply-the-updated-application-icon-as-the-site-favicon-by-updating-frontend-index-html-to-reference-the-newly-generated-app-icon-asset",
-      "featureTitle": "Apply the updated application icon as the site favicon by updating frontend/index.html to reference the newly generated app icon asset.",
-      "files": [
-        "frontend/index.html"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-9"
+        "REQ-6"
       ],
       "confidence": "high"
     }

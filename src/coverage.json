@@ -1,53 +1,26 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:34:52.154Z",
+  "generatedAt": "2026-02-05T00:48:32.129Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 2,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-6",
-        "summary": "Generate an updated Maui Lane Care Home brand logo image and store it as a static asset under frontend/public/assets/generated, suitable for use in the app header.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/public/assets/generated/maui-lane-logo-v2.dim_512x512.png"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Generate an updated Maui Lane Care Home application icon image and store it as a static asset under frontend/public/assets/generated, suitable for use as the browser favicon.",
-        "status": "missing",
-        "plannedFiles": [
-          "frontend/public/assets/generated/maui-lane-app-icon-v2.dim_256x256.png"
-        ],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Apply the updated Maui Lane Care Home logo in the authenticated app header by updating the header logo image source in frontend/src/components/maui/MauiAppShell.tsx to use the newly generated logo asset.",
+        "summary": "Replace the Maui Lane Care Home logo used in the app header with the user-provided image, and ensure the application consistently references the updated logo asset path.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/public/assets/generated/maui-lane-logo.dim_512x512.png",
+          "frontend/public/assets/generated/maui-lane-logo-provided.dim_512x512.png",
           "frontend/src/components/maui/MauiAppShell.tsx"
         ],
         "matchedFiles": [
           "frontend/src/components/maui/MauiAppShell.tsx"
-        ]
-      },
-      {
-        "id": "REQ-9",
-        "summary": "Apply the updated application icon as the site favicon by updating frontend/index.html to reference the newly generated app icon asset.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/index.html"
-        ],
-        "matchedFiles": [
-          "frontend/index.html"
         ]
       }
     ]
@@ -57,7 +30,7 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
+    "frontend/public/assets/generated/frontend/public/assets/generated/maui-lane-logo-provided.dim_512x512.png",
     "frontend/src/components/maui/MauiAppShell.tsx",
     "project_state.json",
     "scratch/component-selection.json",
