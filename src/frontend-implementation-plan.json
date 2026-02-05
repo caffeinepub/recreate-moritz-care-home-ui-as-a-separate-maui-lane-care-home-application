@@ -1,26 +1,63 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Replace Moritz Care Home branding text with Maui Lane Care Home",
+  "title": "Maui Lane Care Home: refresh logo + favicon assets and wire into UI",
   "requirements": [
     {
       "id": "REQ-6",
-      "summary": "Replace all user-facing occurrences of the exact text \"Moritz Care Home\" with \"Maui Lane Care Home\" across the frontend UI (including print report header and reference capture page copy).",
+      "summary": "Generate and add the updated Maui Lane Care Home brand logo as a static frontend asset for header use.",
       "acceptanceCriteria": [
-        "The print-only Resident Profile Report header shows \"Maui Lane Care Home\" instead of \"Moritz Care Home\" (frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx).",
-        "The references page no longer displays the string \"Moritz Care Home\" anywhere in its visible title/body text (frontend/src/pages/references/MoritzReferenceCapture.tsx).",
-        "A global search over frontend source text confirms there are no remaining user-facing occurrences of the exact string \"Moritz Care Home\"."
+        "A new logo image file is generated in frontend/public/assets/generated with the specified filename and dimensions from imageRequirements.edits"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
-          "operation": "modify",
-          "description": "Update the print report header facility name text from \"Moritz Care Home\" to \"Maui Lane Care Home\" so printed output reflects the new branding."
-        },
+          "path": "frontend/public/assets/generated/maui-lane-logo-v2.dim_512x512.png",
+          "operation": "create",
+          "description": "Add the refreshed Maui Lane Care Home logo (512x512) as a static asset for use in the authenticated app header."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Generate and add the updated Maui Lane Care Home application icon as a static frontend asset for favicon use.",
+      "acceptanceCriteria": [
+        "A new app icon image file is generated in frontend/public/assets/generated with the specified filename and dimensions from imageRequirements.edits"
+      ],
+      "file_operations": [
         {
-          "path": "frontend/src/pages/references/MoritzReferenceCapture.tsx",
+          "path": "frontend/public/assets/generated/maui-lane-app-icon-v2.dim_256x256.png",
+          "operation": "create",
+          "description": "Add the refreshed Maui Lane Care Home app icon (256x256) as a static asset suitable for use as the browser favicon."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Update the authenticated app header to display the newly generated Maui Lane Care Home logo asset.",
+      "acceptanceCriteria": [
+        "When signed in, the MauiAppShell header displays the updated logo image",
+        "The header logo image has meaningful alt text in English (keep as \"Maui Lane Care Home\")"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/maui/MauiAppShell.tsx",
           "operation": "modify",
-          "description": "Replace all user-facing occurrences of the exact string \"Moritz Care Home\" in the page title and body copy with \"Maui Lane Care Home\" while keeping the page structure and behavior unchanged."
+          "description": "Update the header logo image source to use frontend/public/assets/generated/maui-lane-logo-v2.dim_512x512.png while keeping alt text exactly \"Maui Lane Care Home\"."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Update the site favicon reference to use the newly generated Maui Lane Care Home app icon asset.",
+      "acceptanceCriteria": [
+        "The favicon <link> in frontend/index.html points to the updated icon asset",
+        "Reloading the app shows the updated favicon in the browser tab"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Update the favicon link to reference frontend/public/assets/generated/maui-lane-app-icon-v2.dim_256x256.png."
         }
       ]
     }

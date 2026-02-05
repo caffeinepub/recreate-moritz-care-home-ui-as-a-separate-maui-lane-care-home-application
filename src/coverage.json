@@ -1,26 +1,53 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:21:09.831Z",
+  "generatedAt": "2026-02-05T00:34:52.154Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 4,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-6",
-        "summary": "Replace all user-facing occurrences of the exact text \"Moritz Care Home\" with \"Maui Lane Care Home\" across the frontend UI, including the resident print report header and the reference capture page copy.",
+        "summary": "Generate an updated Maui Lane Care Home brand logo image and store it as a static asset under frontend/public/assets/generated, suitable for use in the app header.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/public/assets/generated/maui-lane-logo-v2.dim_512x512.png"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Generate an updated Maui Lane Care Home application icon image and store it as a static asset under frontend/public/assets/generated, suitable for use as the browser favicon.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/public/assets/generated/maui-lane-app-icon-v2.dim_256x256.png"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Apply the updated Maui Lane Care Home logo in the authenticated app header by updating the header logo image source in frontend/src/components/maui/MauiAppShell.tsx to use the newly generated logo asset.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
-          "frontend/src/pages/references/MoritzReferenceCapture.tsx"
+          "frontend/src/components/maui/MauiAppShell.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
-          "frontend/src/pages/references/MoritzReferenceCapture.tsx"
+          "frontend/src/components/maui/MauiAppShell.tsx"
+        ]
+      },
+      {
+        "id": "REQ-9",
+        "summary": "Apply the updated application icon as the site favicon by updating frontend/index.html to reference the newly generated app icon asset.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/index.html"
+        ],
+        "matchedFiles": [
+          "frontend/index.html"
         ]
       }
     ]
@@ -30,8 +57,8 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
-    "frontend/src/pages/references/MoritzReferenceCapture.tsx",
+    "frontend/index.html",
+    "frontend/src/components/maui/MauiAppShell.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

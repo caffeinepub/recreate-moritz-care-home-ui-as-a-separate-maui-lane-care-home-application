@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-replace-all-user-facing-occurrences-of-the-exact-text-moritz-care-home-with-maui-lane-care-home-across-the-frontend-ui-including-the-resident-print-report-header-and-the-reference-capture-page-copy",
-      "featureTitle": "Replace all user-facing occurrences of the exact text \"Moritz Care Home\" with \"Maui Lane Care Home\" across the frontend UI, including the resident print report header and the reference capture page copy.",
+      "featureId": "feature-apply-the-updated-maui-lane-care-home-logo-in-the-authenticated-app-header-by-updating-the-header-logo-image-source-in-frontend-src-components-maui-mauiappshell-tsx-to-use-the-newly-generated-logo-asset",
+      "featureTitle": "Apply the updated Maui Lane Care Home logo in the authenticated app header by updating the header logo image source in frontend/src/components/maui/MauiAppShell.tsx to use the newly generated logo asset.",
       "files": [
-        "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
-        "frontend/src/pages/references/MoritzReferenceCapture.tsx"
+        "frontend/src/components/maui/MauiAppShell.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -16,7 +15,25 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-6"
+        "REQ-8"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-apply-the-updated-application-icon-as-the-site-favicon-by-updating-frontend-index-html-to-reference-the-newly-generated-app-icon-asset",
+      "featureTitle": "Apply the updated application icon as the site favicon by updating frontend/index.html to reference the newly generated app icon asset.",
+      "files": [
+        "frontend/index.html"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-9"
       ],
       "confidence": "high"
     }

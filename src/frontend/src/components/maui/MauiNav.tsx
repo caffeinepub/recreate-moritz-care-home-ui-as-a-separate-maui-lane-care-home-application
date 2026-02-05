@@ -1,5 +1,5 @@
 import { Link, useRouterState } from '@tanstack/react-router';
-import { Home, FileText } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function MauiNav() {
@@ -8,7 +8,6 @@ export function MauiNav() {
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
-    { path: '/moritz-reference', label: 'Reference Capture', icon: FileText },
   ];
 
   return (

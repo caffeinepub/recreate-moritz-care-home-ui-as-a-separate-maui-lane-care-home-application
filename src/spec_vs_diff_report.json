@@ -1,41 +1,43 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:21:09.796Z",
-  "summary": "REQ-6 is partially implemented: the two explicitly named UI locations show updated branding text, but the diff summary does not provide enough evidence to confirm that *all* user-facing occurrences of the exact string \"Moritz Care Home\" were replaced across the entire frontend source.",
+  "generatedAt": "2026-02-05T00:34:52.111Z",
+  "summary": "REQ-8 and REQ-9 appear implemented by updating the header logo src/alt in MauiAppShell and updating the favicon link in frontend/index.html. However, the diff shows no newly added/generated image assets under frontend/public/assets/generated, so REQ-6 and REQ-7 are not satisfied. Additionally, non-requested metadata/state files were modified.",
   "missing_requirements": [
     {
       "id": "REQ-6",
-      "requirement": "Replace all user-facing occurrences of the exact text \"Moritz Care Home\" with \"Maui Lane Care Home\" across the frontend UI (global removal of the string from frontend source).",
-      "reason": "The diff shows updates in the two specified pages, but does not demonstrate a repo-wide/global replacement or a source-wide absence of the exact string \"Moritz Care Home\". With truncated diffs and only a subset of files shown, remaining occurrences cannot be ruled out.",
+      "requirement": "Generate an updated Maui Lane Care Home brand logo image and store it as a static asset under frontend/public/assets/generated (maui-lane-logo-v2.dim_512x512.png).",
+      "reason": "The diff summary shows no added files, and no evidence of a new PNG asset being created under frontend/public/assets/generated.",
       "evidence": [
-        "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx (truncated)",
-        "frontend/src/pages/references/MoritzReferenceCapture.tsx (truncated)",
-        "frontend-file-summaries.txt (truncated)"
+        "file-diff summary: \"Added: 0\"",
+        "frontend/src/components/maui/MauiAppShell.tsx (references /assets/generated/maui-lane-logo-v2.dim_512x512.png but does not add the asset)"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "Generate an updated Maui Lane Care Home application icon image and store it as a static asset under frontend/public/assets/generated (maui-lane-app-icon-v2.dim_256x256.png).",
+      "reason": "The diff summary shows no added files, and no evidence of a new PNG asset being created under frontend/public/assets/generated.",
+      "evidence": [
+        "file-diff summary: \"Added: 0\"",
+        "frontend/index.html (references /assets/generated/maui-lane-app-icon-v2.dim_256x256.png but does not add the asset)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Updates to project metadata/state describing building a separate Maui Lane Care Home application.",
-      "reason": "The BuildRequest is narrowly scoped to replacing the exact branding text string in the frontend UI; modifying project state/metadata is not requested.",
+      "description": "Updates to project metadata/state tracking files not requested by the BuildRequest.",
+      "reason": "The BuildRequest focuses on generating logo/icon assets and wiring them into MauiAppShell and index.html; it does not request updates to project state or file-summary inventory files.",
       "evidence": [
-        "project_state.json (truncated)"
-      ]
-    },
-    {
-      "description": "Updates to a generated/aggregated frontend file summary index.",
-      "reason": "The BuildRequest does not ask for maintaining or changing summary/index files; only UI text replacement was requested.",
-      "evidence": [
-        "frontend-file-summaries.txt (truncated)"
+        "frontend-file-summaries.txt (modified)",
+        "project_state.json (modified)"
       ]
     }
   ],
-  "confidence": 0.66,
+  "confidence": 0.78,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
-    "frontend/src/pages/references/MoritzReferenceCapture.tsx",
+    "frontend/index.html",
+    "frontend/src/components/maui/MauiAppShell.tsx",
     "project_state.json"
   ]
 }

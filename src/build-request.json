@@ -1,37 +1,88 @@
 {
   "kind": "build_request",
-  "title": "Replace 'Moritz Care Home' branding text with 'Maui Lane Care Home'",
+  "title": "Create Maui Lane Care Home logo and apply as app logo + icon",
   "priority": "normal",
   "requirements": [
     {
       "id": "REQ-6",
-      "text": "Replace all user-facing occurrences of the exact text \"Moritz Care Home\" with \"Maui Lane Care Home\" across the frontend UI, including the resident print report header and the reference capture page copy.",
+      "text": "Generate an updated Maui Lane Care Home brand logo image and store it as a static asset under frontend/public/assets/generated, suitable for use in the app header.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-3"
         ],
         "quotes": [
-          "change Moritz Care Home to Maui Lane Care Home"
+          "create a logo for Maui Lane Care Home and apply it as a logo and icon for the application"
         ]
       },
       "acceptanceCriteria": [
-        "The print-only Resident Profile Report header shows \"Maui Lane Care Home\" instead of \"Moritz Care Home\" (frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx).",
-        "The references page no longer displays the string \"Moritz Care Home\" anywhere in its visible title/body text (frontend/src/pages/references/MoritzReferenceCapture.tsx).",
-        "A global search over frontend source text confirms there are no remaining user-facing occurrences of the exact string \"Moritz Care Home\"."
+        "A new logo image file is generated in frontend/public/assets/generated with the specified filename and dimensions from imageRequirements.edits"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Generate an updated Maui Lane Care Home application icon image and store it as a static asset under frontend/public/assets/generated, suitable for use as the browser favicon.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "create a logo for Maui Lane Care Home and apply it as a logo and icon for the application"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A new app icon image file is generated in frontend/public/assets/generated with the specified filename and dimensions from imageRequirements.edits"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Apply the updated Maui Lane Care Home logo in the authenticated app header by updating the header logo image source in frontend/src/components/maui/MauiAppShell.tsx to use the newly generated logo asset.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "apply it as a logo"
+        ]
+      },
+      "acceptanceCriteria": [
+        "When signed in, the MauiAppShell header displays the updated logo image",
+        "The header logo image has meaningful alt text in English (keep as \"Maui Lane Care Home\")"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Apply the updated application icon as the site favicon by updating frontend/index.html to reference the newly generated app icon asset.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-3"
+        ],
+        "quotes": [
+          "apply it as a ... icon for the application"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The favicon <link> in frontend/index.html points to the updated icon asset",
+        "Reloading the app shows the updated favicon in the browser tab"
       ]
     }
   ],
   "constraints": [
-    "Use English for any user-facing text.",
-    "Do not edit files under frontend/src/components/ui or any other frontend immutable paths listed in SYSTEM_CONTEXT."
+    "Do not modify any files under frontend/src/components/ui (Shadcn UI components).",
+    "Do not modify any files listed in SYSTEM_CONTEXT.frontend.immutablePaths."
   ],
   "nonGoals": [
-    "Do not change routing, authentication behavior, or any backend canister code.",
-    "Do not redesign the UI or update branding assets (logo/icon/hero) beyond text replacement."
+    "Do not change backend logic or add backend endpoints.",
+    "Do not redesign unrelated UI screens beyond swapping in the new logo/icon assets."
   ],
   "imageRequirements": {
     "required": [],
-    "edits": []
+    "edits": [
+      "Refresh the Maui Lane Care Home logo with a clean, professional care-home brand mark (maui-lane-logo.dim_512x512.png > maui-lane-logo-v2.dim_512x512.png)",
+      "Refresh the Maui Lane Care Home app icon as a simplified version of the logo optimized for small sizes (maui-lane-app-icon.dim_256x256.png > maui-lane-app-icon-v2.dim_256x256.png)"
+    ]
   }
 }
