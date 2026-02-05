@@ -1,74 +1,51 @@
 {
   "kind": "build_request",
-  "title": "Enable Daily Vitals Tracking (Record Daily Vitals modal + vitals list)",
+  "title": "Remove Maui Lane logo/icon rendering from the UI",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-6",
-      "text": "Replace the current \"Daily vitals tracking coming soon...\" placeholder in `frontend/src/pages/maui/residents/ResidentProfile.tsx` (Daily Vitals tab) with a functional Daily Vitals tracking UI that matches the provided reference image, including a \"Record Daily Vitals\" modal dialog for data entry.",
+      "id": "REQ-9",
+      "text": "Remove/disable Maui Lane Care Home logo rendering in the authenticated app shell header so the UI uses a text-only header (no <img> logo and no fallback-to-icon behavior).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-3"
+          "msg-6"
         ],
         "quotes": [
-          "enable Vitals Tracking like the image provided"
+          "remove the logo as they don't appear"
         ]
       },
       "acceptanceCriteria": [
-        "The Resident Profile page \"Daily Vitals\" tab no longer shows a \"coming soon\" placeholder.",
-        "The Daily Vitals tab includes a clear action (e.g., button) to open a modal titled \"Record Daily Vitals\".",
-        "The modal’s layout and field set matches the uploaded reference (temperature with unit selector, blood pressure systolic/diastolic, pulse rate, respiratory rate, oxygen saturation, optional blood glucose, measurement date, measurement time, optional notes, Cancel + Record Vitals actions, close icon).",
-        "Required fields are visibly indicated and enforced: all fields required except Blood Glucose and Notes."
+        "The Maui app header no longer renders an image element for the logo/icon and displays the title as text only.",
+        "There is no broken image placeholder in the header on any route.",
+        "The app no longer attempts to load /assets/generated/maui-lane-logo.dim_512x512.png or /assets/generated/maui-lane-app-icon.dim_256x256.png as part of the header rendering."
       ]
     },
     {
-      "id": "REQ-7",
-      "text": "Implement backend persistence for vitals records in the single Motoko actor (`backend/main.mo`), including authenticated CRUD needed by the UI: create a vitals entry for a resident, list vitals entries for a resident, and delete a vitals entry for a resident.",
-      "target": "backend",
+      "id": "REQ-10",
+      "text": "Remove/disable Maui Lane generated app-icon usage as the site favicon in the HTML entrypoint (do not reference the generated icon file in the <link rel=\"icon\"> tag).",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "recent-messages-3"
+          "msg-6"
         ],
         "quotes": [
-          "enable Vitals Tracking like the image provided"
+          "remove the logo as they don't appear"
         ]
       },
       "acceptanceCriteria": [
-        "Backend exposes methods to: add a vitals entry for a given residentId, list vitals entries for a given residentId (sorted newest-first or clearly documented order), and delete a vitals entry by an entry identifier.",
-        "Backend methods enforce the existing authorization/access-control approach (requests from unauthenticated/unauthorized callers are rejected).",
-        "Vitals data is stored in canister state and remains available after page refresh."
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Wire the Daily Vitals tab UI to the backend using React Query (queries + mutations) so that: recording vitals creates a persistent entry, the tab displays the resident’s recorded vitals history, and deleting an entry updates the UI immediately after success.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "recent-messages-3"
-        ],
-        "quotes": [
-          "enable Vitals Tracking like the image provided"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Submitting \"Record Vitals\" calls the backend create method and shows a success toast; the new entry appears in the vitals list without a manual refresh.",
-        "The vitals list is loaded from the backend and is resident-specific (switching residents shows different vitals histories).",
-        "If backend calls fail, the UI shows an error toast and does not silently succeed.",
-        "A user can delete a vitals entry from the vitals list and the list refreshes/updates accordingly."
+        "frontend/index.html no longer references %BASE_URL%assets/generated/maui-lane-app-icon.dim_256x256.png as the favicon.",
+        "Loading the app does not trigger a favicon request for the generated Maui icon file."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single-actor Motoko canister; all logic lives in `backend/main.mo`.",
-    "Do not edit files under `frontend/src/components/ui` (shadcn components are read-only); compose them instead.",
-    "Do not edit immutable hook paths: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`."
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui (immutable paths).",
+    "Keep Internet Identity login gating intact."
   ],
   "nonGoals": [
-    "Do not implement MAR or ADL tracking beyond the existing placeholders/tabs.",
-    "Do not add third-party services, external databases, or non-Internet-Identity authentication.",
-    "Do not change existing resident add/edit dialogs beyond what is necessary to support vitals tracking in the Resident Profile."
+    "Fixing or troubleshooting why the logo files are not loading/rendering.",
+    "Creating new brand assets or changing the existing generated image files."
   ],
   "imageRequirements": {
     "required": [],

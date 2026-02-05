@@ -1,13 +1,10 @@
 # Specification
 
 ## Summary
-**Goal:** Replace the “Daily vitals tracking coming soon...” placeholder with a functional Daily Vitals tracking feature (record modal + vitals history list) on the Resident Profile page.
+**Goal:** Remove Maui Lane logo/icon image usage from the authenticated header and favicon so the UI is text-only and does not request the generated image assets.
 
 **Planned changes:**
-- Update `frontend/src/pages/maui/residents/ResidentProfile.tsx` (Daily Vitals tab) to display a vitals history list and a “Record Daily Vitals” action that opens a modal.
-- Implement a “Record Daily Vitals” modal matching the provided reference layout/fields: temperature (with unit selector), blood pressure (systolic/diastolic), pulse rate, respiratory rate, oxygen saturation, optional blood glucose, measurement date, measurement time, optional notes, and Cancel/Record actions (plus close icon).
-- Enforce validation: all fields required except Blood Glucose and Notes; clearly indicate required fields.
-- Add backend persistence in `backend/main.mo` for vitals entries with authenticated methods to create, list (resident-specific), and delete entries.
-- Wire the Daily Vitals UI to the backend via React Query (queries + mutations) with success/error toasts; update the list immediately on create/delete.
+- Update the authenticated app shell header to render the app title as text only, removing any `<img>` logo rendering and any fallback-to-icon behavior.
+- Remove the generated Maui app icon reference from the HTML entrypoint favicon link so the app no longer requests that asset.
 
-**User-visible outcome:** Users can record a resident’s daily vitals in a modal, see a resident-specific vitals history list, and delete vitals entries, with data persisting across refreshes.
+**User-visible outcome:** The app header shows a text-only title with no logo/icon image or broken image placeholder, and the browser no longer requests the generated Maui icon as a favicon.

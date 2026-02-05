@@ -58,13 +58,12 @@ export function RecordDailyVitalsDialog({ open, onOpenChange }: RecordDailyVital
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
+    // Validate required fields (Respiratory Rate is now optional)
     if (
       !temperature ||
       !systolic ||
       !diastolic ||
       !pulseRate ||
-      !respiratoryRate ||
       !oxygenSaturation ||
       !measurementDate ||
       !measurementTime
@@ -115,7 +114,7 @@ export function RecordDailyVitalsDialog({ open, onOpenChange }: RecordDailyVital
             <div>
               <DialogTitle>Record Daily Vitals</DialogTitle>
               <DialogDescription className="mt-1">
-                Enter the resident's vital signs measurements. All fields except Blood Glucose are required.
+                Enter the resident's vital signs measurements. Blood Glucose and Respiratory Rate are optional.
               </DialogDescription>
             </div>
             <Button
@@ -199,14 +198,13 @@ export function RecordDailyVitalsDialog({ open, onOpenChange }: RecordDailyVital
             {/* Respiratory Rate */}
             <div className="space-y-2">
               <Label htmlFor="respiratory">
-                Respiratory Rate (breaths/min) <span className="text-destructive">*</span>
+                Respiratory Rate (breaths/min) (Optional)
               </Label>
               <Input
                 id="respiratory"
                 type="number"
                 value={respiratoryRate}
                 onChange={(e) => setRespiratoryRate(e.target.value)}
-                required
               />
             </div>
 

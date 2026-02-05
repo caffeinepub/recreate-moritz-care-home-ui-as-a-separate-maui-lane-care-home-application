@@ -10,6 +10,21 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface AdlRecord {
+  'activityType' : string,
+  'assistanceLevel' : string,
+  'notes' : string,
+  'timestamp' : bigint,
+  'supervisorId' : Principal,
+}
+export interface MarRecord {
+  'medicationName' : string,
+  'dosage' : string,
+  'nurseId' : Principal,
+  'timestamp' : bigint,
+  'administrationTime' : string,
+}
+export type ResidentId = Principal;
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |
@@ -24,13 +39,20 @@ export interface VitalsRecord {
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'createVitalsEntry' : ActorMethod<[VitalsRecord], undefined>,
-  'deleteVitalsEntry' : ActorMethod<[bigint], undefined>,
+  'createAdlRecord' : ActorMethod<[ResidentId, AdlRecord], undefined>,
+  'createMarRecord' : ActorMethod<[ResidentId, MarRecord], undefined>,
+  'createResidentProfile' : ActorMethod<[ResidentId], undefined>,
+  'createVitalsEntry' : ActorMethod<[ResidentId, VitalsRecord], undefined>,
+  'deleteAdlRecord' : ActorMethod<[ResidentId, bigint], undefined>,
+  'deleteMarRecord' : ActorMethod<[ResidentId, bigint], undefined>,
+  'deleteVitalsEntry' : ActorMethod<[ResidentId, bigint], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'listVitalsEntries' : ActorMethod<[], Array<VitalsRecord>>,
+  'listAdlRecords' : ActorMethod<[ResidentId], Array<AdlRecord>>,
+  'listMarRecords' : ActorMethod<[ResidentId], Array<MarRecord>>,
+  'listVitalsEntries' : ActorMethod<[ResidentId], Array<VitalsRecord>>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;

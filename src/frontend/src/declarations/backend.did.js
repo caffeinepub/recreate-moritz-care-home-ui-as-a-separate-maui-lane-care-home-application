@@ -13,6 +13,21 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const ResidentId = IDL.Principal;
+export const AdlRecord = IDL.Record({
+  'activityType' : IDL.Text,
+  'assistanceLevel' : IDL.Text,
+  'notes' : IDL.Text,
+  'timestamp' : IDL.Int,
+  'supervisorId' : IDL.Principal,
+});
+export const MarRecord = IDL.Record({
+  'medicationName' : IDL.Text,
+  'dosage' : IDL.Text,
+  'nurseId' : IDL.Principal,
+  'timestamp' : IDL.Int,
+  'administrationTime' : IDL.Text,
+});
 export const VitalsRecord = IDL.Record({
   'temperature' : IDL.Float64,
   'bloodPressure' : IDL.Text,
@@ -25,8 +40,13 @@ export const UserProfile = IDL.Record({ 'name' : IDL.Text });
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'createVitalsEntry' : IDL.Func([VitalsRecord], [], []),
-  'deleteVitalsEntry' : IDL.Func([IDL.Int], [], []),
+  'createAdlRecord' : IDL.Func([ResidentId, AdlRecord], [], []),
+  'createMarRecord' : IDL.Func([ResidentId, MarRecord], [], []),
+  'createResidentProfile' : IDL.Func([ResidentId], [], []),
+  'createVitalsEntry' : IDL.Func([ResidentId, VitalsRecord], [], []),
+  'deleteAdlRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
+  'deleteMarRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
+  'deleteVitalsEntry' : IDL.Func([ResidentId, IDL.Int], [], []),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getUserProfile' : IDL.Func(
@@ -35,7 +55,13 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'listVitalsEntries' : IDL.Func([], [IDL.Vec(VitalsRecord)], ['query']),
+  'listAdlRecords' : IDL.Func([ResidentId], [IDL.Vec(AdlRecord)], ['query']),
+  'listMarRecords' : IDL.Func([ResidentId], [IDL.Vec(MarRecord)], ['query']),
+  'listVitalsEntries' : IDL.Func(
+      [ResidentId],
+      [IDL.Vec(VitalsRecord)],
+      ['query'],
+    ),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
 });
 
@@ -46,6 +72,21 @@ export const idlFactory = ({ IDL }) => {
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
+  });
+  const ResidentId = IDL.Principal;
+  const AdlRecord = IDL.Record({
+    'activityType' : IDL.Text,
+    'assistanceLevel' : IDL.Text,
+    'notes' : IDL.Text,
+    'timestamp' : IDL.Int,
+    'supervisorId' : IDL.Principal,
+  });
+  const MarRecord = IDL.Record({
+    'medicationName' : IDL.Text,
+    'dosage' : IDL.Text,
+    'nurseId' : IDL.Principal,
+    'timestamp' : IDL.Int,
+    'administrationTime' : IDL.Text,
   });
   const VitalsRecord = IDL.Record({
     'temperature' : IDL.Float64,
@@ -59,8 +100,13 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'createVitalsEntry' : IDL.Func([VitalsRecord], [], []),
-    'deleteVitalsEntry' : IDL.Func([IDL.Int], [], []),
+    'createAdlRecord' : IDL.Func([ResidentId, AdlRecord], [], []),
+    'createMarRecord' : IDL.Func([ResidentId, MarRecord], [], []),
+    'createResidentProfile' : IDL.Func([ResidentId], [], []),
+    'createVitalsEntry' : IDL.Func([ResidentId, VitalsRecord], [], []),
+    'deleteAdlRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
+    'deleteMarRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
+    'deleteVitalsEntry' : IDL.Func([ResidentId, IDL.Int], [], []),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getUserProfile' : IDL.Func(
@@ -69,7 +115,13 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'listVitalsEntries' : IDL.Func([], [IDL.Vec(VitalsRecord)], ['query']),
+    'listAdlRecords' : IDL.Func([ResidentId], [IDL.Vec(AdlRecord)], ['query']),
+    'listMarRecords' : IDL.Func([ResidentId], [IDL.Vec(MarRecord)], ['query']),
+    'listVitalsEntries' : IDL.Func(
+        [ResidentId],
+        [IDL.Vec(VitalsRecord)],
+        ['query'],
+      ),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   });
 };

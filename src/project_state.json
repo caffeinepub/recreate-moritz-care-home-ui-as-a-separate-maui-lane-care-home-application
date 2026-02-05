@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 73,
+  "projectStateVersion": 91,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "existing_features": [
     {
@@ -210,18 +210,82 @@
       "version": 1
     },
     {
-      "id": "feature-replace-the-current-daily-vitals-tracking-coming-soon-placeholder-in-frontend-src-pages-maui-residents-residentprofile-tsx-daily-vitals-tab-with-a-functional-daily-vitals-tracking-ui-that-matches-the-provided-reference-image-including-a-record-daily-vitals-modal-dialog-for-data-entry",
-      "title": "Replace the current \"Daily vitals tracking coming soon...\" placeholder in `frontend/src/pages/maui/residents/ResidentProfile.tsx` (Daily Vitals tab) with a functional Daily Vitals tracking UI that matches the provided reference image, including a \"Record Daily Vitals\" modal dialog for data entry.",
+      "id": "IF-18",
+      "title": "Maui resident vitals UI (record daily vitals + vitals history list)",
+      "synonyms": [
+        "RecordDailyVitalsDialog",
+        "VitalsHistoryList",
+        "resident vitals module"
+      ],
+      "description": "Added Maui residents vitals UI components to support recording daily vitals via a dialog and viewing prior vitals entries in a history list; currently frontend-only pending backend persistence/integration.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-19",
+      "title": "MAR (Medication Administration Record) UI in resident profile (tab + add-record modal + history list)",
+      "synonyms": [
+        "MAR tab",
+        "AddMarRecordDialog",
+        "MarHistoryList"
+      ],
+      "description": "Implemented functional MAR module UI within the Maui resident profile, including a MAR history list view and an \"Add MAR Record\" button that opens a modal for creating a MAR entry.",
       "reqIds": [
         "REQ-6"
       ],
       "version": 1
     },
     {
-      "id": "feature-wire-the-daily-vitals-tab-ui-to-the-backend-using-react-query-queries-mutations-so-that-recording-vitals-creates-a-persistent-entry-the-tab-displays-the-resident-s-recorded-vitals-history-and-deleting-an-entry-updates-the-ui-immediately-after-success",
-      "title": "Wire the Daily Vitals tab UI to the backend using React Query (queries + mutations) so that: recording vitals creates a persistent entry, the tab displays the resident’s recorded vitals history, and deleting an entry updates the UI immediately after success.",
+      "id": "IF-20",
+      "title": "Frontend MAR data flow via React Query hooks (create/list/delete)",
+      "synonyms": [
+        "React Query MAR hooks",
+        "MAR mutations/queries"
+      ],
+      "description": "Added frontend query/mutation wiring for MAR records using React Query-style hooks to create, list, and delete MAR records and refresh the MAR list after mutations.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-21",
+      "title": "Motoko backend MAR record persistence (types + CRUD with access control)",
+      "synonyms": [
+        "MAR canister methods",
+        "MAR list/create/delete"
+      ],
+      "description": "Extended the Motoko backend canister with MAR record types and CRUD endpoints (list/create/delete), enforcing access control consistent with the existing authorization module.",
       "reqIds": [
         "REQ-8"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-22",
+      "title": "ADL (Activities of Daily Living) UI in resident profile (add-record dialog + history list)",
+      "synonyms": [
+        "ADL tab",
+        "AddAdlRecordDialog",
+        "AdlHistoryList"
+      ],
+      "description": "Added Maui residents ADL UI components to support recording ADL entries via a dialog and viewing prior ADL entries in a history list; currently frontend-only pending backend persistence/integration.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-disable-maui-lane-care-home-logo-rendering-in-the-authenticated-app-shell-header-so-the-ui-uses-a-text-only-header-no-img-logo-and-no-fallback-to-icon-behavior",
+      "title": "Remove/disable Maui Lane Care Home logo rendering in the authenticated app shell header so the UI uses a text-only header (no <img> logo and no fallback-to-icon behavior).",
+      "reqIds": [
+        "REQ-9"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-disable-maui-lane-generated-app-icon-usage-as-the-site-favicon-in-the-html-entrypoint-do-not-reference-the-generated-icon-file-in-the-link-rel-icon-tag",
+      "title": "Remove/disable Maui Lane generated app-icon usage as the site favicon in the HTML entrypoint (do not reference the generated icon file in the <link rel=\"icon\"> tag).",
+      "reqIds": [
+        "REQ-10"
       ],
       "version": 1
     }
@@ -258,29 +322,21 @@
       "status": "pending"
     },
     {
-      "id": "AR-7",
-      "summary": "Enable resident deletion and support discharge/active status toggling from the residents dashboard (matching the provided reference UI).",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
       "id": "AR-8",
-      "summary": "Remove the Moritz reference-capture UI/link from the home page (beside the Dashboard) in the Maui Lane Care Home app.",
+      "summary": "Add resident management actions on the Residents Dashboard including deletion and toggling resident status (discharged/active).",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-9",
-      "summary": "Enable Vitals Tracking in the Maui Lane Care Home app to match the layout/behavior shown in the provided reference image.",
+      "summary": "Remove the Moritz reference-capture UI element/link from the homepage area beside the Dashboard in the Maui Lane app.",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-11",
-      "summary": "Implement backend persistence for vitals records in the single Motoko actor (`backend/main.mo`), including authenticated CRUD needed by the UI: create a vitals entry for a resident, list vitals entries for a resident, and delete a vitals entry for a resident.",
-      "reqIds": [
-        "REQ-7"
-      ],
+      "id": "AR-10",
+      "summary": "Remove/disable the Maui Lane Care Home logo/icon usage across the app (since it is not appearing), reverting to no logo or a text-based header until fixed.",
+      "reqIds": [],
       "status": "pending"
     }
   ],
@@ -297,9 +353,9 @@
     "Frontend: Added Maui residents add/edit dialogs (AddNewResidentDialog/EditResidentInformationDialog) as UI-only components pending backend persistence/integration."
   ],
   "known_issues": [
-    "Uploaded/replaced Maui Lane logo is not appearing/loading across application pages (regression persists after multiple deploys)."
+    "Uploaded/replaced Maui Lane logo is not appearing/loaded across application pages; needs fix to ensure logo renders reliably everywhere."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "generatedImages": [
     {
       "filename": "frontend/public/assets/generated/maui-lane-app-icon.dim_256x256.png",

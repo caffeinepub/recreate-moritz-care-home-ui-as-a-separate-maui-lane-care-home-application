@@ -3,20 +3,9 @@ import { MauiNav } from './MauiNav';
 import { useInternetIdentity } from '../../hooks/useInternetIdentity';
 import { Button } from '../ui/button';
 import { LogOut } from 'lucide-react';
-import { useState } from 'react';
 
 export function MauiAppShell() {
   const { clear, identity } = useInternetIdentity();
-  const [logoSrc, setLogoSrc] = useState('/assets/generated/maui-lane-logo.dim_512x512.png');
-  const [logoError, setLogoError] = useState(false);
-
-  const handleLogoError = () => {
-    if (!logoError) {
-      setLogoError(true);
-      // Fallback to app icon if primary logo fails
-      setLogoSrc('/assets/generated/maui-lane-app-icon.dim_256x256.png');
-    }
-  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -24,12 +13,6 @@ export function MauiAppShell() {
       <header className="no-print sticky top-0 z-50 border-b bg-card shadow-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
-            <img
-              src={logoSrc}
-              alt="Maui Lane Care Home"
-              className="h-10 w-10 object-contain"
-              onError={handleLogoError}
-            />
             <h1 className="text-xl font-semibold text-foreground">Maui Lane Care Home</h1>
           </div>
           <div className="flex items-center gap-4">

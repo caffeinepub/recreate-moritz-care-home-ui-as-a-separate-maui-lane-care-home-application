@@ -1,69 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Daily Vitals Tracking UI (modal + history list) wired with React Query",
+  "title": "Remove Maui Lane logo/icon rendering from header and favicon",
   "requirements": [
     {
-      "id": "REQ-6",
-      "summary": "Replace the Daily Vitals placeholder with a functional vitals history UI and a \"Record Daily Vitals\" modal matching the reference layout and required-field behavior.",
+      "id": "REQ-9",
+      "summary": "Remove Maui Lane Care Home logo rendering and any fallback-to-icon behavior from the authenticated app shell header, leaving a text-only header title.",
       "acceptanceCriteria": [
-        "The Resident Profile page \"Daily Vitals\" tab no longer shows a \"coming soon\" placeholder.",
-        "The Daily Vitals tab includes a clear action (e.g., button) to open a modal titled \"Record Daily Vitals\".",
-        "The modal’s layout and field set matches the uploaded reference (temperature with unit selector, blood pressure systolic/diastolic, pulse rate, respiratory rate, oxygen saturation, optional blood glucose, measurement date, measurement time, optional notes, Cancel + Record Vitals actions, close icon).",
-        "Required fields are visibly indicated and enforced: all fields required except Blood Glucose and Notes."
+        "The Maui app header no longer renders an image element for the logo/icon and displays the title as text only.",
+        "There is no broken image placeholder in the header on any route.",
+        "The app no longer attempts to load /assets/generated/maui-lane-logo.dim_512x512.png or /assets/generated/maui-lane-app-icon.dim_256x256.png as part of the header rendering."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "path": "frontend/src/components/maui/MauiAppShell.tsx",
           "operation": "modify",
-          "description": "Replace the Daily Vitals tab placeholder with the new Daily Vitals UI: add a prominent \"Record Daily Vitals\" button, render the vitals history list, and wire open/close state for the modal. Use shadcn-ui components (e.g., Tabs/Card/Button) by composing existing components (do not edit `frontend/src/components/ui/*`). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
-          "operation": "create",
-          "description": "Create the \"Record Daily Vitals\" modal dialog UI that matches the reference image. Use shadcn-ui components (e.g., Dialog, Button, Input, Select, Textarea, Label) by composing read-only UI components (do not edit `frontend/src/components/ui/*`). Include: temperature input + unit selector, BP systolic/diastolic inputs, pulse, respiratory rate, oxygen saturation, optional blood glucose (+ helper text), measurement date, measurement time, optional notes, and Cancel/Record actions with a close icon. Enforce required fields (all except blood glucose and notes) with visible indicators and client-side validation. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
-          "operation": "create",
-          "description": "Create a vitals history list UI for the Daily Vitals tab. Display recorded entries in a clear, readable layout consistent with the app’s card/table styling and include a per-entry delete action (optionally with confirmation). This component should be designed to accept data + loading/empty/error states from React Query. Use shadcn-ui components (e.g., Card, Button, Separator/Badge) by composing existing read-only UI components. Verify the component's usage instructions before implementing."
+          "description": "Remove the <img> logo element and the logo state/error fallback logic so the header renders only the text title (and preserves existing sign-out behavior and authenticated shell structure)."
         }
       ]
     },
     {
-      "id": "REQ-8",
-      "summary": "Wire the Daily Vitals UI to backend persistence using React Query so create/list/delete update the UI with success/error toasts and resident-specific histories.",
+      "id": "REQ-10",
+      "summary": "Remove Maui Lane generated app-icon usage as the HTML favicon so the app does not reference the generated icon file in the icon link tag.",
       "acceptanceCriteria": [
-        "Submitting \"Record Vitals\" calls the backend create method and shows a success toast; the new entry appears in the vitals list without a manual refresh.",
-        "The vitals list is loaded from the backend and is resident-specific (switching residents shows different vitals histories).",
-        "If backend calls fail, the UI shows an error toast and does not silently succeed.",
-        "A user can delete a vitals entry from the vitals list and the list refreshes/updates accordingly."
+        "frontend/index.html no longer references %BASE_URL%assets/generated/maui-lane-app-icon.dim_256x256.png as the favicon.",
+        "Loading the app does not trigger a favicon request for the generated Maui icon file."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Implement React Query hooks for Daily Vitals: a resident-scoped vitals list query and resident-scoped create/delete mutations. Ensure hooks depend on `useActor()` readiness (enabled only when actor is available and not fetching). On successful mutations, invalidate/update the resident’s vitals query so the UI refreshes immediately; on failures, surface errors to the caller for toast handling."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
-          "operation": "modify",
-          "description": "Connect the modal form submission to the React Query create mutation. On success: close modal, reset form, show success toast. On error: show error toast and keep the modal open. Ensure the payload includes measurement date+time combined into a timestamp and includes all required fields; omit optional fields when not provided."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
-          "operation": "modify",
-          "description": "Connect the list UI to the vitals list query and delete mutation. Show a loading state while fetching, an empty state when no entries exist, and ensure delete updates the list immediately after success (via invalidation or optimistic update). On backend failure, show an error toast and do not remove the entry from the UI."
-        },
-        {
-          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "operation": "modify",
-          "description": "Pass the current `residentId` into the vitals query/mutation hooks (directly or via the Daily Vitals child components) so histories are resident-specific. Ensure switching `residentId` causes React Query to fetch and display the correct vitals history for that resident."
-        },
-        {
-          "path": "frontend/src/backend.d.ts",
-          "operation": "modify",
-          "description": "Update frontend backend type definitions to reflect the vitals-related backend capabilities required by the UI (resident-specific create/list/delete and any updated vitals record shape needed by the modal fields). Keep typings aligned with the generated actor interface used by `useActor()` and React Query hooks."
+          "description": "Update the <link rel=\"icon\"> declaration to remove the reference to %BASE_URL%assets/generated/maui-lane-app-icon.dim_256x256.png (either remove the tag entirely or switch it to a non-generated default favicon path)."
         }
       ]
     }

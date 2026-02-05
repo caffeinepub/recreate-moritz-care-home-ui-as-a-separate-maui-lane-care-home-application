@@ -89,6 +89,21 @@ export class ExternalBlob {
         return this;
     }
 }
+export type ResidentId = Principal;
+export interface AdlRecord {
+    activityType: string;
+    assistanceLevel: string;
+    notes: string;
+    timestamp: bigint;
+    supervisorId: Principal;
+}
+export interface MarRecord {
+    medicationName: string;
+    dosage: string;
+    nurseId: Principal;
+    timestamp: bigint;
+    administrationTime: string;
+}
 export interface VitalsRecord {
     temperature: number;
     bloodPressure: string;
@@ -107,13 +122,20 @@ export enum UserRole {
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
-    createVitalsEntry(record: VitalsRecord): Promise<void>;
-    deleteVitalsEntry(timestamp: bigint): Promise<void>;
+    createAdlRecord(residentId: ResidentId, record: AdlRecord): Promise<void>;
+    createMarRecord(residentId: ResidentId, record: MarRecord): Promise<void>;
+    createResidentProfile(residentId: ResidentId): Promise<void>;
+    createVitalsEntry(residentId: ResidentId, record: VitalsRecord): Promise<void>;
+    deleteAdlRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
+    deleteMarRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
+    deleteVitalsEntry(residentId: ResidentId, timestamp: bigint): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
-    listVitalsEntries(): Promise<Array<VitalsRecord>>;
+    listAdlRecords(residentId: ResidentId): Promise<Array<AdlRecord>>;
+    listMarRecords(residentId: ResidentId): Promise<Array<MarRecord>>;
+    listVitalsEntries(residentId: ResidentId): Promise<Array<VitalsRecord>>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
 }
 import type { UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
@@ -147,31 +169,101 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async createVitalsEntry(arg0: VitalsRecord): Promise<void> {
+    async createAdlRecord(arg0: ResidentId, arg1: AdlRecord): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.createVitalsEntry(arg0);
+                const result = await this.actor.createAdlRecord(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createVitalsEntry(arg0);
+            const result = await this.actor.createAdlRecord(arg0, arg1);
             return result;
         }
     }
-    async deleteVitalsEntry(arg0: bigint): Promise<void> {
+    async createMarRecord(arg0: ResidentId, arg1: MarRecord): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.deleteVitalsEntry(arg0);
+                const result = await this.actor.createMarRecord(arg0, arg1);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.deleteVitalsEntry(arg0);
+            const result = await this.actor.createMarRecord(arg0, arg1);
+            return result;
+        }
+    }
+    async createResidentProfile(arg0: ResidentId): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createResidentProfile(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createResidentProfile(arg0);
+            return result;
+        }
+    }
+    async createVitalsEntry(arg0: ResidentId, arg1: VitalsRecord): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createVitalsEntry(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createVitalsEntry(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteAdlRecord(arg0: ResidentId, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteAdlRecord(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteAdlRecord(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteMarRecord(arg0: ResidentId, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteMarRecord(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteMarRecord(arg0, arg1);
+            return result;
+        }
+    }
+    async deleteVitalsEntry(arg0: ResidentId, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteVitalsEntry(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteVitalsEntry(arg0, arg1);
             return result;
         }
     }
@@ -231,17 +323,45 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async listVitalsEntries(): Promise<Array<VitalsRecord>> {
+    async listAdlRecords(arg0: ResidentId): Promise<Array<AdlRecord>> {
         if (this.processError) {
             try {
-                const result = await this.actor.listVitalsEntries();
+                const result = await this.actor.listAdlRecords(arg0);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.listVitalsEntries();
+            const result = await this.actor.listAdlRecords(arg0);
+            return result;
+        }
+    }
+    async listMarRecords(arg0: ResidentId): Promise<Array<MarRecord>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listMarRecords(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listMarRecords(arg0);
+            return result;
+        }
+    }
+    async listVitalsEntries(arg0: ResidentId): Promise<Array<VitalsRecord>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.listVitalsEntries(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.listVitalsEntries(arg0);
             return result;
         }
     }

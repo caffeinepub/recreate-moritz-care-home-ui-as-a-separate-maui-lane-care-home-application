@@ -10,27 +10,58 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { getResidentProfileData, ResidentProfileData } from './mockResidentProfileData';
 import { getResidentMedications } from './mockResidentMedications';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { toast } from 'sonner';
 import { EditResidentInformationDialog, EditResidentFormData } from '@/components/maui/residents/EditResidentInformationDialog';
 import { ResidentProfilePrintReport } from './ResidentProfilePrintReport';
 import { RecordDailyVitalsDialog } from '@/components/maui/residents/vitals/RecordDailyVitalsDialog';
 import { VitalsHistoryList } from '@/components/maui/residents/vitals/VitalsHistoryList';
-import { useListVitalsEntries } from '@/hooks/useQueries';
+import { AddMarRecordDialog, MarHistoryList } from '@/components/maui/residents/mar';
+import { AddAdlRecordDialog, AdlHistoryList } from '@/components/maui/residents/adl';
+import { useListVitalsEntries, useListMarRecords, useListAdlRecords } from '@/hooks/useQueries';
+import { useInternetIdentity } from '@/hooks/useInternetIdentity';
+import { Principal } from '@dfinity/principal';
 
 export function ResidentProfile() {
   const navigate = useNavigate();
   const { residentId } = useParams({ from: '/resident/$residentId' });
+  const { identity } = useInternetIdentity();
   const [includeSignature, setIncludeSignature] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [vitalsDialogOpen, setVitalsDialogOpen] = useState(false);
+  const [marDialogOpen, setMarDialogOpen] = useState(false);
+  const [adlDialogOpen, setAdlDialogOpen] = useState(false);
 
   const initialProfileData = getResidentProfileData(Number(residentId));
   const [profileData, setProfileData] = useState<ResidentProfileData | null>(initialProfileData);
   const medications = getResidentMedications(Number(residentId));
 
+  // Filter active medications for MAR dialog
+  const activeMedications = useMemo(
+    () => medications.filter((med) => med.status === 'Active'),
+    [medications]
+  );
+
+  // Convert residentId to Principal for backend calls
+  const residentPrincipal = useMemo(() => {
+    if (!identity) return null;
+    // In a real app, you'd map the numeric residentId to a Principal
+    // For now, we'll use the current user's principal as the resident
+    return identity.getPrincipal();
+  }, [identity]);
+
   // Fetch vitals data
   const { data: vitalsData = [], isLoading: vitalsLoading } = useListVitalsEntries();
+
+  // Fetch MAR data
+  const { data: marData = [], isLoading: marLoading } = useListMarRecords(
+    residentPrincipal || Principal.anonymous()
+  );
+
+  // Fetch ADL data
+  const { data: adlData = [], isLoading: adlLoading } = useListAdlRecords(
+    residentPrincipal || Principal.anonymous()
+  );
 
   if (!profileData) {
     return (
@@ -460,10 +491,32 @@ export function ResidentProfile() {
           <TabsContent value="mar" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>MAR (Medication Administration Record)</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Pill className="h-5 w-5 text-primary" />
+                    MAR (Medication Administration Record)
+                  </CardTitle>
+                  <Button onClick={() => setMarDialogOpen(true)} size="sm">
+                    Add MAR Record
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">MAR tracking coming soon...</p>
+                {residentPrincipal ? (
+                  <MarHistoryList
+                    marRecords={marData}
+                    isLoading={marLoading}
+                    residentId={residentPrincipal}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <Pill className="mb-4 h-12 w-12 text-muted-foreground/40" />
+                    <h3 className="mb-2 text-lg font-semibold">Please log in</h3>
+                    <p className="text-sm text-muted-foreground">
+                      You must be logged in to view MAR records
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -471,10 +524,32 @@ export function ResidentProfile() {
           <TabsContent value="adl" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>ADL (Activities of Daily Living)</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" />
+                    ADL (Activities of Daily Living)
+                  </CardTitle>
+                  <Button onClick={() => setAdlDialogOpen(true)} size="sm">
+                    Add ADL Record
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground">ADL tracking coming soon...</p>
+                {residentPrincipal ? (
+                  <AdlHistoryList
+                    adlRecords={adlData}
+                    isLoading={adlLoading}
+                    residentId={residentPrincipal}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                    <Activity className="mb-4 h-12 w-12 text-muted-foreground/40" />
+                    <h3 className="mb-2 text-lg font-semibold">Please log in</h3>
+                    <p className="text-sm text-muted-foreground">
+                      You must be logged in to view ADL records
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -490,6 +565,25 @@ export function ResidentProfile() {
 
         {/* Record Daily Vitals Dialog */}
         <RecordDailyVitalsDialog open={vitalsDialogOpen} onOpenChange={setVitalsDialogOpen} />
+
+        {/* Add MAR Record Dialog */}
+        {residentPrincipal && (
+          <AddMarRecordDialog
+            open={marDialogOpen}
+            onOpenChange={setMarDialogOpen}
+            residentId={residentPrincipal}
+            activeMedications={activeMedications}
+          />
+        )}
+
+        {/* Add ADL Record Dialog */}
+        {residentPrincipal && (
+          <AddAdlRecordDialog
+            open={adlDialogOpen}
+            onOpenChange={setAdlDialogOpen}
+            residentId={residentPrincipal}
+          />
+        )}
       </div>
 
       {/* Print Report (hidden on screen, visible when printing) */}
