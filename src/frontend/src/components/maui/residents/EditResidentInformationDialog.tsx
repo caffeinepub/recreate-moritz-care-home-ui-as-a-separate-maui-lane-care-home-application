@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { X, Calendar, Plus } from 'lucide-react';
+import { X, Calendar, Plus, Loader2 } from 'lucide-react';
 
 export interface EditResidentFormData {
   firstName: string;
@@ -45,7 +45,8 @@ interface EditResidentInformationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialValues: EditResidentFormData;
-  onSave: (values: EditResidentFormData) => void;
+  onSave: (values: EditResidentFormData) => Promise<void> | void;
+  isSaving?: boolean;
 }
 
 export function EditResidentInformationDialog({
@@ -53,6 +54,7 @@ export function EditResidentInformationDialog({
   onOpenChange,
   initialValues,
   onSave,
+  isSaving = false,
 }: EditResidentInformationDialogProps) {
   const [formData, setFormData] = useState<EditResidentFormData>(initialValues);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -114,18 +116,14 @@ export function EditResidentInformationDialog({
     if (!formData.roomType.trim()) {
       newErrors.roomType = 'Room type is required';
     }
-    if (!formData.bed.trim()) {
-      newErrors.bed = 'Bed is required';
-    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (validateForm()) {
-      onSave(formData);
-      onOpenChange(false);
+      await onSave(formData);
     }
   };
 
@@ -147,6 +145,7 @@ export function EditResidentInformationDialog({
               size="icon"
               className="h-6 w-6 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100"
               onClick={() => onOpenChange(false)}
+              disabled={isSaving}
             >
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
@@ -168,6 +167,7 @@ export function EditResidentInformationDialog({
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
                   className={errors.firstName ? 'border-destructive' : ''}
+                  disabled={isSaving}
                 />
                 {errors.firstName && (
                   <p className="text-xs text-destructive">{errors.firstName}</p>
@@ -183,6 +183,7 @@ export function EditResidentInformationDialog({
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   className={errors.lastName ? 'border-destructive' : ''}
+                  disabled={isSaving}
                 />
                 {errors.lastName && (
                   <p className="text-xs text-destructive">{errors.lastName}</p>
@@ -200,6 +201,7 @@ export function EditResidentInformationDialog({
                     value={formData.dateOfBirth}
                     onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
                     className={errors.dateOfBirth ? 'border-destructive' : ''}
+                    disabled={isSaving}
                   />
                   <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 </div>
@@ -219,6 +221,7 @@ export function EditResidentInformationDialog({
                     value={formData.admissionDate}
                     onChange={(e) => handleInputChange('admissionDate', e.target.value)}
                     className={errors.admissionDate ? 'border-destructive' : ''}
+                    disabled={isSaving}
                   />
                   <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 </div>
@@ -236,6 +239,7 @@ export function EditResidentInformationDialog({
                   value={formData.roomNumber}
                   onChange={(e) => handleInputChange('roomNumber', e.target.value)}
                   className={errors.roomNumber ? 'border-destructive' : ''}
+                  disabled={isSaving}
                 />
                 {errors.roomNumber && (
                   <p className="text-xs text-destructive">{errors.roomNumber}</p>
@@ -249,6 +253,7 @@ export function EditResidentInformationDialog({
                 <Select
                   value={formData.roomType}
                   onValueChange={(value) => handleInputChange('roomType', value)}
+                  disabled={isSaving}
                 >
                   <SelectTrigger
                     id="roomType"
@@ -268,53 +273,12 @@ export function EditResidentInformationDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bed">
-                  Bed <span className="text-destructive">*</span>
-                </Label>
-                <Select
-                  value={formData.bed}
-                  onValueChange={(value) => handleInputChange('bed', value)}
-                >
-                  <SelectTrigger
-                    id="bed"
-                    className={errors.bed ? 'border-destructive' : ''}
-                  >
-                    <SelectValue placeholder="Select bed" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Bed A">Bed A</SelectItem>
-                    <SelectItem value="Bed B">Bed B</SelectItem>
-                    <SelectItem value="Bed C">Bed C</SelectItem>
-                    <SelectItem value="Bed D">Bed D</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.bed && (
-                  <p className="text-xs text-destructive">{errors.bed}</p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => handleInputChange('status', value)}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Discharged">Discharged</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="medicaidNumber">Medicaid Number</Label>
                 <Input
                   id="medicaidNumber"
                   value={formData.medicaidNumber}
                   onChange={(e) => handleInputChange('medicaidNumber', e.target.value)}
+                  disabled={isSaving}
                 />
               </div>
 
@@ -324,6 +288,7 @@ export function EditResidentInformationDialog({
                   id="medicareNumber"
                   value={formData.medicareNumber}
                   onChange={(e) => handleInputChange('medicareNumber', e.target.value)}
+                  disabled={isSaving}
                 />
               </div>
             </div>
@@ -341,6 +306,7 @@ export function EditResidentInformationDialog({
                 size="sm"
                 onClick={handleAddPhysician}
                 className="gap-2"
+                disabled={isSaving}
               >
                 <Plus className="h-4 w-4" />
                 Add Physician
@@ -361,6 +327,7 @@ export function EditResidentInformationDialog({
                           onChange={(e) =>
                             handlePhysicianChange(index, 'name', e.target.value)
                           }
+                          disabled={isSaving}
                         />
                       </div>
                       <div className="space-y-2">
@@ -371,6 +338,7 @@ export function EditResidentInformationDialog({
                           onChange={(e) =>
                             handlePhysicianChange(index, 'contactNumber', e.target.value)
                           }
+                          disabled={isSaving}
                         />
                       </div>
                       <div className="space-y-2">
@@ -381,6 +349,7 @@ export function EditResidentInformationDialog({
                           onChange={(e) =>
                             handlePhysicianChange(index, 'specialty', e.target.value)
                           }
+                          disabled={isSaving}
                         />
                       </div>
                     </div>
@@ -402,6 +371,7 @@ export function EditResidentInformationDialog({
                   id="pharmacyName"
                   value={formData.pharmacyName}
                   onChange={(e) => handleInputChange('pharmacyName', e.target.value)}
+                  disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
@@ -410,6 +380,7 @@ export function EditResidentInformationDialog({
                   id="pharmacyAddress"
                   value={formData.pharmacyAddress}
                   onChange={(e) => handleInputChange('pharmacyAddress', e.target.value)}
+                  disabled={isSaving}
                 />
               </div>
               <div className="space-y-2">
@@ -420,6 +391,7 @@ export function EditResidentInformationDialog({
                   onChange={(e) =>
                     handleInputChange('pharmacyContactNumber', e.target.value)
                   }
+                  disabled={isSaving}
                 />
               </div>
             </div>
@@ -428,10 +400,13 @@ export function EditResidentInformationDialog({
 
         <div className="sticky bottom-0 border-t border-border bg-background px-6 py-4">
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSaving}>
               Cancel
             </Button>
-            <Button onClick={handleSave}>Save Changes</Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
           </div>
         </div>
       </DialogContent>

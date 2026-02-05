@@ -9,15 +9,28 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { X, Calendar } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { X, Calendar, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 import { Principal } from '@dfinity/principal';
 import { useCreateResident } from '@/hooks/useQueries';
+import type { Physician, PharmacyInfo, InsuranceInfo, ResponsiblePerson, Medication } from '@/backend';
 
 interface AddResidentFormData {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
+  admissionDate: string;
+  roomNumber: string;
+  roomType: string;
+  medicaidNumber: string;
+  medicareNumber: string;
+  physicians: Physician[];
+  pharmacy: PharmacyInfo;
+  insurance: InsuranceInfo;
+  responsiblePersons: ResponsiblePerson[];
+  medications: Medication[];
 }
 
 interface AddNewResidentDialogProps {
@@ -33,6 +46,16 @@ export function AddNewResidentDialog({
     firstName: '',
     lastName: '',
     dateOfBirth: '',
+    admissionDate: '',
+    roomNumber: '',
+    roomType: '',
+    medicaidNumber: '',
+    medicareNumber: '',
+    physicians: [],
+    pharmacy: { name: '', address: '', contactNumber: '' },
+    insurance: { company: '', policyNumber: '', address: '', contactNumber: '' },
+    responsiblePersons: [],
+    medications: [],
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -44,12 +67,22 @@ export function AddNewResidentDialog({
         firstName: '',
         lastName: '',
         dateOfBirth: '',
+        admissionDate: '',
+        roomNumber: '',
+        roomType: '',
+        medicaidNumber: '',
+        medicareNumber: '',
+        physicians: [],
+        pharmacy: { name: '', address: '', contactNumber: '' },
+        insurance: { company: '', policyNumber: '', address: '', contactNumber: '' },
+        responsiblePersons: [],
+        medications: [],
       });
       setErrors({});
     }
   }, [open]);
 
-  const handleInputChange = (field: keyof AddResidentFormData, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {
@@ -58,6 +91,67 @@ export function AddNewResidentDialog({
         return newErrors;
       });
     }
+  };
+
+  const handleNestedChange = (section: 'pharmacy' | 'insurance', field: string, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: { ...prev[section], [field]: value },
+    }));
+  };
+
+  const addPhysician = () => {
+    setFormData((prev) => ({
+      ...prev,
+      physicians: [...prev.physicians, { name: '', contactNumber: '', specialty: '' }],
+    }));
+  };
+
+  const updatePhysician = (index: number, field: keyof Physician, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      physicians: prev.physicians.map((p, i) =>
+        i === index ? { ...p, [field]: value } : p
+      ),
+    }));
+  };
+
+  const addResponsiblePerson = () => {
+    setFormData((prev) => ({
+      ...prev,
+      responsiblePersons: [
+        ...prev.responsiblePersons,
+        { name: '', relationship: '', contactNumber: '', address: '' },
+      ],
+    }));
+  };
+
+  const updateResponsiblePerson = (index: number, field: keyof ResponsiblePerson, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      responsiblePersons: prev.responsiblePersons.map((rp, i) =>
+        i === index ? { ...rp, [field]: value } : rp
+      ),
+    }));
+  };
+
+  const addMedication = () => {
+    setFormData((prev) => ({
+      ...prev,
+      medications: [
+        ...prev.medications,
+        { medicationName: '', dosage: '', administrationTimes: [], prescribingPhysician: '' },
+      ],
+    }));
+  };
+
+  const updateMedication = (index: number, field: keyof Medication, value: string | string[]) => {
+    setFormData((prev) => ({
+      ...prev,
+      medications: prev.medications.map((m, i) =>
+        i === index ? { ...m, [field]: value } : m
+      ),
+    }));
   };
 
   const validateForm = (): boolean => {
@@ -72,6 +166,15 @@ export function AddNewResidentDialog({
     if (!formData.dateOfBirth.trim()) {
       newErrors.dateOfBirth = 'Date of birth is required';
     }
+    if (!formData.admissionDate.trim()) {
+      newErrors.admissionDate = 'Admission date is required';
+    }
+    if (!formData.roomNumber.trim()) {
+      newErrors.roomNumber = 'Room number is required';
+    }
+    if (!formData.roomType.trim()) {
+      newErrors.roomType = 'Room type is required';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -81,7 +184,6 @@ export function AddNewResidentDialog({
     if (!validateForm()) return;
 
     try {
-      // Generate a unique resident ID using timestamp and random component
       const uniqueId = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
       const residentId = Principal.fromText(
         Principal.fromUint8Array(new TextEncoder().encode(uniqueId)).toString()
@@ -91,6 +193,16 @@ export function AddNewResidentDialog({
         id: residentId,
         name: `${formData.firstName} ${formData.lastName}`,
         birthDate: formData.dateOfBirth,
+        admissionDate: formData.admissionDate,
+        roomNumber: formData.roomNumber,
+        roomType: formData.roomType,
+        medicaidNumber: formData.medicaidNumber,
+        medicareNumber: formData.medicareNumber,
+        physicians: formData.physicians,
+        pharmacy: formData.pharmacy,
+        insurance: formData.insurance,
+        responsiblePersons: formData.responsiblePersons,
+        medications: formData.medications,
       });
 
       onOpenChange(false);
@@ -103,13 +215,13 @@ export function AddNewResidentDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-lg overflow-hidden p-0">
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-hidden p-0">
         <DialogHeader className="sticky top-0 z-10 border-b border-border bg-background px-6 py-4">
           <div className="flex items-start justify-between">
             <div>
               <DialogTitle className="text-xl font-bold">Add New Resident</DialogTitle>
               <DialogDescription className="mt-1 text-sm">
-                Enter the resident's basic information. Fields marked with * are required.
+                Enter the resident's information below. Fields marked with * are required.
               </DialogDescription>
             </div>
             <Button
@@ -126,9 +238,10 @@ export function AddNewResidentDialog({
 
         <div className="max-h-[calc(90vh-180px)] overflow-y-auto px-6 py-6">
           <div className="space-y-6">
+            {/* Basic Information */}
             <div>
               <h3 className="mb-4 text-base font-semibold">Basic Information</h3>
-              <div className="grid gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">
                     First Name <span className="text-destructive">*</span>
@@ -178,6 +291,352 @@ export function AddNewResidentDialog({
                     <p className="text-xs text-destructive">{errors.dateOfBirth}</p>
                   )}
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="admissionDate">
+                    Admission Date <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="admissionDate"
+                      type="date"
+                      placeholder="MM/DD/YYYY"
+                      value={formData.admissionDate}
+                      onChange={(e) => handleInputChange('admissionDate', e.target.value)}
+                      className={errors.admissionDate ? 'border-destructive' : ''}
+                    />
+                    <Calendar className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  </div>
+                  {errors.admissionDate && (
+                    <p className="text-xs text-destructive">{errors.admissionDate}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="roomNumber">
+                    Room Number <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="roomNumber"
+                    value={formData.roomNumber}
+                    onChange={(e) => handleInputChange('roomNumber', e.target.value)}
+                    className={errors.roomNumber ? 'border-destructive' : ''}
+                  />
+                  {errors.roomNumber && (
+                    <p className="text-xs text-destructive">{errors.roomNumber}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="roomType">
+                    Room Type <span className="text-destructive">*</span>
+                  </Label>
+                  <Select
+                    value={formData.roomType}
+                    onValueChange={(value) => {
+                      handleInputChange('roomType', value);
+                    }}
+                  >
+                    <SelectTrigger className={errors.roomType ? 'border-destructive' : ''}>
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Private">Private</SelectItem>
+                      <SelectItem value="Semi-Private">Semi-Private</SelectItem>
+                      <SelectItem value="Shared">Shared</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {errors.roomType && (
+                    <p className="text-xs text-destructive">{errors.roomType}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="medicaidNumber">Medicaid Number</Label>
+                  <Input
+                    id="medicaidNumber"
+                    placeholder="Optional"
+                    value={formData.medicaidNumber}
+                    onChange={(e) => handleInputChange('medicaidNumber', e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="medicareNumber">Medicare Number</Label>
+                  <Input
+                    id="medicareNumber"
+                    placeholder="Optional"
+                    value={formData.medicareNumber}
+                    onChange={(e) => handleInputChange('medicareNumber', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Physicians */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-base font-semibold">Physicians</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addPhysician}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Physician
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {formData.physicians.map((physician, index) => (
+                  <div key={index} className="rounded-lg border border-border bg-muted/30 p-4">
+                    <h4 className="mb-3 text-sm font-medium">Physician {index + 1}</h4>
+                    <div className="grid grid-cols-3 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor={`physician-name-${index}`}>Physician Name</Label>
+                        <Input
+                          id={`physician-name-${index}`}
+                          placeholder="Dr. Smith"
+                          value={physician.name}
+                          onChange={(e) => updatePhysician(index, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`physician-contact-${index}`}>Contact Number</Label>
+                        <Input
+                          id={`physician-contact-${index}`}
+                          placeholder="(555) 123-4567"
+                          value={physician.contactNumber}
+                          onChange={(e) => updatePhysician(index, 'contactNumber', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`physician-specialty-${index}`}>Specialty</Label>
+                        <Input
+                          id={`physician-specialty-${index}`}
+                          placeholder="Cardiology"
+                          value={physician.specialty}
+                          onChange={(e) => updatePhysician(index, 'specialty', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Pharmacy Information */}
+            <div>
+              <h3 className="mb-4 text-base font-semibold">Pharmacy Information</h3>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pharmacyName">Pharmacy Name</Label>
+                  <Input
+                    id="pharmacyName"
+                    placeholder="CVS Pharmacy"
+                    value={formData.pharmacy.name}
+                    onChange={(e) => handleNestedChange('pharmacy', 'name', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pharmacyAddress">Address</Label>
+                  <Input
+                    id="pharmacyAddress"
+                    placeholder="123 Main St"
+                    value={formData.pharmacy.address}
+                    onChange={(e) => handleNestedChange('pharmacy', 'address', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pharmacyContact">Contact Number</Label>
+                  <Input
+                    id="pharmacyContact"
+                    placeholder="(555) 987-6543"
+                    value={formData.pharmacy.contactNumber}
+                    onChange={(e) => handleNestedChange('pharmacy', 'contactNumber', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Insurance Information */}
+            <div>
+              <h3 className="mb-4 text-base font-semibold">Insurance Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="insuranceCompany">Insurance Company</Label>
+                  <Input
+                    id="insuranceCompany"
+                    placeholder="Blue Cross Blue Shield"
+                    value={formData.insurance.company}
+                    onChange={(e) => handleNestedChange('insurance', 'company', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="policyNumber">Policy Number</Label>
+                  <Input
+                    id="policyNumber"
+                    placeholder="POL-123456"
+                    value={formData.insurance.policyNumber}
+                    onChange={(e) => handleNestedChange('insurance', 'policyNumber', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="insuranceAddress">Address</Label>
+                  <Input
+                    id="insuranceAddress"
+                    placeholder="456 Insurance Blvd"
+                    value={formData.insurance.address}
+                    onChange={(e) => handleNestedChange('insurance', 'address', e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="insuranceContact">Contact Number</Label>
+                  <Input
+                    id="insuranceContact"
+                    placeholder="(555) 111-2222"
+                    value={formData.insurance.contactNumber}
+                    onChange={(e) => handleNestedChange('insurance', 'contactNumber', e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Responsible Persons */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-base font-semibold">Responsible Persons</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addResponsiblePerson}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Contact
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {formData.responsiblePersons.map((person, index) => (
+                  <div key={index} className="rounded-lg border border-border bg-muted/30 p-4">
+                    <h4 className="mb-3 text-sm font-medium">Contact Person {index + 1}</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor={`person-name-${index}`}>Name</Label>
+                        <Input
+                          id={`person-name-${index}`}
+                          placeholder="John Doe"
+                          value={person.name}
+                          onChange={(e) => updateResponsiblePerson(index, 'name', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`person-relationship-${index}`}>Relationship</Label>
+                        <Input
+                          id={`person-relationship-${index}`}
+                          placeholder="Son"
+                          value={person.relationship}
+                          onChange={(e) => updateResponsiblePerson(index, 'relationship', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`person-contact-${index}`}>Contact Number</Label>
+                        <Input
+                          id={`person-contact-${index}`}
+                          placeholder="(555) 123-4567"
+                          value={person.contactNumber}
+                          onChange={(e) => updateResponsiblePerson(index, 'contactNumber', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`person-address-${index}`}>Address</Label>
+                        <Input
+                          id={`person-address-${index}`}
+                          placeholder="789 Oak Ave"
+                          value={person.address}
+                          onChange={(e) => updateResponsiblePerson(index, 'address', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Medications */}
+            <div>
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-base font-semibold">Medications</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addMedication}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Medication
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {formData.medications.map((medication, index) => (
+                  <div key={index} className="rounded-lg border border-border bg-muted/30 p-4">
+                    <h4 className="mb-3 text-sm font-medium">Medication {index + 1}</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label htmlFor={`med-name-${index}`}>Medication Name</Label>
+                        <Input
+                          id={`med-name-${index}`}
+                          placeholder="Aspirin"
+                          value={medication.medicationName}
+                          onChange={(e) => updateMedication(index, 'medicationName', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`med-dosage-${index}`}>Dosage</Label>
+                        <Input
+                          id={`med-dosage-${index}`}
+                          placeholder="100mg"
+                          value={medication.dosage}
+                          onChange={(e) => updateMedication(index, 'dosage', e.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`med-times-${index}`}>Administration Times</Label>
+                        <Input
+                          id={`med-times-${index}`}
+                          placeholder="8:00 AM, 8:00 PM (comma separated)"
+                          value={medication.administrationTimes.join(', ')}
+                          onChange={(e) =>
+                            updateMedication(
+                              index,
+                              'administrationTimes',
+                              e.target.value.split(',').map((t) => t.trim())
+                            )
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`med-physician-${index}`}>Prescribing Physician</Label>
+                        <Input
+                          id={`med-physician-${index}`}
+                          placeholder="Enter physician name"
+                          value={medication.prescribingPhysician}
+                          onChange={(e) => updateMedication(index, 'prescribingPhysician', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -188,7 +647,7 @@ export function AddNewResidentDialog({
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleAddResident}
               disabled={createResidentMutation.isPending}
             >

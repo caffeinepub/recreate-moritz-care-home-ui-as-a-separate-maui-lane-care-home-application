@@ -28,18 +28,66 @@ export const MarRecord = IDL.Record({
   'timestamp' : IDL.Int,
   'administrationTime' : IDL.Text,
 });
+export const InsuranceInfo = IDL.Record({
+  'company' : IDL.Text,
+  'address' : IDL.Text,
+  'contactNumber' : IDL.Text,
+  'policyNumber' : IDL.Text,
+});
+export const Medication = IDL.Record({
+  'medicationName' : IDL.Text,
+  'dosage' : IDL.Text,
+  'prescribingPhysician' : IDL.Text,
+  'administrationTimes' : IDL.Vec(IDL.Text),
+});
+export const PharmacyInfo = IDL.Record({
+  'name' : IDL.Text,
+  'address' : IDL.Text,
+  'contactNumber' : IDL.Text,
+});
+export const ResponsiblePerson = IDL.Record({
+  'relationship' : IDL.Text,
+  'name' : IDL.Text,
+  'address' : IDL.Text,
+  'contactNumber' : IDL.Text,
+});
+export const Physician = IDL.Record({
+  'name' : IDL.Text,
+  'specialty' : IDL.Text,
+  'contactNumber' : IDL.Text,
+});
 export const ResidentCreateRequest = IDL.Record({
   'id' : ResidentId,
   'birthDate' : IDL.Text,
+  'admissionDate' : IDL.Text,
   'name' : IDL.Text,
+  'roomNumber' : IDL.Text,
+  'insurance' : InsuranceInfo,
+  'medications' : IDL.Vec(Medication),
+  'pharmacy' : PharmacyInfo,
+  'responsiblePersons' : IDL.Vec(ResponsiblePerson),
+  'medicaidNumber' : IDL.Text,
+  'physicians' : IDL.Vec(Physician),
+  'roomType' : IDL.Text,
+  'medicareNumber' : IDL.Text,
 });
 export const Resident = IDL.Record({
   'id' : ResidentId,
   'active' : IDL.Bool,
   'birthDate' : IDL.Text,
   'owner' : IDL.Principal,
+  'admissionDate' : IDL.Text,
   'name' : IDL.Text,
   'createdAt' : IDL.Int,
+  'roomNumber' : IDL.Text,
+  'insurance' : InsuranceInfo,
+  'medications' : IDL.Vec(Medication),
+  'pharmacy' : PharmacyInfo,
+  'responsiblePersons' : IDL.Vec(ResponsiblePerson),
+  'medicaidNumber' : IDL.Text,
+  'physicians' : IDL.Vec(Physician),
+  'roomType' : IDL.Text,
+  'medicareNumber' : IDL.Text,
 });
 export const VitalsRecord = IDL.Record({
   'temperature' : IDL.Float64,
@@ -56,7 +104,17 @@ export const ResidentStatusUpdateResult = IDL.Variant({
 });
 export const ResidentUpdateRequest = IDL.Record({
   'birthDate' : IDL.Text,
+  'admissionDate' : IDL.Text,
   'name' : IDL.Text,
+  'roomNumber' : IDL.Text,
+  'insurance' : InsuranceInfo,
+  'medications' : IDL.Vec(Medication),
+  'pharmacy' : PharmacyInfo,
+  'responsiblePersons' : IDL.Vec(ResponsiblePerson),
+  'medicaidNumber' : IDL.Text,
+  'physicians' : IDL.Vec(Physician),
+  'roomType' : IDL.Text,
+  'medicareNumber' : IDL.Text,
 });
 export const ResidentUpdateResult = IDL.Variant({
   'notFound' : IDL.Null,
@@ -128,18 +186,66 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : IDL.Int,
     'administrationTime' : IDL.Text,
   });
+  const InsuranceInfo = IDL.Record({
+    'company' : IDL.Text,
+    'address' : IDL.Text,
+    'contactNumber' : IDL.Text,
+    'policyNumber' : IDL.Text,
+  });
+  const Medication = IDL.Record({
+    'medicationName' : IDL.Text,
+    'dosage' : IDL.Text,
+    'prescribingPhysician' : IDL.Text,
+    'administrationTimes' : IDL.Vec(IDL.Text),
+  });
+  const PharmacyInfo = IDL.Record({
+    'name' : IDL.Text,
+    'address' : IDL.Text,
+    'contactNumber' : IDL.Text,
+  });
+  const ResponsiblePerson = IDL.Record({
+    'relationship' : IDL.Text,
+    'name' : IDL.Text,
+    'address' : IDL.Text,
+    'contactNumber' : IDL.Text,
+  });
+  const Physician = IDL.Record({
+    'name' : IDL.Text,
+    'specialty' : IDL.Text,
+    'contactNumber' : IDL.Text,
+  });
   const ResidentCreateRequest = IDL.Record({
     'id' : ResidentId,
     'birthDate' : IDL.Text,
+    'admissionDate' : IDL.Text,
     'name' : IDL.Text,
+    'roomNumber' : IDL.Text,
+    'insurance' : InsuranceInfo,
+    'medications' : IDL.Vec(Medication),
+    'pharmacy' : PharmacyInfo,
+    'responsiblePersons' : IDL.Vec(ResponsiblePerson),
+    'medicaidNumber' : IDL.Text,
+    'physicians' : IDL.Vec(Physician),
+    'roomType' : IDL.Text,
+    'medicareNumber' : IDL.Text,
   });
   const Resident = IDL.Record({
     'id' : ResidentId,
     'active' : IDL.Bool,
     'birthDate' : IDL.Text,
     'owner' : IDL.Principal,
+    'admissionDate' : IDL.Text,
     'name' : IDL.Text,
     'createdAt' : IDL.Int,
+    'roomNumber' : IDL.Text,
+    'insurance' : InsuranceInfo,
+    'medications' : IDL.Vec(Medication),
+    'pharmacy' : PharmacyInfo,
+    'responsiblePersons' : IDL.Vec(ResponsiblePerson),
+    'medicaidNumber' : IDL.Text,
+    'physicians' : IDL.Vec(Physician),
+    'roomType' : IDL.Text,
+    'medicareNumber' : IDL.Text,
   });
   const VitalsRecord = IDL.Record({
     'temperature' : IDL.Float64,
@@ -156,7 +262,17 @@ export const idlFactory = ({ IDL }) => {
   });
   const ResidentUpdateRequest = IDL.Record({
     'birthDate' : IDL.Text,
+    'admissionDate' : IDL.Text,
     'name' : IDL.Text,
+    'roomNumber' : IDL.Text,
+    'insurance' : InsuranceInfo,
+    'medications' : IDL.Vec(Medication),
+    'pharmacy' : PharmacyInfo,
+    'responsiblePersons' : IDL.Vec(ResponsiblePerson),
+    'medicaidNumber' : IDL.Text,
+    'physicians' : IDL.Vec(Physician),
+    'roomType' : IDL.Text,
+    'medicareNumber' : IDL.Text,
   });
   const ResidentUpdateResult = IDL.Variant({
     'notFound' : IDL.Null,

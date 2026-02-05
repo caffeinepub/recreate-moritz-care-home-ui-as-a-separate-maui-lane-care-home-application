@@ -33,6 +33,22 @@ function calculateAge(birthDate: string): number {
 }
 
 /**
+ * Format room display string from room number and type
+ */
+function formatRoom(roomNumber: string, roomType: string): string {
+  if (!roomNumber && !roomType) {
+    return 'Room TBD';
+  }
+  if (roomNumber && roomType) {
+    return `Room ${roomNumber} (${roomType})`;
+  }
+  if (roomNumber) {
+    return `Room ${roomNumber}`;
+  }
+  return roomType;
+}
+
+/**
  * Convert backend Resident to UI view model
  */
 export function toResidentViewModel(resident: Resident): ResidentViewModel {
@@ -40,10 +56,10 @@ export function toResidentViewModel(resident: Resident): ResidentViewModel {
     id: resident.id.toString(),
     name: resident.name,
     age: calculateAge(resident.birthDate),
-    room: 'Room TBD', // Backend doesn't store room yet, placeholder for now
+    room: formatRoom(resident.roomNumber, resident.roomType),
     status: resident.active ? 'Active' : 'Discharged',
-    physicians: 0, // Backend doesn't track this yet
-    medications: 0, // Backend doesn't track this yet
+    physicians: resident.physicians?.length || 0,
+    medications: resident.medications?.length || 0,
   };
 }
 

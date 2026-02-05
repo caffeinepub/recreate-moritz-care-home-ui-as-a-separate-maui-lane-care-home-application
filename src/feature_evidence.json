@@ -2,18 +2,50 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-frontend-wire-the-maui-residents-dashboard-to-use-backend-backed-residents-directory-queries-mutations-list-create-delete-status-toggle-via-react-query-and-remove-any-logic-that-re-initializes-the-visible-resident-list-from-mock-data-on-login-sign-in-changes",
-      "featureTitle": "Frontend: Wire the Maui Residents Dashboard to use backend-backed Residents Directory queries/mutations (list/create/delete/status toggle) via React Query, and remove any logic that re-initializes the visible resident list from mock data on login/sign-in changes.",
+      "featureId": "feature-add-an-edit-action-on-the-resident-profile-page-frontend-src-pages-maui-residents-residentprofile-tsx-that-opens-the-existing-editresidentinformationdialog-and-allows-updating-the-currently-viewed-resident-s-information",
+      "featureTitle": "Add an \"Edit\" action on the resident profile page (frontend/src/pages/maui/residents/ResidentProfile.tsx) that opens the existing EditResidentInformationDialog and allows updating the currently-viewed resident’s information.",
       "files": [
-        "frontend/src/components/maui/MauiAppShell.tsx",
-        "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
-        "frontend/src/components/maui/residents/ResidentCard.tsx",
-        "frontend/src/components/maui/residents/ResidentGrid.tsx",
-        "frontend/src/pages/maui/Dashboard.tsx",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-        "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
-        "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
-        "frontend/src/pages/maui/residents/residentListUtils.ts"
+        "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-12"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-wire-the-editresidentinformationdialog-save-action-on-the-resident-profile-page-to-the-existing-updateresident-backend-mutation-useupdateresident-and-refresh-the-profile-view-after-a-successful-save",
+      "featureTitle": "Wire the EditResidentInformationDialog save action on the resident profile page to the existing updateResident backend mutation (useUpdateResident) and refresh the profile view after a successful save.",
+      "files": [
+        "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-13"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-resident-update-request-preserves-backend-only-fields-not-editable-in-the-dialog-e-g-insurance-responsible-persons-medications-by-reusing-the-existing-backendresident-values-when-constructing-the-residentupdaterequest",
+      "featureTitle": "Ensure the resident update request preserves backend-only fields not editable in the dialog (e.g., insurance, responsible persons, medications) by reusing the existing backendResident values when constructing the ResidentUpdateRequest.",
+      "files": [
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -25,26 +57,6 @@
       ],
       "testIds": [
         "REQ-14"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-frontend-add-extend-react-query-hooks-in-frontend-src-hooks-usequeries-ts-for-residents-directory-list-create-delete-update-status-toggle-that-call-the-new-backend-residents-directory-apis-and-invalidate-refetch-resident-list-queries-on-mutation-success",
-      "featureTitle": "Frontend: Add/extend React Query hooks in frontend/src/hooks/useQueries.ts for Residents Directory list/create/delete/update (status toggle) that call the new backend Residents Directory APIs and invalidate/refetch resident list queries on mutation success.",
-      "files": [
-        "frontend/src/hooks/residentQueryKeys.ts",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-15"
       ],
       "confidence": "high"
     }

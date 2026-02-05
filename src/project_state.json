@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 109,
+  "projectStateVersion": 117,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "existing_features": [
     {
@@ -285,18 +285,68 @@
       "version": 1
     },
     {
-      "id": "feature-frontend-wire-the-maui-residents-dashboard-to-use-backend-backed-residents-directory-queries-mutations-list-create-delete-status-toggle-via-react-query-and-remove-any-logic-that-re-initializes-the-visible-resident-list-from-mock-data-on-login-sign-in-changes",
-      "title": "Frontend: Wire the Maui Residents Dashboard to use backend-backed Residents Directory queries/mutations (list/create/delete/status toggle) via React Query, and remove any logic that re-initializes the visible resident list from mock data on login/sign-in changes.",
+      "id": "IF-24",
+      "title": "Motoko backend resident persistence (types + CRUD with access control)",
+      "synonyms": [
+        "Residents canister methods",
+        "resident list/create/update/delete",
+        "resident status toggle"
+      ],
+      "description": "Extended the Motoko backend canister with resident data types and CRUD-style endpoints to create, list, update (including status toggle), and delete residents, enforcing access control consistent with the existing authorization module and supporting stable persistence/migration.",
       "reqIds": [
-        "REQ-14"
+        "REQ-9"
       ],
       "version": 1
     },
     {
-      "id": "feature-frontend-add-extend-react-query-hooks-in-frontend-src-hooks-usequeries-ts-for-residents-directory-list-create-delete-update-status-toggle-that-call-the-new-backend-residents-directory-apis-and-invalidate-refetch-resident-list-queries-on-mutation-success",
-      "title": "Frontend: Add/extend React Query hooks in frontend/src/hooks/useQueries.ts for Residents Directory list/create/delete/update (status toggle) that call the new backend Residents Directory APIs and invalidate/refetch resident list queries on mutation success.",
+      "id": "IF-25",
+      "title": "Frontend residents React Query hooks (list/create/delete/update) keyed by principal",
+      "synonyms": [
+        "residentQueryKeys",
+        "React Query residents hooks",
+        "principal-keyed queries"
+      ],
+      "description": "Added/extended frontend query/mutation hooks for residents APIs (list/create/delete/update/toggle) with query keys scoped to the authenticated principal to ensure correct refetching and isolation across identity changes.",
       "reqIds": [
-        "REQ-15"
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "IF-26",
+      "title": "Residents Directory wired to backend resident list + mutations (delete/status toggle)",
+      "synonyms": [
+        "residentDirectoryViewModel",
+        "backend-backed Residents Dashboard",
+        "remove mockResidents state"
+      ],
+      "description": "Updated the Maui Residents Directory UI to load residents from the canister (instead of mock/local initialization) and to use backend-backed mutations for deletion and status toggling, keeping UI state consistent across reloads and sign-in changes via refetching.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-edit-action-on-the-resident-profile-page-frontend-src-pages-maui-residents-residentprofile-tsx-that-opens-the-existing-editresidentinformationdialog-and-allows-updating-the-currently-viewed-resident-s-information",
+      "title": "Add an \"Edit\" action on the resident profile page (frontend/src/pages/maui/residents/ResidentProfile.tsx) that opens the existing EditResidentInformationDialog and allows updating the currently-viewed resident’s information.",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-wire-the-editresidentinformationdialog-save-action-on-the-resident-profile-page-to-the-existing-updateresident-backend-mutation-useupdateresident-and-refresh-the-profile-view-after-a-successful-save",
+      "title": "Wire the EditResidentInformationDialog save action on the resident profile page to the existing updateResident backend mutation (useUpdateResident) and refresh the profile view after a successful save.",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-resident-update-request-preserves-backend-only-fields-not-editable-in-the-dialog-e-g-insurance-responsible-persons-medications-by-reusing-the-existing-backendresident-values-when-constructing-the-residentupdaterequest",
+      "title": "Ensure the resident update request preserves backend-only fields not editable in the dialog (e.g., insurance, responsible persons, medications) by reusing the existing backendResident values when constructing the ResidentUpdateRequest.",
+      "reqIds": [
+        "REQ-14"
       ],
       "version": 1
     }
@@ -333,49 +383,9 @@
       "status": "pending"
     },
     {
-      "id": "AR-8",
-      "summary": "Add resident management actions on the Residents Dashboard including deletion and toggling resident status (discharged/active).",
+      "id": "AR-7",
+      "summary": "Allow editing resident information directly from the resident profile page (wire edit action/navigation to existing edit resident dialog/flow).",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Implement backend persistence for the Residents Directory so that resident deletion survives page reloads, sign-out, and re-sign-in (i.e., residents deleted by a user do not reappear after a new sign-in). Add resident data types and CRUD-style canister methods to create, list, update (including status toggle), and delete residents, with authorization checks consistent with existing access control patterns.",
-      "reqIds": [
-        "REQ-9"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Wire the Maui Dashboard Residents Directory UI to backend-backed resident list data instead of `mockResidents` local state, using React Query for list + mutations (create, delete, toggle status). Ensure the UI state is consistent after sign-in changes (identity changes) by refetching residents from the canister and not re-initializing from mock data.",
-      "reqIds": [
-        "REQ-10"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Add/extend frontend React Query hooks to support the new backend residents APIs (list/create/delete/toggle or update) and ensure queries are properly keyed by authenticated principal so switching identities results in correct resident lists per user.",
-      "reqIds": [
-        "REQ-11"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-12",
-      "summary": "Backend: Add persistent Residents Directory storage (separate from vitals/MAR/ADL records) and implement canister methods to create, list, update (including status toggle), and delete residents so that a deleted resident never reappears after sign-out and re-sign-in.",
-      "reqIds": [
-        "REQ-12"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Backend: Ensure Residents Directory list behavior is correct and deterministic: list should only return non-deleted residents for the authenticated user (or admin-visible behavior if admins are supported by existing access control), and must not leak another user’s residents after a new login with a different Internet Identity principal.",
-      "reqIds": [
-        "REQ-13"
-      ],
       "status": "pending"
     }
   ],
@@ -392,10 +402,9 @@
     "Build/template sync: Updated ICP + React/Vite + shadcn-ui build template/tooling and Motoko authorization modules to current component versions (core-infrastructure v1.0.2, authorization v4.0.0)."
   ],
   "known_issues": [
-    "Uploaded/replaced Maui Lane logo is not appearing/loaded across application pages; needs fix to ensure logo renders reliably everywhere.",
-    "Resident deletion is not persisting across sessions: deleted residents reappear after signing out and signing in again (backend/state persistence issue)."
+    "Uploaded/replaced Maui Lane logo is not appearing/loaded across application pages; needs fix to ensure logo renders reliably everywhere."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "generatedImages": [
     {
       "filename": "frontend/public/assets/generated/maui-lane-app-icon.dim_256x256.png",

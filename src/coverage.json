@@ -1,102 +1,61 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T03:01:46.452Z",
+  "generatedAt": "2026-02-05T03:17:34.758Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 2,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
         "id": "REQ-12",
-        "summary": "Backend: Add persistent Residents Directory storage (separate from vitals/MAR/ADL records) and implement canister methods to create, list, update (including status toggle), and delete residents so that a deleted resident never reappears after sign-out and re-sign-in.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-13",
-        "summary": "Backend: Ensure Residents Directory list behavior is correct and deterministic: list should only return non-deleted residents for the authenticated user (or admin-visible behavior if admins are supported by existing access control), and must not leak another user’s residents after a new login with a different Internet Identity principal.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-14",
-        "summary": "Frontend: Wire the Maui Residents Dashboard to use backend-backed Residents Directory queries/mutations (list/create/delete/status toggle) via React Query, and remove any logic that re-initializes the visible resident list from mock data on login/sign-in changes.",
+        "summary": "Add an \"Edit\" action on the resident profile page (frontend/src/pages/maui/residents/ResidentProfile.tsx) that opens the existing EditResidentInformationDialog and allows updating the currently-viewed resident’s information.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/maui/Dashboard.tsx",
-          "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
-          "frontend/src/components/maui/residents/ResidentCard.tsx",
-          "frontend/src/components/maui/residents/ResidentGrid.tsx",
-          "frontend/src/pages/maui/residents/residentListUtils.ts",
-          "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
-          "frontend/src/components/maui/MauiAppShell.tsx",
           "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "frontend/src/pages/maui/residents/mockResidentProfileData.ts"
+          "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/maui/Dashboard.tsx",
-          "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
-          "frontend/src/components/maui/residents/ResidentCard.tsx",
-          "frontend/src/components/maui/residents/ResidentGrid.tsx",
-          "frontend/src/pages/maui/residents/residentListUtils.ts",
-          "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
-          "frontend/src/components/maui/MauiAppShell.tsx",
           "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "frontend/src/pages/maui/residents/mockResidentProfileData.ts"
+          "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
         ]
       },
       {
-        "id": "REQ-15",
-        "summary": "Frontend: Add/extend React Query hooks in frontend/src/hooks/useQueries.ts for Residents Directory list/create/delete/update (status toggle) that call the new backend Residents Directory APIs and invalidate/refetch resident list queries on mutation success.",
+        "id": "REQ-13",
+        "summary": "Wire the EditResidentInformationDialog save action on the resident profile page to the existing updateResident backend mutation (useUpdateResident) and refresh the profile view after a successful save.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/hooks/residentQueryKeys.ts",
-          "frontend/src/backend.d.ts"
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/hooks/residentQueryKeys.ts",
-          "frontend/src/backend.d.ts"
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
+        ]
+      },
+      {
+        "id": "REQ-14",
+        "summary": "Ensure the resident update request preserves backend-only fields not editable in the dialog (e.g., insurance, responsible persons, medications) by reusing the existing backendResident values when constructing the ResidentUpdateRequest.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/maui/MauiAppShell.tsx",
-    "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
-    "frontend/src/components/maui/residents/ResidentCard.tsx",
-    "frontend/src/components/maui/residents/ResidentGrid.tsx",
-    "frontend/src/components/maui/residents/adl/AdlHistoryList.tsx",
-    "frontend/src/components/maui/residents/mar/AddMarRecordDialog.tsx",
-    "frontend/src/components/maui/residents/mar/MarHistoryList.tsx",
-    "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
-    "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
-    "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/residentQueryKeys.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/maui/Dashboard.tsx",
+    "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
     "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-    "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
-    "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
-    "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
-    "frontend/src/pages/maui/residents/residentListUtils.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

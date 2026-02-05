@@ -13,6 +13,7 @@ import {
   User,
   MapPin,
   Heart,
+  Edit,
 } from 'lucide-react';
 import { RecordDailyVitalsDialog } from '@/components/maui/residents/vitals/RecordDailyVitalsDialog';
 import { VitalsHistoryList } from '@/components/maui/residents/vitals/VitalsHistoryList';
@@ -21,8 +22,11 @@ import { MarHistoryList } from '@/components/maui/residents/mar/MarHistoryList';
 import { AddAdlRecordDialog } from '@/components/maui/residents/adl/AddAdlRecordDialog';
 import { AdlHistoryList } from '@/components/maui/residents/adl/AdlHistoryList';
 import { AddMedicationDialog } from '@/components/maui/residents/medications/AddMedicationDialog';
+import { EditResidentInformationDialog, type EditResidentFormData } from '@/components/maui/residents/EditResidentInformationDialog';
 import { ResidentProfilePrintReport } from './ResidentProfilePrintReport';
-import { useGetResident } from '@/hooks/useQueries';
+import { useGetResident, useUpdateResident } from '@/hooks/useQueries';
+import { toast } from 'sonner';
+import type { ResidentUpdateRequest } from '@/backend';
 import {
   getResidentProfileData,
   type ResidentMedication,
@@ -34,6 +38,7 @@ export function ResidentProfile() {
   const [isMarDialogOpen, setIsMarDialogOpen] = useState(false);
   const [isAdlDialogOpen, setIsAdlDialogOpen] = useState(false);
   const [isAddMedicationDialogOpen, setIsAddMedicationDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [clientMedications, setClientMedications] = useState<ResidentMedication[]>([]);
 
   // Try to parse residentId as Principal, fallback to mock data if invalid
@@ -45,6 +50,7 @@ export function ResidentProfile() {
   }
 
   const { data: backendResident, isLoading } = useGetResident(residentPrincipal);
+  const updateResidentMutation = useUpdateResident();
 
   // Use backend data if available, otherwise fallback to mock
   const profileData = backendResident
@@ -52,16 +58,16 @@ export function ResidentProfile() {
         id: backendResident.id.toString(),
         name: backendResident.name,
         dateOfBirth: backendResident.birthDate,
-        admissionDate: new Date(Number(backendResident.createdAt) / 1000000).toISOString().split('T')[0],
-        room: 'Room TBD',
-        roomType: 'TBD',
+        admissionDate: backendResident.admissionDate,
+        room: backendResident.roomNumber ? `Room ${backendResident.roomNumber}` : 'Room TBD',
+        roomType: backendResident.roomType || 'TBD',
         status: backendResident.active ? 'Active' : 'Discharged',
-        medicaidNumber: '-',
-        medicareNumber: '-',
-        physicians: [],
-        pharmacy: { name: '-', address: '-', contactNumber: '-' },
-        insurance: { company: '-', policyNumber: '-', address: '-', contactNumber: '-' },
-        responsiblePersons: [],
+        medicaidNumber: backendResident.medicaidNumber || '-',
+        medicareNumber: backendResident.medicareNumber || '-',
+        physicians: backendResident.physicians || [],
+        pharmacy: backendResident.pharmacy || { name: '-', address: '-', contactNumber: '-' },
+        insurance: backendResident.insurance || { company: '-', policyNumber: '-', address: '-', contactNumber: '-' },
+        responsiblePersons: backendResident.responsiblePersons || [],
       }
     : getResidentProfileData(residentId);
 
@@ -73,6 +79,91 @@ export function ResidentProfile() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleEditSave = async (values: EditResidentFormData) => {
+    if (!residentPrincipal || !backendResident) {
+      toast.error('Cannot update resident: Invalid resident ID');
+      return;
+    }
+
+    try {
+      // Build update request preserving backend-only fields
+      const updateRequest: ResidentUpdateRequest = {
+        name: `${values.firstName} ${values.lastName}`.trim(),
+        birthDate: values.dateOfBirth,
+        admissionDate: values.admissionDate,
+        roomNumber: values.roomNumber,
+        roomType: values.roomType,
+        medicaidNumber: values.medicaidNumber,
+        medicareNumber: values.medicareNumber,
+        physicians: values.physicians,
+        pharmacy: {
+          name: values.pharmacyName,
+          address: values.pharmacyAddress,
+          contactNumber: values.pharmacyContactNumber,
+        },
+        // Preserve existing backend fields that aren't in the edit dialog
+        insurance: backendResident.insurance,
+        responsiblePersons: backendResident.responsiblePersons,
+        medications: backendResident.medications,
+      };
+
+      await updateResidentMutation.mutateAsync({
+        id: residentPrincipal,
+        updateRequest,
+      });
+
+      toast.success('Resident information updated successfully');
+      setIsEditDialogOpen(false);
+    } catch (error) {
+      console.error('Failed to update resident:', error);
+      toast.error('Failed to save changes. Please try again.');
+    }
+  };
+
+  // Prepare initial values for edit dialog from backend data
+  const getEditInitialValues = (): EditResidentFormData => {
+    if (!backendResident) {
+      return {
+        firstName: '',
+        lastName: '',
+        dateOfBirth: '',
+        admissionDate: '',
+        roomNumber: '',
+        roomType: '',
+        bed: 'Bed A',
+        status: 'Active',
+        medicaidNumber: '',
+        medicareNumber: '',
+        physicians: [],
+        pharmacyName: '',
+        pharmacyAddress: '',
+        pharmacyContactNumber: '',
+      };
+    }
+
+    // Split name into first and last
+    const nameParts = backendResident.name.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    return {
+      firstName,
+      lastName,
+      dateOfBirth: backendResident.birthDate,
+      admissionDate: backendResident.admissionDate,
+      roomNumber: backendResident.roomNumber,
+      roomType: backendResident.roomType,
+      bed: 'Bed A', // Default value as bed is not in backend
+      status: backendResident.active ? 'Active' : 'Discharged',
+      medicaidNumber: backendResident.medicaidNumber,
+      medicareNumber: backendResident.medicareNumber,
+      physicians: backendResident.physicians,
+      pharmacyName: backendResident.pharmacy.name,
+      pharmacyAddress: backendResident.pharmacy.address,
+      pharmacyContactNumber: backendResident.pharmacy.contactNumber,
+    };
   };
 
   if (isLoading) {
@@ -107,6 +198,12 @@ export function ResidentProfile() {
             </div>
           </div>
           <div className="flex gap-2">
+            {residentPrincipal && backendResident && (
+              <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            )}
             <Button onClick={handlePrint}>
               <Printer className="mr-2 h-4 w-4" />
               Print Report
@@ -281,6 +378,13 @@ export function ResidentProfile() {
             open={isAdlDialogOpen}
             onOpenChange={setIsAdlDialogOpen}
             residentId={residentPrincipal}
+          />
+          <EditResidentInformationDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            initialValues={getEditInitialValues()}
+            onSave={handleEditSave}
+            isSaving={updateResidentMutation.isPending}
           />
         </>
       )}

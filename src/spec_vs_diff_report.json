@@ -1,93 +1,55 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T03:01:46.397Z",
-  "summary": "Diff adds a new backend Residents Directory type and some canister APIs plus frontend React Query wiring for listing/creating residents with principal-scoped query keys. However, evidence for stable persistent storage and resident delete/status-toggle/update backend methods is incomplete/absent in the provided diff excerpt, and several unrelated UI/branding changes appear beyond the stated scope.",
+  "generatedAt": "2026-02-05T03:17:34.720Z",
+  "summary": "The diff shows initial wiring for an edit dialog flow on ResidentProfile and significant changes to EditResidentInformationDialog, but the key acceptance-criteria behaviors (Edit button placement/visibility, save wiring to useUpdateResident with correct request construction, refetch/invalidation, and error handling) are not verifiable from the truncated snippets. The dialog also introduces new form fields (e.g., bed) that were explicitly called out as non-goals.",
   "missing_requirements": [
     {
       "id": "REQ-12",
-      "requirement": "Backend Residents Directory must be stored in stable canister state so deletions persist across sessions (not just in-memory).",
-      "reason": "The diff shows `let residentsDirectory = Map.empty<ResidentId, Resident>();` with no visible `stable` state, `preupgrade/postupgrade`, or other stable persistence mechanism for the directory in the shown excerpt.",
+      "requirement": "Add an \"Edit\" action on the resident profile page that opens the existing EditResidentInformationDialog and is pre-filled with current backend data (useGetResident).",
+      "reason": "ResidentProfile imports the dialog and tracks isEditDialogOpen, but the truncated diff does not include the header JSX showing an Edit button near \"Print Report\" nor the dialog invocation with initialValues derived from useGetResident.",
       "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "requirement": "Backend must implement Residents Directory delete resident method such that deleted residents never reappear after sign-out/sign-in.",
-      "reason": "The provided `backend/main.mo` excerpt shows `createResident`, `listActiveResidents`, and `getResident`, but does not show any `deleteResident` method implementation; the file is truncated before any delete method appears.",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-12",
-      "requirement": "Backend must implement Residents Directory update (including status toggle).",
-      "reason": "`backend/main.mo` shows the start of an `update` function (`public shared ({ caller }) func updat...`) but the implementation is truncated; no concrete evidence of update/status-toggle behavior is present in the diff excerpt.",
-      "evidence": [
-        "backend/main.mo"
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
       ]
     },
     {
       "id": "REQ-13",
-      "requirement": "Deleting a resident also removes or invalidates any Residents Directory entry so it cannot be reconstructed from defaults/mocks on the backend.",
-      "reason": "Because the backend delete behavior is not visible in the provided diff excerpt, there is no evidence that deletion removes/invalidates the resident directory entry in stable state.",
+      "requirement": "Wire dialog save to useUpdateResident and refresh the profile after successful save; show an English error and keep dialog open on failure.",
+      "reason": "ResidentProfile shows useUpdateResident() and a handleEditSave() stub with an invalid-ID toast, but the truncated diff does not show calling the mutation with (residentId, ResidentUpdateRequest), any query invalidation/refetch, or failure handling that keeps the dialog open with a clear error message.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "requirement": "Preserve backend-only fields when constructing ResidentUpdateRequest (reuse existing backendResident values) and avoid unintentional status changes.",
+      "reason": "The diff snippet does not show how ResidentUpdateRequest is constructed; therefore it is not verifiable that backend-only fields are preserved or that active/discharged status is not altered during profile edits.",
+      "evidence": [
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Sign-out handler clears the entire React Query cache (`queryClient.clear()`).",
-      "reason": "The BuildRequest requires principal-scoped query keys to avoid cross-login cache reuse, but does not request globally clearing all cached queries on sign-out.",
+      "description": "Added a \"bed\" field to EditResidentFormData (and likely to the dialog UI).",
+      "reason": "BuildRequest explicitly lists adding new backend resident fields like \"bed\" as a non-goal; introducing this field in the edit form suggests an unrequested edit surface that may not exist in backend Resident/ResidentUpdateRequest.",
       "evidence": [
-        "frontend/src/components/maui/MauiAppShell.tsx"
+        "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
       ]
     },
     {
-      "description": "Large set of UI behavior/content changes in MAR/ADL/Vitals components (dialogs/history lists) unrelated to resident deletion persistence.",
-      "reason": "BuildRequest non-goals request avoiding unrelated Maui UI redesign beyond what is necessary to stop deleted residents from reappearing; these changes appear outside the residents directory persistence/caching scope.",
+      "description": "Added a \"status\" field to EditResidentFormData (and likely to the dialog UI).",
+      "reason": "Requirements state resident active/discharged status should not be unintentionally changed by saving profile edits and should remain controlled by the existing status toggle flow; adding an editable status field is unrequested and risks violating that constraint.",
       "evidence": [
-        "frontend/src/components/maui/residents/adl/AdlHistoryList.tsx",
-        "frontend/src/components/maui/residents/mar/AddMarRecordDialog.tsx",
-        "frontend/src/components/maui/residents/mar/MarHistoryList.tsx",
-        "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
-        "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx"
-      ]
-    },
-    {
-      "description": "Branding/navigation/print styling work (e.g., footer copy, reference capture page summary, global OKLCH palette/print CSS) not requested by this BuildRequest.",
-      "reason": "The BuildRequest is narrowly focused on resident deletion persistence across sign-out/sign-in; these appear to be broader UI/branding changes.",
-      "evidence": [
-        "frontend/src/components/maui/MauiAppShell.tsx",
-        "frontend-file-summaries.txt"
+        "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.58,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/maui/MauiAppShell.tsx",
-    "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
-    "frontend/src/components/maui/residents/ResidentCard.tsx",
-    "frontend/src/components/maui/residents/ResidentGrid.tsx",
-    "frontend/src/components/maui/residents/adl/AdlHistoryList.tsx",
-    "frontend/src/components/maui/residents/mar/AddMarRecordDialog.tsx",
-    "frontend/src/components/maui/residents/mar/MarHistoryList.tsx",
-    "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
-    "frontend/src/components/maui/residents/vitals/RecordDailyVitalsDialog.tsx",
-    "frontend/src/components/maui/residents/vitals/VitalsHistoryList.tsx",
-    "frontend/src/hooks/residentQueryKeys.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/pages/maui/Dashboard.tsx",
+    "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
     "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-    "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
-    "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
-    "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
-    "frontend/src/pages/maui/residents/residentListUtils.ts",
     "project_state.json"
   ]
 }

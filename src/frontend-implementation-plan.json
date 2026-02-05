@@ -1,87 +1,62 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Residents Dashboard: use backend Residents Directory via React Query and fix cache/persistence across identity changes",
+  "title": "Enable editing resident information from the Resident Profile page",
   "requirements": [
     {
-      "id": "REQ-14",
-      "summary": "Replace Maui Residents Dashboard mock resident state with backend-backed Residents Directory list/create/delete/status toggle via React Query; ensure identity changes refetch and do not reuse mock data or cross-principal cache.",
+      "id": "REQ-12",
+      "summary": "Add an Edit action on ResidentProfile to open the existing EditResidentInformationDialog pre-filled from useGetResident for the currently viewed resident.",
       "acceptanceCriteria": [
-        "After deleting a resident in the UI and signing out then signing back in, the deleted resident does not reappear in the Residents Dashboard list.",
-        "On identity change (sign-out/sign-in), the Residents Dashboard resident list is refetched from the canister and reflects only the currently authenticated principal’s data.",
-        "Resident list React Query keys are scoped such that different principals do not share cached resident lists."
+        "When viewing a resident profile that is backed by a valid resident Principal ID, the page shows an Edit button in the header area near the existing \"Print Report\" action.",
+        "Clicking the Edit button opens the existing dialog component (frontend/src/components/maui/residents/EditResidentInformationDialog.tsx).",
+        "The dialog is pre-filled with the current resident data from the backend (useGetResident)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/maui/Dashboard.tsx",
-          "operation": "modify",
-          "description": "Replace local useState(mockResidents) resident source with backend-backed React Query hooks for residents. Use the Residents Directory list hook as the single source of truth, and wire UI actions to create/delete/toggle mutations. Remove any logic that initializes or re-initializes the visible resident list from mock data."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/AddNewResidentDialog.tsx",
-          "operation": "modify",
-          "description": "Update the dialog to create residents through the backend-backed create resident mutation instead of calling onAddResident with a locally fabricated resident object. Keep existing form UI, but on submit call the create mutation and close the dialog on success; ensure the residents list query invalidates/refetches so the new resident appears without manual refresh."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/ResidentCard.tsx",
-          "operation": "modify",
-          "description": "Wire ResidentCard actions to work with backend resident identifiers (string/Principal text) and resident active status coming from the backend-backed view model. Ensure delete confirmation triggers the backend delete mutation and status toggle triggers the backend status toggle mutation via parent handlers."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/ResidentGrid.tsx",
-          "operation": "modify",
-          "description": "Update ResidentGrid prop types to accept the backend-backed resident view model and pass the appropriate resident identifier type through to ResidentCard for delete/toggle actions."
-        },
-        {
-          "path": "frontend/src/pages/maui/residents/residentListUtils.ts",
-          "operation": "modify",
-          "description": "Update filtering/sorting/KPI utilities to operate on the backend-backed resident view model (including mapping backend 'active' to UI 'Active/Discharged'). Ensure utilities do not import or depend on mockResidents."
-        },
-        {
-          "path": "frontend/src/pages/maui/residents/residentDirectoryViewModel.ts",
-          "operation": "create",
-          "description": "Create a small view-model adapter layer that maps backend Residents Directory records into the UI shape needed by the dashboard (e.g., name, derived age from birthDate, display room fallback, derived status from active). This keeps the dashboard UI stable while removing mock initialization logic."
-        },
-        {
-          "path": "frontend/src/components/maui/MauiAppShell.tsx",
-          "operation": "modify",
-          "description": "Ensure sign-out clears React Query cached application data so residents data cannot be reused across principals. Use the authorization component guidance to clear cached data on logout (use React Query's QueryClient). Verify the component's usage instructions before implementing."
-        },
-        {
           "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
           "operation": "modify",
-          "description": "Prevent broken navigation after switching dashboard resident IDs to backend identifiers by parsing the route param as a Principal text value and using a backend-backed resident fetch (or a minimal fallback) for the header/identity-dependent resident context. Keep the rest of the page unchanged unless needed to avoid crashes due to non-numeric resident IDs."
+          "description": "Add local state to control EditResidentInformationDialog visibility; render an \"Edit\" button near the existing \"Print Report\" action when residentId parses to a valid Principal and backendResident is available; derive dialog initialValues from backendResident returned by useGetResident (including splitting backendResident.name into first/last name for the dialog and mapping physicians/pharmacy/room fields). Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
+          "path": "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
           "operation": "modify",
-          "description": "Adjust mock profile lookup so the page does not assume the route residentId is numeric (e.g., accept a string ID and provide a safe fallback mock profile if no numeric match exists), to avoid rendering failures while the dashboard switches to backend resident IDs."
+          "description": "Adjust dialog behavior to support being opened from ResidentProfile with backend-provided initialValues (e.g., keep form reset-on-open behavior) and allow parent-controlled closing on successful save (do not force-close the dialog inside the dialog component). Add a place to render an externally-provided save error message (optional prop) so ResidentProfile can show backend save failures without closing. Verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-15",
-      "summary": "Add Residents Directory React Query hooks (list/create/delete/update/status toggle) with principal-scoped query keys and proper invalidation/refetch behavior.",
+      "id": "REQ-13",
+      "summary": "Wire dialog save to useUpdateResident and refresh the resident profile view after successful update; show a clear error on failure and keep the dialog open.",
       "acceptanceCriteria": [
-        "Resident delete mutation invalidates the resident list query and the UI updates without requiring a manual refresh.",
-        "Resident list query is disabled until an authenticated actor is available (consistent with existing patterns in useQueries.ts).",
-        "Resident list query key includes the authenticated principal so cache is not reused across logins."
+        "Saving changes in the dialog calls the existing React Query mutation (useUpdateResident) with the current residentId and a ResidentUpdateRequest derived from the dialog values.",
+        "After a successful save, the resident profile displays the updated values without requiring a manual page reload (query invalidation/refetch is acceptable).",
+        "If the backend update fails, the UI shows a clear error message in English (e.g., \"Failed to save changes. Please try again.\") and does not close the dialog automatically."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
           "operation": "modify",
-          "description": "Add Residents Directory hooks for list/create/delete/update (including status toggle) using the backend actor. Ensure: (1) list queryKey includes the authenticated principal string, (2) list query is enabled only when actor is available and identity is present (consistent with existing actorFetching pattern), and (3) all resident mutations invalidate the principal-scoped residents list query on success."
+          "description": "Integrate useUpdateResident in ResidentProfile; implement an onSave handler passed to EditResidentInformationDialog that builds a ResidentUpdateRequest from dialog values and calls the mutation with the current residentPrincipal; on success, close the dialog and rely on existing query invalidation/refetch to refresh displayed data; on error, keep dialog open and surface an English error message via dialog props/UI state. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/hooks/residentQueryKeys.ts",
-          "operation": "create",
-          "description": "Create a small helper module for consistent Residents Directory React Query keys (including principal scoping) to avoid accidental cross-principal cache reuse."
-        },
-        {
-          "path": "frontend/src/backend.d.ts",
+          "path": "frontend/src/components/maui/residents/EditResidentInformationDialog.tsx",
           "operation": "modify",
-          "description": "Update frontend backend type declarations as needed to reflect the new Residents Directory backend capabilities used by the new hooks (list/create/update/delete/status toggle). Keep changes limited to typing so the frontend can compile against the updated canister interface."
+          "description": "Support parent-driven save flow by allowing onSave to be async (or by not auto-closing) and showing a parent-provided error message; optionally support a saving/disabled state for the Save button so the dialog can reflect mutation progress from ResidentProfile. Verify the component's usage instructions before implementing."
+        }
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "summary": "Preserve backend-only / non-editable resident fields when constructing ResidentUpdateRequest, and avoid unintentionally changing active/discharged status during profile edits.",
+      "acceptanceCriteria": [
+        "Updating basic fields from the dialog (name, birth date, admission date, room number, room type, Medicaid number, Medicare number, physicians, pharmacy fields) does not overwrite other resident fields with empty/default values in the backend.",
+        "The resident’s active/discharged status is not unintentionally changed by saving profile edits (status toggling remains controlled by the existing status toggle flow)."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "operation": "modify",
+          "description": "When building the ResidentUpdateRequest for useUpdateResident, merge editable fields from the dialog with the existing backendResident values for non-editable fields (e.g., insurance, responsiblePersons, medications) so they are preserved; ensure the dialog's status/bed UI values (if present) do not drive any backend updates, and do not trigger resident active/discharged changes from this save flow. Verify the component's usage instructions before implementing."
         }
       ]
     }

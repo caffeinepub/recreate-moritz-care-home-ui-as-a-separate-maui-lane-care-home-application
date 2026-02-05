@@ -2,14 +2,14 @@ import Map "mo:core/Map";
 import List "mo:core/List";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
-import Time "mo:core/Time";
 import Iter "mo:core/Iter";
-import Migration "migration";
+import Time "mo:core/Time";
+
+
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-// Enable data migration
-(with migration = Migration.run)
+
 actor {
   public type UserProfile = {
     name : Text;
@@ -39,6 +39,39 @@ actor {
     supervisorId : Principal;
   };
 
+  public type Physician = {
+    name : Text;
+    contactNumber : Text;
+    specialty : Text;
+  };
+
+  public type PharmacyInfo = {
+    name : Text;
+    address : Text;
+    contactNumber : Text;
+  };
+
+  public type InsuranceInfo = {
+    company : Text;
+    policyNumber : Text;
+    address : Text;
+    contactNumber : Text;
+  };
+
+  public type ResponsiblePerson = {
+    name : Text;
+    relationship : Text;
+    contactNumber : Text;
+    address : Text;
+  };
+
+  public type Medication = {
+    medicationName : Text;
+    dosage : Text;
+    administrationTimes : [Text];
+    prescribingPhysician : Text;
+  };
+
   public type ResidentId = Principal;
 
   public type Resident = {
@@ -48,17 +81,47 @@ actor {
     createdAt : Int;
     active : Bool;
     owner : Principal;
+    admissionDate : Text;
+    roomNumber : Text;
+    roomType : Text;
+    medicaidNumber : Text;
+    medicareNumber : Text;
+    physicians : [Physician];
+    pharmacy : PharmacyInfo;
+    insurance : InsuranceInfo;
+    responsiblePersons : [ResponsiblePerson];
+    medications : [Medication];
   };
 
   public type ResidentCreateRequest = {
     id : ResidentId;
     name : Text;
     birthDate : Text;
+    admissionDate : Text;
+    roomNumber : Text;
+    roomType : Text;
+    medicaidNumber : Text;
+    medicareNumber : Text;
+    physicians : [Physician];
+    pharmacy : PharmacyInfo;
+    insurance : InsuranceInfo;
+    responsiblePersons : [ResponsiblePerson];
+    medications : [Medication];
   };
 
   public type ResidentUpdateRequest = {
     name : Text;
     birthDate : Text;
+    admissionDate : Text;
+    roomNumber : Text;
+    roomType : Text;
+    medicaidNumber : Text;
+    medicareNumber : Text;
+    physicians : [Physician];
+    pharmacy : PharmacyInfo;
+    insurance : InsuranceInfo;
+    responsiblePersons : [ResponsiblePerson];
+    medications : [Medication];
   };
 
   public type ResidentStatus = {
@@ -117,6 +180,16 @@ actor {
           createdAt = Time.now();
           active = true;
           owner = caller;
+          admissionDate = request.admissionDate;
+          roomNumber = request.roomNumber;
+          roomType = request.roomType;
+          medicaidNumber = request.medicaidNumber;
+          medicareNumber = request.medicareNumber;
+          physicians = request.physicians;
+          pharmacy = request.pharmacy;
+          insurance = request.insurance;
+          responsiblePersons = request.responsiblePersons;
+          medications = request.medications;
         };
         residentsDirectory.add(request.id, resident);
         resident;
@@ -165,6 +238,16 @@ actor {
           createdAt = existing.createdAt;
           active = existing.active;
           owner = existing.owner;
+          admissionDate = updateRequest.admissionDate;
+          roomNumber = updateRequest.roomNumber;
+          roomType = updateRequest.roomType;
+          medicaidNumber = updateRequest.medicaidNumber;
+          medicareNumber = updateRequest.medicareNumber;
+          physicians = updateRequest.physicians;
+          pharmacy = updateRequest.pharmacy;
+          insurance = updateRequest.insurance;
+          responsiblePersons = updateRequest.responsiblePersons;
+          medications = updateRequest.medications;
         };
         residentsDirectory.add(id, updatedResident);
         #updated;
@@ -463,4 +546,3 @@ actor {
     };
   };
 };
-

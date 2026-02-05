@@ -17,6 +17,12 @@ export interface AdlRecord {
   'timestamp' : bigint,
   'supervisorId' : Principal,
 }
+export interface InsuranceInfo {
+  'company' : string,
+  'address' : string,
+  'contactNumber' : string,
+  'policyNumber' : string,
+}
 export interface MarRecord {
   'medicationName' : string,
   'dosage' : string,
@@ -24,26 +30,81 @@ export interface MarRecord {
   'timestamp' : bigint,
   'administrationTime' : string,
 }
+export interface Medication {
+  'medicationName' : string,
+  'dosage' : string,
+  'prescribingPhysician' : string,
+  'administrationTimes' : Array<string>,
+}
+export interface PharmacyInfo {
+  'name' : string,
+  'address' : string,
+  'contactNumber' : string,
+}
+export interface Physician {
+  'name' : string,
+  'specialty' : string,
+  'contactNumber' : string,
+}
 export interface Resident {
   'id' : ResidentId,
   'active' : boolean,
   'birthDate' : string,
   'owner' : Principal,
+  'admissionDate' : string,
   'name' : string,
   'createdAt' : bigint,
+  'roomNumber' : string,
+  'insurance' : InsuranceInfo,
+  'medications' : Array<Medication>,
+  'pharmacy' : PharmacyInfo,
+  'responsiblePersons' : Array<ResponsiblePerson>,
+  'medicaidNumber' : string,
+  'physicians' : Array<Physician>,
+  'roomType' : string,
+  'medicareNumber' : string,
 }
 export interface ResidentCreateRequest {
   'id' : ResidentId,
   'birthDate' : string,
+  'admissionDate' : string,
   'name' : string,
+  'roomNumber' : string,
+  'insurance' : InsuranceInfo,
+  'medications' : Array<Medication>,
+  'pharmacy' : PharmacyInfo,
+  'responsiblePersons' : Array<ResponsiblePerson>,
+  'medicaidNumber' : string,
+  'physicians' : Array<Physician>,
+  'roomType' : string,
+  'medicareNumber' : string,
 }
 export type ResidentId = Principal;
 export type ResidentStatusUpdateResult = { 'activated' : null } |
   { 'terminated' : null } |
   { 'notFound' : null };
-export interface ResidentUpdateRequest { 'birthDate' : string, 'name' : string }
+export interface ResidentUpdateRequest {
+  'birthDate' : string,
+  'admissionDate' : string,
+  'name' : string,
+  'roomNumber' : string,
+  'insurance' : InsuranceInfo,
+  'medications' : Array<Medication>,
+  'pharmacy' : PharmacyInfo,
+  'responsiblePersons' : Array<ResponsiblePerson>,
+  'medicaidNumber' : string,
+  'physicians' : Array<Physician>,
+  'roomType' : string,
+  'medicareNumber' : string,
+}
 export type ResidentUpdateResult = { 'notFound' : null } |
   { 'updated' : null };
+export interface ResponsiblePerson {
+  'relationship' : string,
+  'name' : string,
+  'address' : string,
+  'contactNumber' : string,
+}
 export interface UserProfile { 'name' : string }
 export type UserRole = { 'admin' : null } |
   { 'user' : null } |

@@ -1,90 +1,69 @@
 {
   "kind": "build_request",
-  "title": "Fix resident deletion persistence across sign-out/sign-in (deleted residents reappear)",
-  "priority": "high",
+  "title": "Enable editing resident information from the Resident Profile page",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-12",
-      "text": "Backend: Add persistent Residents Directory storage (separate from vitals/MAR/ADL records) and implement canister methods to create, list, update (including status toggle), and delete residents so that a deleted resident never reappears after sign-out and re-sign-in.",
-      "target": "backend",
+      "text": "Add an \"Edit\" action on the resident profile page (frontend/src/pages/maui/residents/ResidentProfile.tsx) that opens the existing EditResidentInformationDialog and allows updating the currently-viewed resident’s information.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "please check backend and fix - deleted residents are still showing after new login"
+          "allow edit on the resident's profile"
         ]
       },
       "acceptanceCriteria": [
-        "After calling the backend delete resident method, subsequent backend list residents calls do not include the deleted resident (including after canister idle time and after the user signs out and signs back in).",
-        "Residents are stored in stable canister state so deletions persist across sessions (not just in-memory for the current session).",
-        "Access control follows existing patterns in backend/main.mo (reject unauthorized callers rather than silently succeeding)."
+        "When viewing a resident profile that is backed by a valid resident Principal ID, the page shows an Edit button in the header area near the existing \"Print Report\" action.",
+        "Clicking the Edit button opens the existing dialog component (frontend/src/components/maui/residents/EditResidentInformationDialog.tsx).",
+        "The dialog is pre-filled with the current resident data from the backend (useGetResident)."
       ]
     },
     {
       "id": "REQ-13",
-      "text": "Backend: Ensure Residents Directory list behavior is correct and deterministic: list should only return non-deleted residents for the authenticated user (or admin-visible behavior if admins are supported by existing access control), and must not leak another user’s residents after a new login with a different Internet Identity principal.",
-      "target": "backend",
+      "text": "Wire the EditResidentInformationDialog save action on the resident profile page to the existing updateResident backend mutation (useUpdateResident) and refresh the profile view after a successful save.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "deleted residents are still showing after new login"
+          "allow edit on the resident's profile"
         ]
       },
       "acceptanceCriteria": [
-        "If User A deletes a resident, then signs out, and User B signs in, User B’s resident list does not include User A’s deleted resident (or any of User A’s residents unless explicitly allowed for admin).",
-        "Residents Directory list API output is filtered to exclude deleted residents.",
-        "Deleting a resident also removes or invalidates any Residents Directory entry so it cannot be reconstructed from defaults/mocks on the backend."
+        "Saving changes in the dialog calls the existing React Query mutation (useUpdateResident) with the current residentId and a ResidentUpdateRequest derived from the dialog values.",
+        "After a successful save, the resident profile displays the updated values without requiring a manual page reload (query invalidation/refetch is acceptable).",
+        "If the backend update fails, the UI shows a clear error message in English (e.g., \"Failed to save changes. Please try again.\") and does not close the dialog automatically."
       ]
     },
     {
       "id": "REQ-14",
-      "text": "Frontend: Wire the Maui Residents Dashboard to use backend-backed Residents Directory queries/mutations (list/create/delete/status toggle) via React Query, and remove any logic that re-initializes the visible resident list from mock data on login/sign-in changes.",
+      "text": "Ensure the resident update request preserves backend-only fields not editable in the dialog (e.g., insurance, responsible persons, medications) by reusing the existing backendResident values when constructing the ResidentUpdateRequest.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-4"
         ],
         "quotes": [
-          "deleted residents are still showing after new login"
+          "allow edit on the resident's profile"
         ]
       },
       "acceptanceCriteria": [
-        "After deleting a resident in the UI and signing out then signing back in, the deleted resident does not reappear in the Residents Dashboard list.",
-        "On identity change (sign-out/sign-in), the Residents Dashboard resident list is refetched from the canister and reflects only the currently authenticated principal’s data.",
-        "Resident list React Query keys are scoped such that different principals do not share cached resident lists."
-      ]
-    },
-    {
-      "id": "REQ-15",
-      "text": "Frontend: Add/extend React Query hooks in frontend/src/hooks/useQueries.ts for Residents Directory list/create/delete/update (status toggle) that call the new backend Residents Directory APIs and invalidate/refetch resident list queries on mutation success.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-1"
-        ],
-        "quotes": [
-          "fix - deleted residents are still showing after new login"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Resident delete mutation invalidates the resident list query and the UI updates without requiring a manual refresh.",
-        "Resident list query is disabled until an authenticated actor is available (consistent with existing patterns in useQueries.ts).",
-        "Resident list query key includes the authenticated principal so cache is not reused across logins."
+        "Updating basic fields from the dialog (name, birth date, admission date, room number, room type, Medicaid number, Medicare number, physicians, pharmacy fields) does not overwrite other resident fields with empty/default values in the backend.",
+        "The resident’s active/discharged status is not unintentionally changed by saving profile edits (status toggling remains controlled by the existing status toggle flow)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo (no additional backend services).",
-    "Use English for any user-facing text.",
-    "Do not edit files under frontend/immutablePaths (e.g., frontend/src/hooks/useActor.ts, frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/main.tsx, frontend/src/components/ui)."
+    "Do not edit any files under frontend/src/components/ui (read-only UI component sources must be composed, not edited).",
+    "Respect the existing single-actor Motoko architecture; do not introduce additional backend canisters."
   ],
   "nonGoals": [
-    "Do not add third-party authentication providers (only Internet Identity).",
-    "Do not implement real-time sync (no WebSockets).",
-    "Do not redesign unrelated Maui UI pages beyond what is necessary to stop deleted residents from reappearing."
+    "Implementing edit flows for MAR/ADL/Vitals records from the resident profile (beyond existing create/delete functionality).",
+    "Adding new backend resident fields (e.g., bed) that are not currently present in backend Resident/ResidentUpdateRequest types."
   ],
   "imageRequirements": {
     "required": [],

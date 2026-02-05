@@ -89,9 +89,30 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface InsuranceInfo {
+    company: string;
+    address: string;
+    contactNumber: string;
+    policyNumber: string;
+}
 export interface ResidentUpdateRequest {
     birthDate: string;
+    admissionDate: string;
     name: string;
+    roomNumber: string;
+    insurance: InsuranceInfo;
+    medications: Array<Medication>;
+    pharmacy: PharmacyInfo;
+    responsiblePersons: Array<ResponsiblePerson>;
+    medicaidNumber: string;
+    physicians: Array<Physician>;
+    roomType: string;
+    medicareNumber: string;
+}
+export interface PharmacyInfo {
+    name: string;
+    address: string;
+    contactNumber: string;
 }
 export interface MarRecord {
     medicationName: string;
@@ -100,21 +121,34 @@ export interface MarRecord {
     timestamp: bigint;
     administrationTime: string;
 }
-export interface VitalsRecord {
-    temperature: number;
-    bloodPressure: string;
-    timestamp: bigint;
-    pulse: bigint;
-    bloodOxygen: bigint;
-}
-export type ResidentId = Principal;
 export interface Resident {
     id: ResidentId;
     active: boolean;
     birthDate: string;
     owner: Principal;
+    admissionDate: string;
     name: string;
     createdAt: bigint;
+    roomNumber: string;
+    insurance: InsuranceInfo;
+    medications: Array<Medication>;
+    pharmacy: PharmacyInfo;
+    responsiblePersons: Array<ResponsiblePerson>;
+    medicaidNumber: string;
+    physicians: Array<Physician>;
+    roomType: string;
+    medicareNumber: string;
+}
+export interface Physician {
+    name: string;
+    specialty: string;
+    contactNumber: string;
+}
+export interface ResponsiblePerson {
+    relationship: string;
+    name: string;
+    address: string;
+    contactNumber: string;
 }
 export interface AdlRecord {
     activityType: string;
@@ -126,10 +160,34 @@ export interface AdlRecord {
 export interface ResidentCreateRequest {
     id: ResidentId;
     birthDate: string;
+    admissionDate: string;
     name: string;
+    roomNumber: string;
+    insurance: InsuranceInfo;
+    medications: Array<Medication>;
+    pharmacy: PharmacyInfo;
+    responsiblePersons: Array<ResponsiblePerson>;
+    medicaidNumber: string;
+    physicians: Array<Physician>;
+    roomType: string;
+    medicareNumber: string;
 }
+export interface VitalsRecord {
+    temperature: number;
+    bloodPressure: string;
+    timestamp: bigint;
+    pulse: bigint;
+    bloodOxygen: bigint;
+}
+export type ResidentId = Principal;
 export interface UserProfile {
     name: string;
+}
+export interface Medication {
+    medicationName: string;
+    dosage: string;
+    prescribingPhysician: string;
+    administrationTimes: Array<string>;
 }
 export enum ResidentStatusUpdateResult {
     activated = "activated",
