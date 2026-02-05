@@ -3,8 +3,11 @@ import { useParams } from '@tanstack/react-router';
 import { Principal } from '@dfinity/principal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Activity,
   Pill,
@@ -14,6 +17,10 @@ import {
   MapPin,
   Heart,
   Edit,
+  AlertCircle,
+  Stethoscope,
+  Building2,
+  Users,
 } from 'lucide-react';
 import { RecordDailyVitalsDialog } from '@/components/maui/residents/vitals/RecordDailyVitalsDialog';
 import { VitalsHistoryList } from '@/components/maui/residents/vitals/VitalsHistoryList';
@@ -31,6 +38,7 @@ import {
   getResidentProfileData,
   type ResidentMedication,
 } from './mockResidentProfileData';
+import { calculateAge, formatAge } from './residentAge';
 
 export function ResidentProfile() {
   const { residentId } = useParams({ from: '/resident/$residentId' });
@@ -40,6 +48,7 @@ export function ResidentProfile() {
   const [isAddMedicationDialogOpen, setIsAddMedicationDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [clientMedications, setClientMedications] = useState<ResidentMedication[]>([]);
+  const [includePhysicianSignature, setIncludePhysicianSignature] = useState(false);
 
   // Try to parse residentId as Principal, fallback to mock data if invalid
   let residentPrincipal: Principal | null = null;
@@ -49,7 +58,7 @@ export function ResidentProfile() {
     // Invalid principal, will use mock data
   }
 
-  const { data: backendResident, isLoading } = useGetResident(residentPrincipal);
+  const { data: backendResident, isLoading, error, refetch } = useGetResident(residentPrincipal);
   const updateResidentMutation = useUpdateResident();
 
   // Use backend data if available, otherwise fallback to mock
@@ -73,6 +82,10 @@ export function ResidentProfile() {
 
   const allMedications = [...clientMedications];
 
+  // Calculate age from date of birth
+  const residentAge = calculateAge(profileData.dateOfBirth);
+  const ageDisplay = formatAge(residentAge);
+
   const handleAddMedication = (medication: ResidentMedication) => {
     setClientMedications((prev) => [...prev, medication]);
   };
@@ -88,7 +101,7 @@ export function ResidentProfile() {
     }
 
     try {
-      // Build update request preserving backend-only fields
+      // Build update request with all editable fields
       const updateRequest: ResidentUpdateRequest = {
         name: `${values.firstName} ${values.lastName}`.trim(),
         birthDate: values.dateOfBirth,
@@ -104,9 +117,9 @@ export function ResidentProfile() {
           address: values.pharmacyAddress,
           contactNumber: values.pharmacyContactNumber,
         },
+        responsiblePersons: values.responsiblePersons,
         // Preserve existing backend fields that aren't in the edit dialog
         insurance: backendResident.insurance,
-        responsiblePersons: backendResident.responsiblePersons,
         medications: backendResident.medications,
       };
 
@@ -141,6 +154,7 @@ export function ResidentProfile() {
         pharmacyName: '',
         pharmacyAddress: '',
         pharmacyContactNumber: '',
+        responsiblePersons: [],
       };
     }
 
@@ -164,7 +178,12 @@ export function ResidentProfile() {
       pharmacyName: backendResident.pharmacy.name,
       pharmacyAddress: backendResident.pharmacy.address,
       pharmacyContactNumber: backendResident.pharmacy.contactNumber,
+      responsiblePersons: backendResident.responsiblePersons,
     };
+  };
+
+  const handleRetry = () => {
+    refetch();
   };
 
   if (isLoading) {
@@ -177,38 +196,79 @@ export function ResidentProfile() {
     );
   }
 
+  // If there was an error loading from backend but we have a valid principal, show error with retry
+  if (error && residentPrincipal) {
+    const errorMessage = error instanceof Error 
+      ? error.message 
+      : 'Failed to load resident profile. Please try again.';
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{errorMessage}</AlertDescription>
+        </Alert>
+        <div className="flex flex-col items-center justify-center gap-4 py-12">
+          <Button onClick={handleRetry} variant="outline">
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="no-print container mx-auto px-4 py-8">
         {/* Header Section */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">{profileData.name}</h1>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Badge variant="secondary" className="gap-1">
-                <MapPin className="h-3 w-3" />
-                {profileData.room}
-              </Badge>
-              <Badge
-                variant={profileData.status === 'Active' ? 'default' : 'outline'}
-                className="gap-1"
-              >
-                <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                {profileData.status}
-              </Badge>
+        <div className="mb-6 flex flex-col gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">{profileData.name}</h1>
+              <div className="mt-2 flex flex-wrap gap-2">
+                <Badge variant="secondary" className="gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {profileData.room}
+                </Badge>
+                <Badge
+                  variant={profileData.status === 'Active' ? 'default' : 'outline'}
+                  className="gap-1"
+                >
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  {profileData.status}
+                </Badge>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              {residentPrincipal && backendResident && (
+                <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </Button>
+              )}
+              <Button onClick={handlePrint}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print
+              </Button>
             </div>
           </div>
-          <div className="flex gap-2">
-            {residentPrincipal && backendResident && (
-              <Button variant="outline" onClick={() => setIsEditDialogOpen(true)}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Button>
-            )}
-            <Button onClick={handlePrint}>
-              <Printer className="mr-2 h-4 w-4" />
-              Print Report
-            </Button>
+
+          {/* Print Options */}
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3">
+            <Switch
+              id="physician-signature"
+              checked={includePhysicianSignature}
+              onCheckedChange={setIncludePhysicianSignature}
+            />
+            <Label
+              htmlFor="physician-signature"
+              className="flex cursor-pointer items-center gap-2 text-sm font-medium"
+            >
+              Include physician printed name & signature
+              <span className="text-xs font-normal text-muted-foreground">
+                ({includePhysicianSignature ? 'ON' : 'OFF'})
+              </span>
+            </Label>
           </div>
         </div>
 
@@ -224,7 +284,10 @@ export function ResidentProfile() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               <div>
                 <p className="text-sm text-muted-foreground">Date of Birth</p>
-                <p className="font-medium">{profileData.dateOfBirth}</p>
+                <p className="font-medium">
+                  {profileData.dateOfBirth}
+                  {ageDisplay && <span className="ml-1 text-muted-foreground">{ageDisplay}</span>}
+                </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Admission Date</p>
@@ -239,6 +302,108 @@ export function ResidentProfile() {
                 <p className="font-medium">{profileData.medicareNumber || '-'}</p>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Physicians Card */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Stethoscope className="h-5 w-5" />
+              Assigned Physicians
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {profileData.physicians.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No physicians assigned</p>
+            ) : (
+              <div className="space-y-4">
+                {profileData.physicians.map((physician, index) => (
+                  <div key={index} className="rounded-lg border border-border p-4">
+                    <div className="grid gap-3 md:grid-cols-3">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Name</p>
+                        <p className="font-medium">{physician.name || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Specialty</p>
+                        <p className="font-medium">{physician.specialty || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Contact</p>
+                        <p className="font-medium">{physician.contactNumber || '-'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Pharmacy Card */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Pharmacy Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div>
+                <p className="text-sm text-muted-foreground">Pharmacy Name</p>
+                <p className="font-medium">{profileData.pharmacy.name || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Address</p>
+                <p className="font-medium">{profileData.pharmacy.address || '-'}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Contact Number</p>
+                <p className="font-medium">{profileData.pharmacy.contactNumber || '-'}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Responsible Persons Card */}
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Responsible Persons
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {profileData.responsiblePersons.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No responsible persons listed</p>
+            ) : (
+              <div className="space-y-4">
+                {profileData.responsiblePersons.map((person, index) => (
+                  <div key={index} className="rounded-lg border border-border p-4">
+                    <div className="grid gap-3 md:grid-cols-2">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Name</p>
+                        <p className="font-medium">{person.name || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Relationship</p>
+                        <p className="font-medium">{person.relationship || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Contact Number</p>
+                        <p className="font-medium">{person.contactNumber || '-'}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Address</p>
+                        <p className="font-medium">{person.address || '-'}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -359,6 +524,7 @@ export function ResidentProfile() {
       <ResidentProfilePrintReport
         resident={profileData}
         medications={allMedications}
+        includePhysicianSignature={includePhysicianSignature}
       />
 
       {/* Dialogs */}

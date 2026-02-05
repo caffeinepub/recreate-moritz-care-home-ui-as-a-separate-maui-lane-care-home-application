@@ -22,6 +22,12 @@ export interface DirectoryLoadPerformance {
   'totalRequestTimeNanos' : bigint,
   'residentCount' : bigint,
 }
+export interface HealthCheckResponse {
+  'status' : string,
+  'message' : string,
+  'timestamp' : bigint,
+  'canisterId' : string,
+}
 export interface InsuranceInfo {
   'company' : string,
   'address' : string,
@@ -159,6 +165,7 @@ export interface _SERVICE {
    */
   'getResidentsDirectory' : ActorMethod<[], ResidentsDirectoryResponse>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
+  'healthCheck' : ActorMethod<[], HealthCheckResponse>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isResidentActive' : ActorMethod<[ResidentId], boolean>,
   'listActiveResidents' : ActorMethod<[], Array<Resident>>,

@@ -1,14 +1,20 @@
 import { ResidentProfileData, ResidentMedication } from './mockResidentProfileData';
+import { calculateAge, formatAge } from './residentAge';
 
 interface ResidentProfilePrintReportProps {
   resident: ResidentProfileData;
   medications: ResidentMedication[];
+  includePhysicianSignature?: boolean;
 }
 
 export function ResidentProfilePrintReport({
   resident,
   medications,
+  includePhysicianSignature = false,
 }: ResidentProfilePrintReportProps) {
+  const residentAge = calculateAge(resident.dateOfBirth);
+  const ageDisplay = formatAge(residentAge);
+
   return (
     <div className="print-report hidden">
       {/* Report Header */}
@@ -36,7 +42,10 @@ export function ResidentProfilePrintReport({
           </div>
           <div className="print-info-item">
             <span className="print-label">DATE OF BIRTH:</span>
-            <span className="print-value">{resident.dateOfBirth}</span>
+            <span className="print-value">
+              {resident.dateOfBirth}
+              {ageDisplay && <span style={{ marginLeft: '0.25rem', color: '#666' }}>{ageDisplay}</span>}
+            </span>
           </div>
           <div className="print-info-item">
             <span className="print-label">DATE OF ADMISSION:</span>
@@ -184,6 +193,34 @@ export function ResidentProfilePrintReport({
           )}
         </div>
       </div>
+
+      {/* Physician Signature Section - Conditional */}
+      {includePhysicianSignature && (
+        <div className="print-signature-section">
+          <h2 className="print-section-title">Physician Certification</h2>
+          <div className="print-section-divider"></div>
+          <div className="print-signature-block">
+            <div className="print-signature-line">
+              <span className="print-label" style={{ minWidth: '150px' }}>
+                PHYSICIAN PRINT NAME:
+              </span>
+              <div className="print-signature-underline"></div>
+            </div>
+            <div className="print-signature-line">
+              <span className="print-label" style={{ minWidth: '150px' }}>
+                SIGNATURE:
+              </span>
+              <div className="print-signature-underline"></div>
+            </div>
+            <div className="print-signature-line">
+              <span className="print-label" style={{ minWidth: '150px' }}>
+                DATE:
+              </span>
+              <div className="print-signature-underline-short"></div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

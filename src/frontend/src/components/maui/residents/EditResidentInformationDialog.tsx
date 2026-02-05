@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { X, Calendar, Plus, Loader2 } from 'lucide-react';
+import { X, Calendar, Plus, Loader2, Trash2 } from 'lucide-react';
 
 export interface EditResidentFormData {
   firstName: string;
@@ -39,6 +39,12 @@ export interface EditResidentFormData {
   pharmacyName: string;
   pharmacyAddress: string;
   pharmacyContactNumber: string;
+  responsiblePersons: Array<{
+    name: string;
+    relationship: string;
+    contactNumber: string;
+    address: string;
+  }>;
 }
 
 interface EditResidentInformationDialogProps {
@@ -108,6 +114,38 @@ export function EditResidentInformationDialog({
         ...prev.physicians,
         { name: '', contactNumber: '', specialty: '' },
       ],
+    }));
+  };
+
+  const handleRemovePhysician = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      physicians: prev.physicians.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleResponsiblePersonChange = (index: number, field: string, value: string) => {
+    setFormData((prev) => {
+      const newResponsiblePersons = [...prev.responsiblePersons];
+      newResponsiblePersons[index] = { ...newResponsiblePersons[index], [field]: value };
+      return { ...prev, responsiblePersons: newResponsiblePersons };
+    });
+  };
+
+  const handleAddResponsiblePerson = () => {
+    setFormData((prev) => ({
+      ...prev,
+      responsiblePersons: [
+        ...prev.responsiblePersons,
+        { name: '', relationship: '', contactNumber: '', address: '' },
+      ],
+    }));
+  };
+
+  const handleRemoveResponsiblePerson = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      responsiblePersons: prev.responsiblePersons.filter((_, i) => i !== index),
     }));
   };
 
@@ -360,48 +398,65 @@ export function EditResidentInformationDialog({
             </div>
 
             <div className="space-y-4">
-              {formData.physicians.map((physician, index) => (
-                <Card key={index} className="border-border">
-                  <CardContent className="pt-4">
-                    <p className="mb-3 text-sm font-semibold">Physician {index + 1}</p>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      <div className="space-y-2">
-                        <Label htmlFor={`physician-name-${index}`}>Physician Name</Label>
-                        <Input
-                          id={`physician-name-${index}`}
-                          value={physician.name}
-                          onChange={(e) =>
-                            handlePhysicianChange(index, 'name', e.target.value)
-                          }
+              {formData.physicians.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No physicians added yet.</p>
+              ) : (
+                formData.physicians.map((physician, index) => (
+                  <Card key={index} className="border-border">
+                    <CardContent className="pt-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <p className="text-sm font-semibold">Physician {index + 1}</p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemovePhysician(index)}
                           disabled={isSaving}
-                        />
+                          className="h-8 gap-1 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Remove
+                        </Button>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`physician-contact-${index}`}>Contact Number</Label>
-                        <Input
-                          id={`physician-contact-${index}`}
-                          value={physician.contactNumber}
-                          onChange={(e) =>
-                            handlePhysicianChange(index, 'contactNumber', e.target.value)
-                          }
-                          disabled={isSaving}
-                        />
+                      <div className="grid gap-4 md:grid-cols-3">
+                        <div className="space-y-2">
+                          <Label htmlFor={`physician-name-${index}`}>Physician Name</Label>
+                          <Input
+                            id={`physician-name-${index}`}
+                            value={physician.name}
+                            onChange={(e) =>
+                              handlePhysicianChange(index, 'name', e.target.value)
+                            }
+                            disabled={isSaving}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`physician-contact-${index}`}>Contact Number</Label>
+                          <Input
+                            id={`physician-contact-${index}`}
+                            value={physician.contactNumber}
+                            onChange={(e) =>
+                              handlePhysicianChange(index, 'contactNumber', e.target.value)
+                            }
+                            disabled={isSaving}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`physician-specialty-${index}`}>Specialty</Label>
+                          <Input
+                            id={`physician-specialty-${index}`}
+                            value={physician.specialty}
+                            onChange={(e) =>
+                              handlePhysicianChange(index, 'specialty', e.target.value)
+                            }
+                            disabled={isSaving}
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`physician-specialty-${index}`}>Specialty</Label>
-                        <Input
-                          id={`physician-specialty-${index}`}
-                          value={physician.specialty}
-                          onChange={(e) =>
-                            handlePhysicianChange(index, 'specialty', e.target.value)
-                          }
-                          disabled={isSaving}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
 
@@ -440,6 +495,99 @@ export function EditResidentInformationDialog({
                   disabled={isSaving}
                 />
               </div>
+            </div>
+          </div>
+
+          <Separator />
+
+          {/* Responsible Persons Section */}
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-base font-semibold">Responsible Persons</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleAddResponsiblePerson}
+                className="gap-2"
+                disabled={isSaving}
+              >
+                <Plus className="h-4 w-4" />
+                Add Person
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {formData.responsiblePersons.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No responsible persons added yet.</p>
+              ) : (
+                formData.responsiblePersons.map((person, index) => (
+                  <Card key={index} className="border-border">
+                    <CardContent className="pt-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <p className="text-sm font-semibold">Contact {index + 1}</p>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveResponsiblePerson(index)}
+                          disabled={isSaving}
+                          className="h-8 gap-1 text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                          Remove
+                        </Button>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div className="space-y-2">
+                          <Label htmlFor={`person-name-${index}`}>Name</Label>
+                          <Input
+                            id={`person-name-${index}`}
+                            value={person.name}
+                            onChange={(e) =>
+                              handleResponsiblePersonChange(index, 'name', e.target.value)
+                            }
+                            disabled={isSaving}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`person-relationship-${index}`}>Relationship</Label>
+                          <Input
+                            id={`person-relationship-${index}`}
+                            value={person.relationship}
+                            onChange={(e) =>
+                              handleResponsiblePersonChange(index, 'relationship', e.target.value)
+                            }
+                            disabled={isSaving}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`person-contact-${index}`}>Contact Number</Label>
+                          <Input
+                            id={`person-contact-${index}`}
+                            value={person.contactNumber}
+                            onChange={(e) =>
+                              handleResponsiblePersonChange(index, 'contactNumber', e.target.value)
+                            }
+                            disabled={isSaving}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`person-address-${index}`}>Address</Label>
+                          <Input
+                            id={`person-address-${index}`}
+                            value={person.address}
+                            onChange={(e) =>
+                              handleResponsiblePersonChange(index, 'address', e.target.value)
+                            }
+                            disabled={isSaving}
+                          />
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </div>

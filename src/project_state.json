@@ -1,7 +1,32 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 219,
+  "projectStateVersion": 242,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
+  "architectural_notes": [
+    "Architecture: ICP canister app with Motoko backend + React (Vite) frontend.",
+    "Authentication: Internet Identity used on the frontend; actor-based calls to backend canister.",
+    "Authorization: Backend access-control module enforces permissions; frontend includes AccessDenied UX.",
+    "UI stack: Tailwind CSS + shadcn-ui component library.",
+    "Build/deploy: Includes Docker/deploy scripts and ICP config; image resize/prune scripts for generated assets.",
+    "Frontend: Maui-specific app shell/navigation components (MauiAppShell/MauiNav) layered on the existing React+II scaffold.",
+    "Frontend: Maui residents module built from composable components (ResidentGrid/Card/Header/KPIs/Tabs/FilterSort) with mock data + list utilities as a stand-in for backend integration.",
+    "Frontend: Added Maui resident profile/detail page with supporting mock profile + medications data modules as a stand-in for backend detail endpoints.",
+    "Build/template sync: Updated ICP + React/Vite + shadcn-ui build template/tooling and Motoko authorization modules to current component versions (core-infrastructure v1.0.2, authorization v4.0.0).",
+    "Build/template sync: Refreshed build-template React (v1.0.0) + shadcn-ui (v1.0.0) + associated tooling/scripts to match current component versions across the repo."
+  ],
+  "known_issues": [
+    "All discharged residents disappear from the Residents dashboard instead of remaining visible under the Discharged status/tab (expected to remain visible indefinitely).",
+    "Production/backend connectivity error shown after deployment: \"Backend connection is not available. Please ensure you are logged in.\" (likely auth/actor/canister connectivity issue)."
+  ],
+  "isFixRequest": true,
+  "generatedImages": [
+    {
+      "filename": "frontend/public/assets/generated/maui-lane-logo.photo.v3.dim_512x512.png",
+      "description": "Generated Maui Lane logo photo variant v3 (512x512).",
+      "targetWidth": 512,
+      "targetHeight": 512
+    }
+  ],
   "existing_features": [
     {
       "id": "IF-1",
@@ -382,18 +407,64 @@
       "version": 1
     },
     {
-      "id": "feature-restore-the-codebase-to-match-the-behavior-of-version-46-and-remove-undo-the-version-47-changes-that-caused-the-immediate-residents-dashboard-failure-failed-to-load-residents-please-try-again-with-no-data-rendered",
-      "title": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (\"Failed to load residents. Please try again.\" with no data rendered).",
+      "id": "IF-31",
+      "title": "Residents dashboard v47 regression fixed (restored v46 loading behavior)",
+      "synonyms": [
+        "rollback to v46",
+        "residents dashboard loads again",
+        "production regression fix"
+      ],
+      "description": "Applied changes to restore the Residents dashboard loading behavior consistent with v46 (addressing the v47 regression where residents failed to load with an immediate error). Includes supporting rollback documentation for returning to v46 if needed.",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-extend-the-existing-edit-resident-information-dialog-to-support-editing-the-resident-s-responsible-persons-add-and-edit-entries-and-allow-removing-an-entry-in-addition-to-the-existing-physicians-and-pharmacy-sections",
+      "title": "Extend the existing “Edit Resident Information” dialog to support editing the resident’s Responsible Persons (add and edit entries, and allow removing an entry) in addition to the existing Physicians and Pharmacy sections.",
       "reqIds": [
         "REQ-20"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-app-version-marker-s-used-by-the-project-to-reflect-version-46-for-the-rollback-release-including-frontend-public-version-txt",
-      "title": "Update the app version marker(s) used by the project to reflect Version 46 for the rollback release (including frontend/public/version.txt).",
+      "id": "feature-wire-the-resident-profile-save-changes-flow-so-updates-from-the-edit-resident-information-dialog-persist-responsible-persons-physicians-and-pharmacy-changes-to-the-backend-using-the-existing-updateresident-mutation",
+      "title": "Wire the Resident Profile “Save Changes” flow so updates from the Edit Resident Information dialog persist Responsible Persons, Physicians, and Pharmacy changes to the backend using the existing updateResident mutation.",
       "reqIds": [
         "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-resident-profile-ui-to-display-the-resident-s-age-beside-the-existing-date-of-birth-value-in-the-basic-information-card",
+      "title": "Update the Resident Profile UI to display the resident’s age beside the existing “Date of Birth” value in the Basic Information card.",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-resident-profile-print-report-view-to-include-the-resident-s-age-along-with-date-of-birth-in-the-resident-information-section",
+      "title": "Update the Resident Profile print/report view to include the resident’s age along with Date of Birth in the Resident Information section.",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-make-frontend-actor-creation-resilient-in-useactor-handle-failures-from-actor-creation-and-access-control-initialization-so-the-ui-can-present-a-clear-backend-connectivity-auth-error-state-instead-of-silently-leaving-actor-as-null",
+      "title": "Make frontend actor creation resilient: in `useActor`, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving `actor` as null.",
+      "reqIds": [
+        "REQ-28"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-lightweight-frontend-diagnostic-path-that-uses-the-backend-healthcheck-to-distinguish-canister-unreachable-from-authenticated-but-not-authorized-initialized-and-incorporate-that-into-the-existing-error-ui-shown-on-the-dashboard-when-backend-calls-fail",
+      "title": "Add a lightweight frontend diagnostic path that uses the backend `healthCheck()` to distinguish 'canister unreachable' from 'authenticated but not authorized/initialized', and incorporate that into the existing error UI shown on the Dashboard when backend calls fail.",
+      "reqIds": [
+        "REQ-30"
       ],
       "version": 1
     }
@@ -443,51 +514,58 @@
     },
     {
       "id": "AR-9",
-      "summary": "Undo/rollback the Version 47 changes that caused the production regression so the Residents dashboard loads normally again (restore Version 46 behavior).",
+      "summary": "Enable editing resident information to include Physician, Pharmacy, and Responsible Persons fields/sections.",
       "reqIds": [],
-      "status": "in_progress"
+      "status": "pending"
     },
     {
       "id": "AR-10",
-      "summary": "Deploy Version 46 to production again (rollback production deployment from v47 to v46).",
-      "reqIds": [],
-      "status": "in_progress"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Produce a production deployment build that corresponds to the Version 46 rollback and is suitable for deploying to production using the existing build/deploy tooling in the repo.",
+      "summary": "Fix backend access-control initialization so the frontend can always create an authenticated actor after Internet Identity login, without trapping when `_initializeAccessControlWithSecret` is called with an empty or missing `caffeineAdminToken` URL parameter.",
       "reqIds": [
         "REQ-22"
       ],
       "status": "pending"
-    }
-  ],
-  "architectural_notes": [
-    "Architecture: ICP canister app with Motoko backend + React (Vite) frontend.",
-    "Authentication: Internet Identity used on the frontend; actor-based calls to backend canister.",
-    "Authorization: Backend access-control module enforces permissions; frontend includes AccessDenied UX.",
-    "UI stack: Tailwind CSS + shadcn-ui component library.",
-    "Build/deploy: Includes Docker/deploy scripts and ICP config; image resize/prune scripts for generated assets.",
-    "Frontend: Maui-specific app shell/navigation components (MauiAppShell/MauiNav) layered on the existing React+II scaffold.",
-    "Frontend: Maui residents module built from composable components (ResidentGrid/Card/Header/KPIs/Tabs/FilterSort) with mock data + list utilities as a stand-in for backend integration.",
-    "Frontend: Added Maui resident profile/detail page with supporting mock profile + medications data modules as a stand-in for backend detail endpoints.",
-    "Build/template sync: Updated ICP + React/Vite + shadcn-ui build template/tooling and Motoko authorization modules to current component versions (core-infrastructure v1.0.2, authorization v4.0.0).",
-    "Build/template sync: Refreshed build-template React (v1.0.0) + shadcn-ui (v1.0.0) + associated tooling/scripts to match current component versions across the repo."
-  ],
-  "known_issues": [
-    "All discharged residents disappear from the Residents dashboard instead of remaining visible under the Discharged status/tab (expected to remain visible indefinitely).",
-    "Production v47 regression: Residents dashboard fails immediately with \"Failed to load residents. Please try again.\" (no residents load)."
-  ],
-  "isFixRequest": true,
-  "generatedImages": [
+    },
     {
-      "filename": "frontend/public/assets/generated/maui-lane-logo.photo.v3.dim_512x512.png",
-      "description": "Generated Maui Lane logo photo variant v3 (512x512).",
-      "targetWidth": 512,
-      "targetHeight": 512
+      "id": "AR-11",
+      "summary": "Ensure authenticated callers are able to use core backend APIs (profile + residents + vitals/MAR/ADL) immediately after login by guaranteeing they have the required baseline permission/role (e.g., `#user`) even when no admin secret is provided.",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-12",
+      "summary": "Add a lightweight backend health-check query method that does not require authentication/permissions and returns a simple success payload for diagnosing canister connectivity in production.",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Display the resident’s age in the Resident Profile UI beside Date of Birth, and also include age in the Resident Profile print/report view.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Update backend access-control initialization so an authenticated user can create and use an authenticated actor immediately after Internet Identity login even when the `caffeineAdminToken` URL parameter is missing/empty, without trapping during `_initializeAccessControlWithSecret`.",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Ensure the backend provides a reliable unauthenticated health-check query and that its payload fields are accurate (e.g., `canisterId` should reflect the backend canister’s principal, not the caller).",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "status": "pending"
     }
   ],
   "projectName": "Recreate Moritz Care Home UI as a separate Maui Lane Care Home application",
-  "clarification_mode": "pro",
+  "clarification_mode": "instant",
   "clarification_rounds": 0
 }

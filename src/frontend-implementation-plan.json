@@ -1,76 +1,47 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Rollback frontend behavior to Version 46 for Residents Dashboard stability",
+  "title": "Harden frontend actor initialization errors and add backend health-check diagnostics on Dashboard",
   "requirements": [
     {
-      "id": "REQ-20",
-      "summary": "Rollback/undo frontend changes causing Residents Dashboard to fail after v47, ensuring directory loads reliably and navigation to/from Resident Profile does not poison subsequent dashboard loads.",
+      "id": "REQ-28",
+      "summary": "Make actor creation resilient by capturing actor/initialization failures in useActor and surfacing actionable error + retry to the UI.",
       "acceptanceCriteria": [
-        "When logged in with Internet Identity, the Maui Dashboard loads without the generic error banner and renders the residents directory content (grid/KPIs) successfully.",
-        "Opening a resident profile does not cause the residents directory query to immediately fail on subsequent navigation back to the dashboard.",
-        "No resident-directory backend call traps or returns an unauthorized/malformed response for a valid authenticated staff user in the normal happy path."
+        "If actor creation or `_initializeAccessControlWithSecret` fails, the failure is captured and surfaced to the app (e.g., via an error state returned by `useActor`) rather than only resulting in `actor: null`.",
+        "Dashboard no longer shows the generic 'Backend connection is not available...' state when the underlying issue is an initialization trap; instead, it shows an actionable error message that includes the actual error message text (English) and offers retry/refresh.",
+        "Retrying after a transient failure (e.g., reload or retry button) re-attempts actor creation and recovers without requiring a code redeploy."
       ],
       "file_operations": [
         {
           "path": "frontend/src/hooks/useActor.ts",
           "operation": "modify",
-          "description": "Restore Version 46-like actor initialization behavior by making access-control initialization resilient (e.g., avoid hard-failing/trapping the actor creation flow when the secret token is missing/invalid), so authenticated staff can still create an actor and perform normal reads like loading the Residents Directory. Use the selected \"authorization\" component’s frontend guidance for auth/logout cache clearing concepts as needed; verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Harden the Residents Directory query behavior to avoid persistent failure after navigation (e.g., ensure query enabling and cache scoping remain correct for authenticated users; add targeted invalidation/refetch behavior if needed when returning from Resident Profile; keep unauthorized/trap errors from surfacing as a generic banner in the happy path). Verify the selected \"core-infrastructure\" conventions around backend connection/actor usage before implementing."
+          "description": "Extend the actor React Query to be failure-aware: catch and expose actor/initialization errors (e.g., createActorWithConfig and access-control initialization), return a structured state (actor, isFetching, error, and a retry/refetch function) so consumers can render a clear connectivity/auth message instead of treating failures as only `actor: null`. Use the existing core-infrastructure actor factory (`createActorWithConfig`) and follow authorization component guidance for post-login initialization; verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/maui/Dashboard.tsx",
           "operation": "modify",
-          "description": "Adjust dashboard error handling/recovery so transient actor/directory issues do not result in an unrecoverable generic failure state (e.g., provide a retry that re-triggers seeding + directory fetch, and ensure the dashboard renders KPIs/grid when directory data is available). Compose existing UI components only; do not edit anything under frontend/src/components/ui."
-        },
-        {
-          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "operation": "modify",
-          "description": "Ensure Resident Profile navigation does not inadvertently trigger state that breaks subsequent dashboard directory loads (e.g., avoid triggering global query invalidation patterns or parsing fallbacks that can cascade into directory errors; keep resident queries correctly keyed and enabled only when a valid Principal is present). Compose existing UI components only; do not edit anything under frontend/src/components/ui."
+          "description": "Update Dashboard to consume the new `useActor` error state and render an actionable English error UI when actor creation/initialization fails, including the actual caught error message text and keeping existing actions (Retry/Refresh). Wire the Retry action to re-attempt actor creation (via the `useActor` retry/refetch) in addition to refetching the directory query when relevant; verify the component's usage instructions before implementing."
         }
       ]
     },
     {
-      "id": "REQ-21",
-      "summary": "Update frontend version marker(s) to reflect rollback release Version 46.",
+      "id": "REQ-30",
+      "summary": "Add a lightweight Dashboard diagnostic that calls backend healthCheck() to distinguish unreachable canister vs authenticated initialization/authorization failure and reflect that in the error UI.",
       "acceptanceCriteria": [
-        "frontend/public/version.txt contains \"46\" after the change.",
-        "A production build serves the updated version marker file with the value \"46\"."
+        "When authenticated queries fail, the app can optionally perform a `healthCheck()` call and display one of: (a) backend reachable (health check ok) but user initialization/authorization failed, or (b) backend unreachable/timeout.",
+        "User-facing error text is in English and does not mention internal method names unless included in the caught error message.",
+        "The existing Dashboard error actions (Retry / Refresh Page) remain available and functional."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/version.txt",
-          "operation": "modify",
-          "description": "Update the version marker value from the current value to \"46\" to reflect the rollback release."
-        },
-        {
-          "path": "frontend/index.html",
-          "operation": "modify",
-          "description": "Confirm the public version marker remains served in production builds (e.g., ensure no recent changes removed/renamed public assets behavior) and, if needed, add a lightweight reference/comment to keep the asset included by tooling without changing UI behavior."
-        }
-      ]
-    },
-    {
-      "id": "REQ-22",
-      "summary": "Ensure the frontend can produce a clean production build suitable for deployment using the repo’s existing tooling for the Version 46 rollback.",
-      "acceptanceCriteria": [
-        "A clean install + build completes successfully for both frontend and backend using the repository’s existing tooling.",
-        "The resulting artifacts/canister state (as applicable) correspond to the rollback code intended to replicate Version 46 behavior."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/DEPLOYMENT.md",
+          "path": "frontend/src/hooks/useHealthCheck.ts",
           "operation": "create",
-          "description": "Document the exact existing repo commands to produce a clean production build for the rollback (install, build, and the expected output locations) and how to verify the served version marker is \"46\" post-build. Keep this aligned with the selected \"github-export-icp-cli\" / \"build-template-react\" tooling present in the repo; verify the component's usage instructions before implementing."
+          "description": "Create a small React Query hook that performs an unauthenticated `healthCheck()` using an anonymous actor (via core-infrastructure `createActorWithConfig`) with simple timeout/error handling, returning a status that callers can use to classify failures as reachable vs unreachable; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/pages/maui/Dashboard.tsx",
           "operation": "modify",
-          "description": "Add/adjust a minimal build-time sanity check (non-UI) to ensure routing/providers remain intact after rollback-related changes and avoid introducing build-only failures; do not add new routes/pages beyond what exists."
+          "description": "Incorporate the health-check diagnostic into the existing Dashboard error UI paths: when authenticated data queries fail or when actor initialization fails, optionally trigger the unauthenticated health-check and display either (a) 'Backend reachable, but your account may not be initialized/authorized yet' or (b) 'Backend appears unreachable/timeout', while preserving the existing Retry/Refresh actions and ensuring displayed text is English and avoids internal method names unless they appear in the caught error message; verify the component's usage instructions before implementing."
         }
       ]
     }

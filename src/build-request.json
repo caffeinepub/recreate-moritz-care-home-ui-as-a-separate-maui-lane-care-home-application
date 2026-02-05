@@ -1,72 +1,101 @@
 {
   "kind": "build_request",
-  "title": "Rollback production to Version 46 (redeploy v46 behavior)",
+  "title": "Fix production backend connection error by hardening access-control initialization and actor creation",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-20",
-      "text": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (\"Failed to load residents. Please try again.\" with no data rendered).",
-      "target": "both",
+      "id": "REQ-27",
+      "text": "Update backend access-control initialization so an authenticated user can create and use an authenticated actor immediately after Internet Identity login even when the `caffeineAdminToken` URL parameter is missing/empty, without trapping during `_initializeAccessControlWithSecret`.",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "deploy version 46 to production again"
+          "Live app seems having trouble with the backend connection. error: Backend connection is not available. Please refresh the page or try logging in again."
         ]
       },
       "acceptanceCriteria": [
-        "When logged in with Internet Identity, the Maui Dashboard loads without the generic error banner and renders the residents directory content (grid/KPIs) successfully.",
-        "Opening a resident profile does not cause the residents directory query to immediately fail on subsequent navigation back to the dashboard.",
-        "No resident-directory backend call traps or returns an unauthorized/malformed response for a valid authenticated staff user in the normal happy path."
+        "Logging in with Internet Identity succeeds when the app URL does not include `caffeineAdminToken`.",
+        "Calling backend endpoints that require `#user` permission (e.g., `getCallerUserProfile`, `getResidentsDirectory`, `createResident`) works immediately after login for a new principal with no prior backend state initialization.",
+        "Backend does not trap when `_initializeAccessControlWithSecret` is invoked with an empty string secret."
       ]
     },
     {
-      "id": "REQ-21",
-      "text": "Update the app version marker(s) used by the project to reflect Version 46 for the rollback release (including frontend/public/version.txt).",
+      "id": "REQ-28",
+      "text": "Make frontend actor creation resilient: in `useActor`, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving `actor` as null.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "deploy version 46 to production again"
+          "Backend connection is not available. Please refresh the page or try logging in again."
         ]
       },
       "acceptanceCriteria": [
-        "frontend/public/version.txt contains \"46\" after the change.",
-        "A production build serves the updated version marker file with the value \"46\"."
+        "If actor creation or `_initializeAccessControlWithSecret` fails, the failure is captured and surfaced to the app (e.g., via an error state returned by `useActor`) rather than only resulting in `actor: null`.",
+        "Dashboard no longer shows the generic 'Backend connection is not available...' state when the underlying issue is an initialization trap; instead, it shows an actionable error message that includes the actual error message text (English) and offers retry/refresh.",
+        "Retrying after a transient failure (e.g., reload or retry button) re-attempts actor creation and recovers without requiring a code redeploy."
       ]
     },
     {
-      "id": "REQ-22",
-      "text": "Produce a production deployment build that corresponds to the Version 46 rollback and is suitable for deploying to production using the existing build/deploy tooling in the repo.",
-      "target": "unknown",
+      "id": "REQ-29",
+      "text": "Ensure the backend provides a reliable unauthenticated health-check query and that its payload fields are accurate (e.g., `canisterId` should reflect the backend canister’s principal, not the caller).",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-6"
         ],
         "quotes": [
-          "deploy version 46 to production again"
+          "Live app seems having trouble with the backend connection. error: Backend connection is not available. Please refresh the page or try logging in again."
         ]
       },
       "acceptanceCriteria": [
-        "A clean install + build completes successfully for both frontend and backend using the repository’s existing tooling.",
-        "The resulting artifacts/canister state (as applicable) correspond to the rollback code intended to replicate Version 46 behavior."
+        "`healthCheck()` can be called without authentication/permissions and returns `{ status: \"ok\", message: <non-empty>, canisterId: <backend canister principal text>, timestamp: <server time> }`.",
+        "Calling `healthCheck()` from an anonymous actor succeeds in production builds."
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "text": "Add a lightweight frontend diagnostic path that uses the backend `healthCheck()` to distinguish 'canister unreachable' from 'authenticated but not authorized/initialized', and incorporate that into the existing error UI shown on the Dashboard when backend calls fail.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Backend connection is not available. Please refresh the page or try logging in again."
+        ]
+      },
+      "acceptanceCriteria": [
+        "When authenticated queries fail, the app can optionally perform a `healthCheck()` call and display one of: (a) backend reachable (health check ok) but user initialization/authorization failed, or (b) backend unreachable/timeout.",
+        "User-facing error text is in English and does not mention internal method names unless included in the caught error message.",
+        "The existing Dashboard error actions (Retry / Refresh Page) remain available and functional."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; only add/modify backend/migration.mo if required by state upgrade policy.",
-    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths; compose existing UI components instead."
+    "Backend must remain single-actor; keep Motoko logic in `backend/main.mo` (do not introduce additional backend services).",
+    "Do not edit frontend files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT."
   ],
   "nonGoals": [
-    "Implementing new residents features beyond restoring Version 46 behavior.",
-    "Adding new authentication providers or changing Internet Identity behavior.",
-    "Redesigning the Maui Lane UI/branding as part of this rollback."
+    "Implementing third-party monitoring/alerting services.",
+    "Adding WebSockets or real-time connectivity features.",
+    "Changing the app’s authentication provider (must remain Internet Identity)."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

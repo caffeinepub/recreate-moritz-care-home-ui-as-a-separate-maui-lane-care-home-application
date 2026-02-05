@@ -119,6 +119,12 @@ export const ResidentsDirectoryResponse = IDL.Record({
   'residents' : IDL.Vec(ResidentDirectoryEntry),
   'directoryLoadPerformance' : DirectoryLoadPerformance,
 });
+export const HealthCheckResponse = IDL.Record({
+  'status' : IDL.Text,
+  'message' : IDL.Text,
+  'timestamp' : IDL.Int,
+  'canisterId' : IDL.Text,
+});
 export const ResidentStatusUpdateResult = IDL.Variant({
   'activated' : IDL.Null,
   'terminated' : IDL.Null,
@@ -169,6 +175,7 @@ export const idlService = IDL.Service({
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
+  'healthCheck' : IDL.Func([], [HealthCheckResponse], ['query']),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isResidentActive' : IDL.Func([ResidentId], [IDL.Bool], ['query']),
   'listActiveResidents' : IDL.Func([], [IDL.Vec(Resident)], ['query']),
@@ -306,6 +313,12 @@ export const idlFactory = ({ IDL }) => {
     'residents' : IDL.Vec(ResidentDirectoryEntry),
     'directoryLoadPerformance' : DirectoryLoadPerformance,
   });
+  const HealthCheckResponse = IDL.Record({
+    'status' : IDL.Text,
+    'message' : IDL.Text,
+    'timestamp' : IDL.Int,
+    'canisterId' : IDL.Text,
+  });
   const ResidentStatusUpdateResult = IDL.Variant({
     'activated' : IDL.Null,
     'terminated' : IDL.Null,
@@ -356,6 +369,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
+    'healthCheck' : IDL.Func([], [HealthCheckResponse], ['query']),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isResidentActive' : IDL.Func([ResidentId], [IDL.Bool], ['query']),
     'listActiveResidents' : IDL.Func([], [IDL.Vec(Resident)], ['query']),

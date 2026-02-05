@@ -1,65 +1,63 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T12:57:00.898Z",
+  "generatedAt": "2026-02-05T16:51:59.505Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 4,
     "implemented": 2,
     "items": [
       {
-        "id": "REQ-20",
-        "summary": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (\"Failed to load residents. Please try again.\" with no data rendered).",
+        "id": "REQ-27",
+        "summary": "Update backend access-control initialization so an authenticated user can create and use an authenticated actor immediately after Internet Identity login even when the `caffeineAdminToken` URL parameter is missing/empty, without trapping during `_initializeAccessControlWithSecret`.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-28",
+        "summary": "Make frontend actor creation resilient: in `useActor`, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving `actor` as null.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/hooks/useActor.ts",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/pages/maui/Dashboard.tsx",
-          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+          "frontend/src/pages/maui/Dashboard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
           "frontend/src/pages/maui/Dashboard.tsx"
         ]
       },
       {
-        "id": "REQ-21",
-        "summary": "Update the app version marker(s) used by the project to reflect Version 46 for the rollback release (including frontend/public/version.txt).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/public/version.txt",
-          "frontend/index.html"
-        ],
-        "matchedFiles": [
-          "frontend/public/version.txt",
-          "frontend/index.html"
-        ]
+        "id": "REQ-29",
+        "summary": "Ensure the backend provides a reliable unauthenticated health-check query and that its payload fields are accurate (e.g., `canisterId` should reflect the backend canister’s principal, not the caller).",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
-        "id": "REQ-22",
-        "summary": "Produce a production deployment build that corresponds to the Version 46 rollback and is suitable for deploying to production using the existing build/deploy tooling in the repo.",
-        "status": "missing",
+        "id": "REQ-30",
+        "summary": "Add a lightweight frontend diagnostic path that uses the backend `healthCheck()` to distinguish 'canister unreachable' from 'authenticated but not authorized/initialized', and incorporate that into the existing error UI shown on the Dashboard when backend calls fail.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/DEPLOYMENT.md",
-          "frontend/src/App.tsx"
+          "frontend/src/hooks/useHealthCheck.ts",
+          "frontend/src/pages/maui/Dashboard.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/hooks/useHealthCheck.ts",
+          "frontend/src/pages/maui/Dashboard.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
     "build-request.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
-    "frontend/public/version.txt",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useHealthCheck.ts",
     "frontend/src/pages/maui/Dashboard.tsx",
     "project_state.json",
     "scratch/component-selection.json",

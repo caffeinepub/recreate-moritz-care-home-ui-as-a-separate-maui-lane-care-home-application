@@ -152,12 +152,11 @@ export interface ResponsiblePerson {
     address: string;
     contactNumber: string;
 }
-export interface AdlRecord {
-    activityType: string;
-    assistanceLevel: string;
-    notes: string;
+export interface HealthCheckResponse {
+    status: string;
+    message: string;
     timestamp: bigint;
-    supervisorId: Principal;
+    canisterId: string;
 }
 export interface ResidentCreateRequest {
     id: ResidentId;
@@ -174,6 +173,13 @@ export interface ResidentCreateRequest {
     physicians: Array<Physician>;
     roomType: string;
     medicareNumber: string;
+}
+export interface AdlRecord {
+    activityType: string;
+    assistanceLevel: string;
+    notes: string;
+    timestamp: bigint;
+    supervisorId: Principal;
 }
 export interface ResidentsDirectoryResponse {
     residents: Array<ResidentDirectoryEntry>;
@@ -246,6 +252,7 @@ export interface backendInterface {
      */
     getResidentsDirectory(): Promise<ResidentsDirectoryResponse>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
+    healthCheck(): Promise<HealthCheckResponse>;
     isCallerAdmin(): Promise<boolean>;
     isResidentActive(residentId: ResidentId): Promise<boolean>;
     listActiveResidents(): Promise<Array<Resident>>;
@@ -481,6 +488,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getUserProfile(arg0);
             return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async healthCheck(): Promise<HealthCheckResponse> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.healthCheck();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.healthCheck();
+            return result;
         }
     }
     async isCallerAdmin(): Promise<boolean> {

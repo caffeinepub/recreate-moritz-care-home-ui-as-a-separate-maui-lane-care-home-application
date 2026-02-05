@@ -1,60 +1,40 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T12:57:00.860Z",
-  "summary": "REQ-21 is implemented (version markers set to 46). REQ-20 appears partially addressed via a new lightweight residents directory query flow, seeding, and caching, but the diff summary is truncated and does not provide enough evidence that the underlying Version 47 backend failure (trap/unauthorized/malformed response) was fully removed/undone. REQ-22 (clean install/build + production deploy suitability) cannot be verified from the diff summary alone.",
+  "generatedAt": "2026-02-05T16:51:59.501Z",
+  "summary": "Diff adds a new frontend health-check hook and updates the Dashboard to trigger health checks when actor/directory access fails. The diff does not provide evidence that backend access-control initialization was hardened for empty secrets, that useActor was updated to surface initialization errors, or that a reliable unauthenticated backend healthCheck() query with accurate canisterId was implemented.",
   "missing_requirements": [
     {
-      "id": "REQ-20",
-      "requirement": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (no traps/unauthorized/malformed responses on happy path; dashboard loads; navigation back from resident profile does not break).",
-      "reason": "Frontend changes suggest an attempt to work around/mitigate the dashboard failure (seeding + new getResidentsDirectory query + caching), but the backend change in backend/main.mo is truncated and does not show the specific authorization/response-shape/trap fix that guarantees the Version 46 behavior and AC (particularly 'No resident-directory backend call traps or returns an unauthorized/malformed response').",
+      "id": "REQ-27",
+      "requirement": "Update backend access-control initialization so an authenticated user can create and use an authenticated actor immediately after Internet Identity login even when the caffeineAdminToken URL parameter is missing/empty, without trapping during _initializeAccessControlWithSecret.",
+      "reason": "The backend diff snippet only shows type declarations and existing access control state initialization; it does not show any changes to _initializeAccessControlWithSecret or logic that handles empty/missing secrets without trapping.",
       "evidence": [
-        "backend/main.mo (truncated)",
-        "frontend/src/hooks/useQueries.ts",
+        "backend/main.mo"
+      ]
+    },
+    {
+      "id": "REQ-28",
+      "requirement": "Make frontend actor creation resilient: in useActor, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving actor as null.",
+      "reason": "No diff evidence shows modifications to frontend/src/hooks/useActor (or any actor-creation hook). Dashboard changes reference useActor but do not demonstrate that useActor now captures and returns an actionable error state.",
+      "evidence": [
         "frontend/src/pages/maui/Dashboard.tsx"
       ]
     },
     {
-      "id": "REQ-22",
-      "requirement": "Produce a production deployment build corresponding to the Version 46 rollback (clean install + build succeeds for frontend and backend using existing tooling; artifacts correspond to rollback).",
-      "reason": "The diff summary shows code edits but provides no evidence about build/deploy tooling execution, build config changes, or successful production build output.",
+      "id": "REQ-29",
+      "requirement": "Ensure the backend provides a reliable unauthenticated health-check query and that its payload fields are accurate (canisterId should be the backend canister principal, not the caller).",
+      "reason": "The diff shows a HealthCheckResponse type but does not show an implemented public query function healthCheck() nor logic ensuring canisterId equals the canister’s own principal and that the call is unauthenticated.",
       "evidence": [
-        "file-diff summary (no build/deploy logs or tooling changes shown)",
-        "project_state.json (truncated)"
+        "backend/main.mo"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "Automatic sample resident seeding before loading the dashboard directory (useEnsureResidentsSeeded / ensureResidentsSeeded call).",
-      "reason": "Not requested by the rollback requirements; REQ-20 focuses on restoring Version 46 behavior and removing Version 47 breaking changes, not adding new seeding/onboarding behavior.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/maui/Dashboard.tsx"
-      ]
-    },
-    {
-      "description": "Development-only residents directory performance diagnostics/logging (timing, console logging, directoryLoadPerformance usage).",
-      "reason": "Not requested by any requirement; adds new diagnostics behavior beyond the rollback scope.",
-      "evidence": [
-        "frontend/src/hooks/useQueries.ts"
-      ]
-    },
-    {
-      "description": "Added/updated HTML meta app-version marker in frontend/index.html.",
-      "reason": "REQ-21 explicitly mentions updating version markers including frontend/public/version.txt, but does not request adding a new meta tag marker (even if aligned with the rollback).",
-      "evidence": [
-        "frontend/index.html"
-      ]
-    }
-  ],
-  "confidence": 0.62,
+  "hallucinated_features": [],
+  "confidence": 0.64,
   "changed_files": [
     "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/index.html",
-    "frontend/public/version.txt",
-    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/hooks/useHealthCheck.ts",
     "frontend/src/pages/maui/Dashboard.tsx",
     "project_state.json"
   ]

@@ -1,13 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Roll back production behavior to Version 46 to restore the Residents dashboard and publish a Version 46-marked production build.
+**Goal:** Fix production backend connection failures after Internet Identity login by making backend access-control initialization and frontend actor creation resilient, and by adding a reliable health-check + clearer diagnostics in the UI.
 
 **Planned changes:**
-- Revert/undo Version 47 changes so the Maui Dashboard loads and renders the residents directory successfully for authenticated staff.
-- Ensure navigating to a resident profile and back does not trigger residents directory query failures.
-- Verify resident-directory backend calls do not trap or return unauthorized/malformed responses for valid authenticated users in the happy path.
-- Update app version marker(s) to reflect Version 46 (including setting `frontend/public/version.txt` to `46`).
-- Produce a clean production build (frontend + backend) using existing repo tooling that corresponds to Version 46 rollback behavior.
+- Backend: Harden access-control initialization to safely handle missing/empty `caffeineAdminToken` so authenticated users can create and use an authenticated actor immediately after login without traps.
+- Backend: Ensure `healthCheck()` is unauthenticated, reliable in production, and returns accurate fields (including the backend canister’s principal as `canisterId`).
+- Frontend: Update `useActor` to capture and surface actor creation / initialization errors (instead of leaving `actor` as null) and provide retry/refresh recovery.
+- Frontend: Add a lightweight diagnostic path using `healthCheck()` to distinguish “backend unreachable” vs “reachable but user initialization/authorization failed”, and reflect this in the existing Dashboard error UI.
 
-**User-visible outcome:** After logging in with Internet Identity, staff can load the Maui Dashboard and see the residents directory content without the generic failure banner, open resident profiles, and return to the dashboard without breaking residents loading; the app reports Version 46.
+**User-visible outcome:** After logging in (even without a `caffeineAdminToken` URL parameter), the app can connect to the backend immediately; when failures occur, the Dashboard shows a clearer, actionable English error (including the caught error text) with working Retry/Refresh actions and better indication of whether the backend is reachable.

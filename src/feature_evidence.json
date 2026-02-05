@@ -2,10 +2,9 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-restore-the-codebase-to-match-the-behavior-of-version-46-and-remove-undo-the-version-47-changes-that-caused-the-immediate-residents-dashboard-failure-failed-to-load-residents-please-try-again-with-no-data-rendered",
-      "featureTitle": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (\"Failed to load residents. Please try again.\" with no data rendered).",
+      "featureId": "feature-make-frontend-actor-creation-resilient-in-useactor-handle-failures-from-actor-creation-and-access-control-initialization-so-the-ui-can-present-a-clear-backend-connectivity-auth-error-state-instead-of-silently-leaving-actor-as-null",
+      "featureTitle": "Make frontend actor creation resilient: in `useActor`, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving `actor` as null.",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/maui/Dashboard.tsx"
       ],
       "components": [
@@ -17,16 +16,16 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-20"
+        "REQ-28"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-app-version-marker-s-used-by-the-project-to-reflect-version-46-for-the-rollback-release-including-frontend-public-version-txt",
-      "featureTitle": "Update the app version marker(s) used by the project to reflect Version 46 for the rollback release (including frontend/public/version.txt).",
+      "featureId": "feature-add-a-lightweight-frontend-diagnostic-path-that-uses-the-backend-healthcheck-to-distinguish-canister-unreachable-from-authenticated-but-not-authorized-initialized-and-incorporate-that-into-the-existing-error-ui-shown-on-the-dashboard-when-backend-calls-fail",
+      "featureTitle": "Add a lightweight frontend diagnostic path that uses the backend `healthCheck()` to distinguish 'canister unreachable' from 'authenticated but not authorized/initialized', and incorporate that into the existing error UI shown on the Dashboard when backend calls fail.",
       "files": [
-        "frontend/index.html",
-        "frontend/public/version.txt"
+        "frontend/src/hooks/useHealthCheck.ts",
+        "frontend/src/pages/maui/Dashboard.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,7 +36,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-21"
+        "REQ-30"
       ],
       "confidence": "high"
     }

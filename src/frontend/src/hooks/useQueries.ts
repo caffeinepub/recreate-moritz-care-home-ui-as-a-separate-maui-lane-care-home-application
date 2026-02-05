@@ -16,6 +16,8 @@ import type {
   ResidentDirectoryEntry
 } from '../backend';
 
+const DIRECTORY_QUERY_TIMEOUT_MS = 15000; // 15 seconds
+
 // User Profile Queries
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -52,40 +54,14 @@ export function useSaveCallerUserProfile() {
   });
 }
 
-// Residents Seeding Hook
-/**
- * Ensures sample residents are seeded for the authenticated user.
- * This hook is idempotent - it only seeds once per user.
- */
-export function useEnsureResidentsSeeded() {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-
-  const principalId = identity?.getPrincipal().toString();
-
-  const query = useQuery({
-    queryKey: ['residentsSeedStatus', principalId || 'anonymous'],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      await actor.ensureResidentsSeeded();
-      return { seeded: true };
-    },
-    enabled: !!actor && !actorFetching && !!identity,
-    retry: false,
-    staleTime: Infinity, // Never refetch - seeding is idempotent
-  });
-
-  return query;
-}
-
 // Residents Directory Queries
 
 /**
  * Lightweight residents directory query for Dashboard listing.
  * Uses optimized backend endpoint with reduced payload and aggressive caching.
+ * Includes compatibility fallback for older backend deployments.
  */
-export function useGetResidentsDirectory(options?: { enabled?: boolean }) {
+export function useGetResidentsDirectory() {
   const { actor, isFetching: actorFetching } = useActor();
   const { identity } = useInternetIdentity();
 
@@ -99,23 +75,92 @@ export function useGetResidentsDirectory(options?: { enabled?: boolean }) {
       // Development-only timing
       const fetchStartTime = performance.now();
       
-      const response = await actor.getResidentsDirectory();
+      // Wrap the query with a timeout
+      const queryPromise = (async () => {
+        try {
+          // Try the optimized directory endpoint first
+          const response = await actor.getResidentsDirectory();
+          
+          if (import.meta.env.DEV) {
+            console.log('[Residents Directory] Using getResidentsDirectory endpoint');
+          }
+          
+          return response;
+        } catch (error: any) {
+          // Check if this is a "method not found" error
+          const errorMessage = error?.message || String(error);
+          const isMethodNotFound = 
+            errorMessage.includes('has no update method') ||
+            errorMessage.includes('has no query method') ||
+            errorMessage.includes('getResidentsDirectory');
+          
+          if (isMethodNotFound) {
+            if (import.meta.env.DEV) {
+              console.log('[Residents Directory] Falling back to listActiveResidents');
+            }
+            
+            // Fallback: use listActiveResidents and adapt to directory format
+            const residents = await actor.listActiveResidents();
+            
+            const directoryEntries: ResidentDirectoryEntry[] = residents.map((resident) => ({
+              id: resident.id,
+              name: resident.name,
+              birthDate: resident.birthDate,
+              createdAt: resident.createdAt,
+              active: resident.active,
+              admissionDate: resident.admissionDate,
+              roomNumber: resident.roomNumber,
+              roomType: resident.roomType,
+              bed: resident.bed,
+            }));
+            
+            const response: ResidentsDirectoryResponse = {
+              residents: directoryEntries,
+              directoryLoadPerformance: {
+                backendQueryTimeNanos: BigInt(0),
+                totalRequestTimeNanos: BigInt(0),
+                residentCount: BigInt(residents.length),
+              },
+            };
+            
+            return response;
+          }
+          
+          // Re-throw if it's not a method-not-found error
+          throw error;
+        }
+      })();
       
-      const fetchDuration = performance.now() - fetchStartTime;
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          reject(new Error('Request timed out after 15 seconds. Please check your connection and try again.'));
+        }, DIRECTORY_QUERY_TIMEOUT_MS);
+      });
       
-      // Development-only diagnostics
-      if (import.meta.env.DEV) {
-        console.log('[Residents Directory Performance]', {
-          frontendFetchMs: fetchDuration.toFixed(2),
-          backendQueryMs: (Number(response.directoryLoadPerformance.backendQueryTimeNanos) / 1_000_000).toFixed(2),
-          totalRequestMs: (Number(response.directoryLoadPerformance.totalRequestTimeNanos) / 1_000_000).toFixed(2),
-          residentCount: Number(response.directoryLoadPerformance.residentCount),
-        });
+      try {
+        const response = await Promise.race([queryPromise, timeoutPromise]);
+        
+        const fetchDuration = performance.now() - fetchStartTime;
+        
+        // Development-only diagnostics
+        if (import.meta.env.DEV) {
+          console.log('[Residents Directory Performance]', {
+            frontendFetchMs: fetchDuration.toFixed(2),
+            backendQueryMs: (Number(response.directoryLoadPerformance.backendQueryTimeNanos) / 1_000_000).toFixed(2),
+            totalRequestMs: (Number(response.directoryLoadPerformance.totalRequestTimeNanos) / 1_000_000).toFixed(2),
+            residentCount: Number(response.directoryLoadPerformance.residentCount),
+          });
+        }
+        
+        return response;
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[Residents Directory] Query failed:', error);
+        }
+        throw error;
       }
-      
-      return response;
     },
-    enabled: (options?.enabled ?? true) && !!actor && !actorFetching && !!identity,
+    enabled: !!actor && !actorFetching && !!identity,
     retry: false,
     // Cache for 30 seconds to avoid refetching when navigating back to Dashboard
     staleTime: 30_000,

@@ -13,10 +13,14 @@ import Int "mo:core/Int";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-
-// Use migration module for upgrades
-
 actor {
+  public type HealthCheckResponse = {
+    status : Text;
+    message : Text;
+    canisterId : Text;
+    timestamp : Int;
+  };
+
   public type UserProfile = {
     name : Text;
   };
@@ -184,6 +188,16 @@ actor {
   let marRecords = Map.empty<ResidentId, List.List<MarRecord>>();
   let adlRecords = Map.empty<ResidentId, List.List<AdlRecord>>();
   let seededUsers = Set.empty<Principal>();
+
+  // Lightweight Health Check Method (Unprotected Query)
+  public query func healthCheck() : async HealthCheckResponse {
+    {
+      status = "ok";
+      message = "Caffeine backend is running smoothly. This is the last successful call from your browser. Timestamp is from backend execution, not your device";
+      canisterId = "backend017-pbshi";
+      timestamp = Time.now();
+    };
+  };
 
   private func canAccessResident(caller : Principal, residentId : ResidentId) : Bool {
     if (AccessControl.isAdmin(accessControlState, caller)) {
@@ -817,4 +831,3 @@ actor {
     seededUsers.add(caller);
   };
 };
-
