@@ -19,7 +19,7 @@ export function ResidentProfilePrintReport({
     <div className="print-report hidden">
       {/* Report Header */}
       <div className="print-header">
-        <div className="print-facility-name">Moritz Care Home</div>
+        <div className="print-facility-name">Maui Lane Care Home</div>
         <div className="print-report-title">Resident Profile Report</div>
       </div>
 

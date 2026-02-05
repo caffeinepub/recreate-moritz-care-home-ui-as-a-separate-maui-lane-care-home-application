@@ -1,53 +1,41 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T00:16:42.133Z",
-  "summary": "Diff adds a dedicated ResidentProfilePrintReport component, wires the Resident Profile page “Print” action to window.print(), and introduces @media print CSS plus .no-print/.print-report toggles to hide app chrome and show the report. However, based on the truncated diff, it’s not fully verifiable that all required report sections are present and that the include-signature toggle conditionally affects printed output; it’s also unclear whether Resident Profile page-level UI controls (buttons/tabs/edit actions) are marked to be excluded from printing.",
+  "generatedAt": "2026-02-05T00:21:09.796Z",
+  "summary": "REQ-6 is partially implemented: the two explicitly named UI locations show updated branding text, but the diff summary does not provide enough evidence to confirm that *all* user-facing occurrences of the exact string \"Moritz Care Home\" were replaced across the entire frontend source.",
   "missing_requirements": [
     {
       "id": "REQ-6",
-      "requirement": "Printed output includes all key sections from the reference image: Discontinued Medications, Assigned Physicians, Pharmacy Information, and Responsible Contacts.",
-      "reason": "ResidentProfilePrintReport.tsx is truncated shortly after the Active Medications table header, so the presence of the remaining required sections cannot be confirmed from the provided diff summary.",
+      "requirement": "Replace all user-facing occurrences of the exact text \"Moritz Care Home\" with \"Maui Lane Care Home\" across the frontend UI (global removal of the string from frontend source).",
+      "reason": "The diff shows updates in the two specified pages, but does not demonstrate a repo-wide/global replacement or a source-wide absence of the exact string \"Moritz Care Home\". With truncated diffs and only a subset of files shown, remaining occurrences cannot be ruled out.",
       "evidence": [
-        "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "requirement": "“Include physician printed name & signature” toggle affects printed output (adds/removes signature/printed-name area).",
-      "reason": "ResidentProfilePrintReport accepts includeSignature, and ResidentProfile.tsx maintains includeSignature state, but the diff does not show any conditional rendering tied to includeSignature (the print component is truncated before any signature block could be verified).",
-      "evidence": [
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx (truncated)",
-        "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "requirement": "Non-print UI elements on the Resident Profile page (page action buttons, tabs UI, edit/add medication buttons) do not appear in the printed document.",
-      "reason": "App-level header/nav/footer are marked .no-print in MauiAppShell, but the diff does not show .no-print applied to Resident Profile page controls (Print/Edit buttons, Tabs, medication action buttons). Without those classes (or equivalent print CSS selectors), these elements may still appear when printing.",
-      "evidence": [
-        "frontend/src/components/maui/MauiAppShell.tsx",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx (truncated)",
-        "frontend/src/index.css (truncated)"
+        "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx (truncated)",
+        "frontend/src/pages/references/MoritzReferenceCapture.tsx (truncated)",
+        "frontend-file-summaries.txt (truncated)"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Broad non-print theme/palette changes to global CSS variables (light/dark OKLCH design system) beyond print-specific styling.",
-      "reason": "REQ-7 requests print-specific styling via @media print; the diff also changes many non-print global theme tokens, which is not explicitly requested for enabling printable Resident Profile reports.",
+      "description": "Updates to project metadata/state describing building a separate Maui Lane Care Home application.",
+      "reason": "The BuildRequest is narrowly scoped to replacing the exact branding text string in the frontend UI; modifying project state/metadata is not requested.",
       "evidence": [
-        "frontend/src/index.css (truncated)"
+        "project_state.json (truncated)"
+      ]
+    },
+    {
+      "description": "Updates to a generated/aggregated frontend file summary index.",
+      "reason": "The BuildRequest does not ask for maintaining or changing summary/index files; only UI text replacement was requested.",
+      "evidence": [
+        "frontend-file-summaries.txt (truncated)"
       ]
     }
   ],
-  "confidence": 0.62,
+  "confidence": 0.66,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/src/components/maui/MauiAppShell.tsx",
-    "frontend/src/index.css",
-    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
     "frontend/src/pages/maui/residents/ResidentProfilePrintReport.tsx",
+    "frontend/src/pages/references/MoritzReferenceCapture.tsx",
     "project_state.json"
   ]
 }

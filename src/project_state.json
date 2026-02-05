@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 29,
+  "projectStateVersion": 33,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "existing_features": [
     {
@@ -198,18 +198,22 @@
       "version": 1
     },
     {
-      "id": "feature-implement-working-print-functionality-from-the-maui-resident-profile-page-so-that-clicking-the-existing-print-button-generates-a-printout-that-follows-the-layout-and-structure-shown-in-the-uploaded-reference-image-print-jpg",
-      "title": "Implement working print functionality from the Maui resident profile page so that clicking the existing “Print” button generates a printout that follows the layout and structure shown in the uploaded reference image (print.JPG).",
-      "reqIds": [
-        "REQ-6"
+      "id": "IF-17",
+      "title": "Maui resident profile print report page",
+      "synonyms": [
+        "ResidentProfilePrintReport",
+        "printable resident report",
+        "resident report print view"
       ],
+      "description": "Added a dedicated Maui resident profile print-report page/component to render a printable version of resident details (intended for printing/export) alongside the existing resident profile detail experience.",
+      "reqIds": [],
       "version": 1
     },
     {
-      "id": "feature-add-print-specific-styling-so-the-resident-profile-report-paginates-cleanly-and-remains-readable-when-printed-a4-letter-including-consistent-typography-spacing-section-dividers-and-table-formatting-aligned-with-the-uploaded-reference-image",
-      "title": "Add print-specific styling so the Resident Profile report paginates cleanly and remains readable when printed (A4/Letter), including consistent typography, spacing, section dividers, and table formatting aligned with the uploaded reference image.",
+      "id": "feature-replace-all-user-facing-occurrences-of-the-exact-text-moritz-care-home-with-maui-lane-care-home-across-the-frontend-ui-including-the-resident-print-report-header-and-the-reference-capture-page-copy",
+      "title": "Replace all user-facing occurrences of the exact text \"Moritz Care Home\" with \"Maui Lane Care Home\" across the frontend UI, including the resident print report header and the reference capture page copy.",
       "reqIds": [
-        "REQ-7"
+        "REQ-6"
       ],
       "version": 1
     }
@@ -243,12 +247,6 @@
       "reqIds": [
         "REQ-5"
       ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Enable printing functionality (print view/layout) matching the provided reference image.",
-      "reqIds": [],
       "status": "pending"
     }
   ],

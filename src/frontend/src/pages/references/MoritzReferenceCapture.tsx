@@ -111,9 +111,9 @@ export function MoritzReferenceCapture() {
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">
       <div className="mb-8">
-        <h1 className="mb-2 text-3xl font-bold">Moritz Care Home Reference Capture</h1>
+        <h1 className="mb-2 text-3xl font-bold">Maui Lane Care Home Reference Capture</h1>
         <p className="text-muted-foreground">
-          To accurately recreate the Moritz Care Home UI for Maui Lane Care Home, we need comprehensive
+          To accurately recreate the Maui Lane Care Home UI, we need comprehensive
           reference materials. This page outlines all required screenshots, design details, and information.
         </p>
       </div>
@@ -225,7 +225,7 @@ export function MoritzReferenceCapture() {
         <AlertTitle>Next Steps</AlertTitle>
         <AlertDescription>
           Once reference materials are provided, the Maui Lane Care Home UI will be implemented to match the
-          Moritz Care Home design while maintaining Maui Lane branding (name, logo, colors).
+          design while maintaining Maui Lane branding (name, logo, colors).
         </AlertDescription>
       </Alert>
     </div>
