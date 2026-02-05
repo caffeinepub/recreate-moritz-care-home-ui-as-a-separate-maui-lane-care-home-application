@@ -1,68 +1,69 @@
 {
   "kind": "build_request",
-  "title": "Use uploaded MauiLaneCareHome-4.jpg as logo on login page and header",
-  "priority": "normal",
+  "title": "Rollback production to Version 46 (redeploy v46 behavior)",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-20",
-      "text": "Add the uploaded image file \"MauiLaneCareHome-4.jpg\" to the frontend static assets so it is served reliably in IC deployments (place it under frontend/public/assets/generated/).",
-      "target": "frontend",
+      "text": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (\"Failed to load residents. Please try again.\" with no data rendered).",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "use this uploaded image as logo for the login page and the header"
+          "deploy version 46 to production again"
         ]
       },
       "acceptanceCriteria": [
-        "The file exists at frontend/public/assets/generated/MauiLaneCareHome-4.jpg in the codebase.",
-        "The image is accessible at runtime via the app’s BASE_URL-prefixed path (no 404 in browser network panel)."
+        "When logged in with Internet Identity, the Maui Dashboard loads without the generic error banner and renders the residents directory content (grid/KPIs) successfully.",
+        "Opening a resident profile does not cause the residents directory query to immediately fail on subsequent navigation back to the dashboard.",
+        "No resident-directory backend call traps or returns an unauthorized/malformed response for a valid authenticated staff user in the normal happy path."
       ]
     },
     {
       "id": "REQ-21",
-      "text": "Update the branding configuration so the global logo path points to \"assets/generated/MauiLaneCareHome-4.jpg\" (replacing the current logo path) so BrandLogo renders this uploaded image everywhere it is used.",
+      "text": "Update the app version marker(s) used by the project to reflect Version 46 for the rollback release (including frontend/public/version.txt).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "use this uploaded image as logo for the login page and the header"
+          "deploy version 46 to production again"
         ]
       },
       "acceptanceCriteria": [
-        "frontend/src/lib/brand.ts uses logoPath: \"assets/generated/MauiLaneCareHome-4.jpg\".",
-        "No other code path overrides the logo on the login screen or header."
+        "frontend/public/version.txt contains \"46\" after the change.",
+        "A production build serves the updated version marker file with the value \"46\"."
       ]
     },
     {
       "id": "REQ-22",
-      "text": "Ensure the login/sign-in screen (ProtectedGate) and the authenticated header (MauiAppShell) display the uploaded logo image via the existing BrandLogo component, without regressions to sizing or fallback behavior.",
-      "target": "frontend",
+      "text": "Produce a production deployment build that corresponds to the Version 46 rollback and is suitable for deploying to production using the existing build/deploy tooling in the repo.",
+      "target": "unknown",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "use this uploaded image as logo for the login page and the header"
+          "deploy version 46 to production again"
         ]
       },
       "acceptanceCriteria": [
-        "When logged out, the login card shows MauiLaneCareHome-4.jpg as the large logo (no initials fallback unless the image fails to load).",
-        "When logged in, the sticky header shows MauiLaneCareHome-4.jpg as the small logo.",
-        "No broken-image icon appears on either screen in a production build."
+        "A clean install + build completes successfully for both frontend and backend using the repository’s existing tooling.",
+        "The resulting artifacts/canister state (as applicable) correspond to the rollback code intended to replicate Version 46 behavior."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under frontend.immutablePaths (including frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx, and frontend/src/components/ui).",
-    "Keep logo loading compatible with Internet Computer BASE_URL (continue using BrandLogo’s BASE_URL resolution behavior)."
+    "Backend must remain a single Motoko actor in backend/main.mo; only add/modify backend/migration.mo if required by state upgrade policy.",
+    "Do not edit files under frontend/src/components/ui or any paths listed in frontend.immutablePaths; compose existing UI components instead."
   ],
   "nonGoals": [
-    "Fixing the known issue where deleted residents reappear after a new sign-in/login (not requested in this change).",
-    "Changing favicon, PWA manifest icons, or other brand assets beyond the login page and authenticated header logo."
+    "Implementing new residents features beyond restoring Version 46 behavior.",
+    "Adding new authentication providers or changing Internet Identity behavior.",
+    "Redesigning the Maui Lane UI/branding as part of this rollback."
   ],
   "imageRequirements": {
     "required": [],

@@ -2,10 +2,31 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-branding-configuration-so-the-global-logo-path-points-to-assets-generated-mauilanecarehome-4-jpg-replacing-the-current-logo-path-so-brandlogo-renders-this-uploaded-image-everywhere-it-is-used",
-      "featureTitle": "Update the branding configuration so the global logo path points to \"assets/generated/MauiLaneCareHome-4.jpg\" (replacing the current logo path) so BrandLogo renders this uploaded image everywhere it is used.",
+      "featureId": "feature-restore-the-codebase-to-match-the-behavior-of-version-46-and-remove-undo-the-version-47-changes-that-caused-the-immediate-residents-dashboard-failure-failed-to-load-residents-please-try-again-with-no-data-rendered",
+      "featureTitle": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (\"Failed to load residents. Please try again.\" with no data rendered).",
       "files": [
-        "frontend/src/lib/brand.ts"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/maui/Dashboard.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-20"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-app-version-marker-s-used-by-the-project-to-reflect-version-46-for-the-rollback-release-including-frontend-public-version-txt",
+      "featureTitle": "Update the app version marker(s) used by the project to reflect Version 46 for the rollback release (including frontend/public/version.txt).",
+      "files": [
+        "frontend/index.html",
+        "frontend/public/version.txt"
       ],
       "components": [
         "core-infrastructure@1.0.2",

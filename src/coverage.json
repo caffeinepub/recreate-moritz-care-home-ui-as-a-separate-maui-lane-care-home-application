@@ -1,53 +1,66 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T04:49:40.194Z",
+  "generatedAt": "2026-02-05T12:57:00.898Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 3,
-    "implemented": 1,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-20",
-        "summary": "Add the uploaded image file \"MauiLaneCareHome-4.jpg\" to the frontend static assets so it is served reliably in IC deployments (place it under frontend/public/assets/generated/).",
-        "status": "missing",
+        "summary": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (\"Failed to load residents. Please try again.\" with no data rendered).",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/public/assets/generated/MauiLaneCareHome-4.jpg"
+          "frontend/src/hooks/useActor.ts",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/maui/Dashboard.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/pages/maui/Dashboard.tsx"
+        ]
       },
       {
         "id": "REQ-21",
-        "summary": "Update the branding configuration so the global logo path points to \"assets/generated/MauiLaneCareHome-4.jpg\" (replacing the current logo path) so BrandLogo renders this uploaded image everywhere it is used.",
+        "summary": "Update the app version marker(s) used by the project to reflect Version 46 for the rollback release (including frontend/public/version.txt).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/lib/brand.ts"
+          "frontend/public/version.txt",
+          "frontend/index.html"
         ],
         "matchedFiles": [
-          "frontend/src/lib/brand.ts"
+          "frontend/public/version.txt",
+          "frontend/index.html"
         ]
       },
       {
         "id": "REQ-22",
-        "summary": "Ensure the login/sign-in screen (ProtectedGate) and the authenticated header (MauiAppShell) display the uploaded logo image via the existing BrandLogo component, without regressions to sizing or fallback behavior.",
+        "summary": "Produce a production deployment build that corresponds to the Version 46 rollback and is suitable for deploying to production using the existing build/deploy tooling in the repo.",
         "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/auth/ProtectedGate.tsx",
-          "frontend/src/components/maui/MauiAppShell.tsx"
+          "frontend/DEPLOYMENT.md",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
+    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/lib/brand.ts",
+    "frontend/index.html",
+    "frontend/public/version.txt",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/maui/Dashboard.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

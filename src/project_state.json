@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 165,
+  "projectStateVersion": 219,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "existing_features": [
     {
@@ -359,8 +359,39 @@
       "version": 1
     },
     {
-      "id": "feature-update-the-branding-configuration-so-the-global-logo-path-points-to-assets-generated-mauilanecarehome-4-jpg-replacing-the-current-logo-path-so-brandlogo-renders-this-uploaded-image-everywhere-it-is-used",
-      "title": "Update the branding configuration so the global logo path points to \"assets/generated/MauiLaneCareHome-4.jpg\" (replacing the current logo path) so BrandLogo renders this uploaded image everywhere it is used.",
+      "id": "IF-29",
+      "title": "Resident deletion consistency across sign-in (principal-scoped storage + refetch/invalidation)",
+      "synonyms": [
+        "deleted residents no longer reappear after login",
+        "principal-scoped resident persistence fix"
+      ],
+      "description": "Adjusted backend resident persistence/access-control and frontend resident query keying/refetch behavior to ensure residents deleted under a given Internet Identity principal do not reappear after a subsequent sign-in, addressing principal-scoped query/refetch and persistence consistency.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "IF-30",
+      "title": "Maui Lane logo replaced with provided MauiLaneCareHome image and applied globally",
+      "synonyms": [
+        "replace logo everywhere",
+        "global logo asset update",
+        "MauiLaneCareHome.jpg wiring"
+      ],
+      "description": "Updated the frontend brand/logo asset and wiring (e.g., BrandLogo usage and public assets/manifest references) so the provided Maui Lane Care Home logo image is used consistently across the app in all contexts/pages.",
+      "reqIds": [],
+      "version": 1
+    },
+    {
+      "id": "feature-restore-the-codebase-to-match-the-behavior-of-version-46-and-remove-undo-the-version-47-changes-that-caused-the-immediate-residents-dashboard-failure-failed-to-load-residents-please-try-again-with-no-data-rendered",
+      "title": "Restore the codebase to match the behavior of Version 46 and remove/undo the Version 47 changes that caused the immediate Residents dashboard failure (\"Failed to load residents. Please try again.\" with no data rendered).",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-app-version-marker-s-used-by-the-project-to-reflect-version-46-for-the-rollback-release-including-frontend-public-version-txt",
+      "title": "Update the app version marker(s) used by the project to reflect Version 46 for the rollback release (including frontend/public/version.txt).",
       "reqIds": [
         "REQ-21"
       ],
@@ -400,21 +431,31 @@
     },
     {
       "id": "AR-7",
-      "summary": "Use the most recently uploaded image as the application logo specifically on the login/sign-in page and in the authenticated header (replacing any existing logo assets/references).",
+      "summary": "Show sample resident profiles with complete information in the Residents dashboard (seed/demo data) that can be edited later.",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-8",
-      "summary": "Add the uploaded image file \"MauiLaneCareHome-4.jpg\" to the frontend static assets so it is served reliably in IC deployments (place it under frontend/public/assets/generated/).",
-      "reqIds": [
-        "REQ-20"
-      ],
+      "summary": "Seed 3 editable sample resident profiles (complete data across all supported fields/modules) and show them by default for all staff users/accounts in the Residents dashboard.",
+      "reqIds": [],
       "status": "pending"
     },
     {
+      "id": "AR-9",
+      "summary": "Undo/rollback the Version 47 changes that caused the production regression so the Residents dashboard loads normally again (restore Version 46 behavior).",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
       "id": "AR-10",
-      "summary": "Ensure the login/sign-in screen (ProtectedGate) and the authenticated header (MauiAppShell) display the uploaded logo image via the existing BrandLogo component, without regressions to sizing or fallback behavior.",
+      "summary": "Deploy Version 46 to production again (rollback production deployment from v47 to v46).",
+      "reqIds": [],
+      "status": "in_progress"
+    },
+    {
+      "id": "AR-13",
+      "summary": "Produce a production deployment build that corresponds to the Version 46 rollback and is suitable for deploying to production using the existing build/deploy tooling in the repo.",
       "reqIds": [
         "REQ-22"
       ],
@@ -434,10 +475,10 @@
     "Build/template sync: Refreshed build-template React (v1.0.0) + shadcn-ui (v1.0.0) + associated tooling/scripts to match current component versions across the repo."
   ],
   "known_issues": [
-    "Deleted residents are still appearing after a new sign-in/login (possible backend persistence, filtering, or principal-scoped query/refetch issue).",
-    "Logo assets are not displaying reliably / most recently uploaded logo image is not being applied across pages (login/header)."
+    "All discharged residents disappear from the Residents dashboard instead of remaining visible under the Discharged status/tab (expected to remain visible indefinitely).",
+    "Production v47 regression: Residents dashboard fails immediately with \"Failed to load residents. Please try again.\" (no residents load)."
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "generatedImages": [
     {
       "filename": "frontend/public/assets/generated/maui-lane-logo.photo.v3.dim_512x512.png",
@@ -447,6 +488,6 @@
     }
   ],
   "projectName": "Recreate Moritz Care Home UI as a separate Maui Lane Care Home application",
-  "clarification_mode": "instant",
+  "clarification_mode": "pro",
   "clarification_rounds": 0
 }

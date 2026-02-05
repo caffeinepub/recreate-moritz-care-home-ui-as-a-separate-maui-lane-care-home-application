@@ -17,6 +17,11 @@ export interface AdlRecord {
   'timestamp' : bigint,
   'supervisorId' : Principal,
 }
+export interface DirectoryLoadPerformance {
+  'backendQueryTimeNanos' : bigint,
+  'totalRequestTimeNanos' : bigint,
+  'residentCount' : bigint,
+}
 export interface InsuranceInfo {
   'company' : string,
   'address' : string,
@@ -81,6 +86,17 @@ export interface ResidentCreateRequest {
   'roomType' : string,
   'medicareNumber' : string,
 }
+export interface ResidentDirectoryEntry {
+  'id' : ResidentId,
+  'bed' : [] | [string],
+  'active' : boolean,
+  'birthDate' : string,
+  'admissionDate' : string,
+  'name' : string,
+  'createdAt' : bigint,
+  'roomNumber' : string,
+  'roomType' : string,
+}
 export type ResidentId = Principal;
 export type ResidentStatusUpdateResult = { 'activated' : null } |
   { 'terminated' : null } |
@@ -102,6 +118,10 @@ export interface ResidentUpdateRequest {
 }
 export type ResidentUpdateResult = { 'notFound' : null } |
   { 'updated' : null };
+export interface ResidentsDirectoryResponse {
+  'residents' : Array<ResidentDirectoryEntry>,
+  'directoryLoadPerformance' : DirectoryLoadPerformance,
+}
 export interface ResponsiblePerson {
   'relationship' : string,
   'name' : string,
@@ -130,9 +150,14 @@ export interface _SERVICE {
   'deleteMarRecord' : ActorMethod<[ResidentId, bigint], undefined>,
   'deleteResident' : ActorMethod<[ResidentId], undefined>,
   'deleteVitalsEntry' : ActorMethod<[ResidentId, bigint], undefined>,
+  'ensureResidentsSeeded' : ActorMethod<[], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getResident' : ActorMethod<[ResidentId], [] | [Resident]>,
+  /**
+   * / Residents Directory - Lightweight Endpoint for Residents Card Grid (Dashboard)
+   */
+  'getResidentsDirectory' : ActorMethod<[], ResidentsDirectoryResponse>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isResidentActive' : ActorMethod<[ResidentId], boolean>,

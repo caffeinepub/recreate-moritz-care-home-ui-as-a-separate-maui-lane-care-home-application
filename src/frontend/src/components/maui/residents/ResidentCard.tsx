@@ -78,16 +78,18 @@ export function ResidentCard({ resident, onDeleteResident, onToggleResidentStatu
         </CardHeader>
 
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">Physicians</p>
-              <p className="text-2xl font-bold text-foreground">{resident.physicians}</p>
+          {(resident.physicians > 0 || resident.medications > 0) && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">Physicians</p>
+                <p className="text-2xl font-bold text-foreground">{resident.physicians}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Medications</p>
+                <p className="text-2xl font-bold text-foreground">{resident.medications}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">Medications</p>
-              <p className="text-2xl font-bold text-foreground">{resident.medications}</p>
-            </div>
-          </div>
+          )}
 
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1 gap-2" onClick={handleViewProfile}>

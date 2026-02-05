@@ -4,12 +4,17 @@ import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
 import Iter "mo:core/Iter";
 import Time "mo:core/Time";
-
+import Nat64 "mo:core/Nat64";
+import Set "mo:core/Set";
+import Blob "mo:core/Blob";
+import Array "mo:core/Array";
+import Int "mo:core/Int";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
-// Specify the data migration function in with-clause
+
+// Use migration module for upgrades
 
 actor {
   public type UserProfile = {
@@ -145,6 +150,31 @@ actor {
     #terminated;
   };
 
+  // Residents Directory DTO
+  public type ResidentDirectoryEntry = {
+    id : ResidentId;
+    name : Text;
+    birthDate : Text;
+    createdAt : Int;
+    active : Bool;
+    admissionDate : Text;
+    roomNumber : Text;
+    roomType : Text;
+    bed : ?Text;
+  };
+
+  public type DirectoryLoadPerformance = {
+    backendQueryTimeNanos : Nat64;
+    totalRequestTimeNanos : Nat64;
+    residentCount : Nat;
+  };
+
+  // Residents Directory DTO
+  public type ResidentsDirectoryResponse = {
+    residents : [ResidentDirectoryEntry];
+    directoryLoadPerformance : DirectoryLoadPerformance;
+  };
+
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
@@ -153,6 +183,7 @@ actor {
   let vitalsRecords = Map.empty<ResidentId, List.List<VitalsRecord>>();
   let marRecords = Map.empty<ResidentId, List.List<MarRecord>>();
   let adlRecords = Map.empty<ResidentId, List.List<AdlRecord>>();
+  let seededUsers = Set.empty<Principal>();
 
   private func canAccessResident(caller : Principal, residentId : ResidentId) : Bool {
     if (AccessControl.isAdmin(accessControlState, caller)) {
@@ -163,6 +194,17 @@ actor {
       case (null) { false };
       case (?resident) { resident.owner == caller };
     };
+  };
+
+  // Generate unique resident ID based on owner and timestamp
+  private func generateResidentId(owner : Principal, seed : Nat) : Principal {
+    let ownerBlob = owner.toBlob();
+    let timeBlob = Blob.fromArray(Array.tabulate<Nat8>(8, func(i) {
+      let shift = (7 - i) * 8;
+      Nat8.fromNat((Time.now().toNat() + seed) / (2 ** shift) % 256);
+    }));
+    let combined = Blob.fromArray(ownerBlob.toArray().concat(timeBlob.toArray()));
+    combined.fromBlob();
   };
 
   //-----------------------------------
@@ -295,6 +337,53 @@ actor {
     vitalsRecords.remove(id);
     marRecords.remove(id);
     adlRecords.remove(id);
+  };
+
+  /// Residents Directory - Lightweight Endpoint for Residents Card Grid (Dashboard)
+  public query ({ caller }) func getResidentsDirectory() : async ResidentsDirectoryResponse {
+    let requestStartTime = Time.now();
+
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access the residents directory");
+    };
+
+    let backendQueryStartTime = Time.now();
+
+    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
+
+    let filteredResidents = residentsDirectory.values().toArray().filter(
+      func(resident) {
+        isAdmin or resident.owner == caller;
+      }
+    );
+
+    let residentEntries = filteredResidents.map(
+      func(resident) {
+        {
+          id = resident.id;
+          name = resident.name;
+          birthDate = resident.birthDate;
+          createdAt = resident.createdAt;
+          active = resident.active;
+          admissionDate = resident.admissionDate;
+          roomNumber = resident.roomNumber;
+          roomType = resident.roomType;
+          bed = resident.bed;
+        };
+      }
+    );
+
+    let backendQueryDuration = Time.now() - backendQueryStartTime;
+    let totalRequestDuration = Time.now() - requestStartTime;
+
+    {
+      residents = residentEntries;
+      directoryLoadPerformance = {
+        backendQueryTimeNanos = Nat64.fromIntWrap(backendQueryDuration);
+        totalRequestTimeNanos = Nat64.fromIntWrap(totalRequestDuration);
+        residentCount = residentEntries.size();
+      };
+    };
   };
 
   // Vitals Management Functions
@@ -545,10 +634,187 @@ actor {
   };
 
   // Helper Functions
-  public func isResidentActive(residentId : ResidentId) : async Bool {
+  public query ({ caller }) func isResidentActive(residentId : ResidentId) : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can check resident status");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot access this resident");
+    };
+
     switch (residentsDirectory.get(residentId)) {
       case (null) { false };
       case (?resident) { resident.active };
     };
   };
+
+  public shared ({ caller }) func ensureResidentsSeeded() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can seed residents");
+    };
+
+    if (seededUsers.contains(caller)) {
+      return ();
+    };
+
+    func timestamp(dayOffset : Nat) : Int {
+      let secondsInDay = 24 * 60 * 60;
+      let dayInNanos = secondsInDay * 1000000000;
+      Time.now() - Int.fromNat(dayOffset * dayInNanos);
+    };
+
+    func createResident(residentId : Principal, name : Text, birthDate : Text, admissionDate : Text, roomNumber : Text, roomType : Text, bed : ?Text) : Resident {
+      let physicians : [Physician] = [{
+        name = "Dr. Samantha Richards";
+        contactNumber = "555-990-4321";
+        specialty = "Geriatrics";
+      }];
+
+      let pharmacy : PharmacyInfo = {
+        name = "Good Health Pharmacy";
+        address = "789 Main Street";
+        contactNumber = "555-321-7890";
+      };
+
+      let insurance : InsuranceInfo = {
+        company = "HealthShield";
+        policyNumber = "HS54321";
+        address = "123 Insurance Lane";
+        contactNumber = "555-123-4567";
+      };
+
+      let responsiblePersons : [ResponsiblePerson] = [{
+        name = "Michael Johnson";
+        relationship = "Son";
+        contactNumber = "555-234-5678";
+        address = "1111 Oak St, Cityname";
+      }];
+
+      let medications : [Medication] = [
+        {
+          medicationName = "Enalapril";
+          dosage = "10mg";
+          administrationTimes = ["08:00", "20:00"];
+          prescribingPhysician = "Dr. Samantha Richards";
+        },
+        {
+          medicationName = "Lasix";
+          dosage = "40mg";
+          administrationTimes = ["09:00"];
+          prescribingPhysician = "Dr. Samantha Richards";
+        },
+      ];
+
+      {
+        id = residentId;
+        name;
+        birthDate;
+        createdAt = Time.now();
+        active = true;
+        owner = caller;
+        admissionDate;
+        roomNumber;
+        roomType;
+        bed;
+        medicaidNumber = "MC123456789";
+        medicareNumber = "MD987654321";
+        physicians;
+        pharmacy;
+        insurance;
+        responsiblePersons;
+        medications;
+      };
+    };
+
+    func createVitalsEntry(temp : Float, pulse : Nat, bp : Text, oxygen : Nat, daysAgo : Nat) : VitalsRecord {
+      {
+        timestamp = timestamp(daysAgo);
+        temperature = temp;
+        pulse;
+        bloodPressure = bp;
+        bloodOxygen = oxygen;
+      };
+    };
+
+    func createMARRecord(medicationName : Text, dosage : Text, adminTime : Text, nurseId : Principal, daysAgo : Nat) : MarRecord {
+      {
+        timestamp = timestamp(daysAgo);
+        medicationName;
+        dosage;
+        administrationTime = adminTime;
+        nurseId;
+      };
+    };
+
+    func createADLRecord(activityType : Text, assistanceLevel : Text, notes : Text, supervisorId : Principal, daysAgo : Nat) : AdlRecord {
+      {
+        timestamp = timestamp(daysAgo);
+        activityType;
+        assistanceLevel;
+        notes;
+        supervisorId;
+      };
+    };
+
+    // Generate unique IDs for each resident
+    let residentId1 = generateResidentId(caller, 1);
+    let residentId2 = generateResidentId(caller, 2);
+    let residentId3 = generateResidentId(caller, 3);
+
+    let resident1 = createResident(residentId1, "Emily Doe", "1942-06-12", "2021-01-15", "201", "Private", null);
+    let resident2 = createResident(residentId2, "John Smith", "1938-03-22", "2022-03-10", "301", "Shared", ?("A"));
+    let resident3 = createResident(residentId3, "Betty White", "1944-09-18", "2020-09-10", "301", "Shared", ?("B"));
+
+    let residents = [resident1, resident2, resident3];
+
+    for (resident in residents.values()) {
+      residentsDirectory.add(resident.id, resident);
+
+      let vitalsList = List.empty<VitalsRecord>();
+      for (i in Array.tabulate<Nat>(6, func(i) { i }).values()) {
+        vitalsList.add(
+          createVitalsEntry(
+            36.5 + (i.toFloat() * 0.2),
+            65,
+            "115/75",
+            98,
+            i,
+          )
+        );
+      };
+      vitalsRecords.add(resident.id, vitalsList);
+
+      let marList = List.empty<MarRecord>();
+      for (i in Array.tabulate<Nat>(4, func(i) { i }).values()) {
+        marList.add(
+          createMARRecord(
+            resident.medications[if (i % 2 == 0) { 0 } else { 1 }].medicationName,
+            resident.medications[if (i % 2 == 0) { 0 } else { 1 }].dosage,
+            resident.medications[if (i % 2 == 0) { 0 } else { 1 }].administrationTimes[0],
+            caller,
+            i,
+          )
+        );
+      };
+      marRecords.add(resident.id, marList);
+
+      let adlList = List.empty<AdlRecord>();
+      for (i in Array.tabulate<Nat>(5, func(i) { i }).values()) {
+        adlList.add(
+          createADLRecord(
+            if (i % 2 == 0) { "Toileting" } else { "Feeding" },
+            if (i % 2 == 0) { "Moderate" } else { "Extensive" },
+            "Routine check",
+            caller,
+            i,
+          )
+        );
+      };
+      adlRecords.add(resident.id, adlList);
+    };
+
+    seededUsers.add(caller);
+  };
 };
+

@@ -11,7 +11,9 @@ import type {
   Resident, 
   ResidentCreateRequest,
   ResidentUpdateRequest,
-  UserProfile
+  UserProfile,
+  ResidentsDirectoryResponse,
+  ResidentDirectoryEntry
 } from '../backend';
 
 // User Profile Queries
@@ -50,7 +52,85 @@ export function useSaveCallerUserProfile() {
   });
 }
 
+// Residents Seeding Hook
+/**
+ * Ensures sample residents are seeded for the authenticated user.
+ * This hook is idempotent - it only seeds once per user.
+ */
+export function useEnsureResidentsSeeded() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  const principalId = identity?.getPrincipal().toString();
+
+  const query = useQuery({
+    queryKey: ['residentsSeedStatus', principalId || 'anonymous'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      await actor.ensureResidentsSeeded();
+      return { seeded: true };
+    },
+    enabled: !!actor && !actorFetching && !!identity,
+    retry: false,
+    staleTime: Infinity, // Never refetch - seeding is idempotent
+  });
+
+  return query;
+}
+
 // Residents Directory Queries
+
+/**
+ * Lightweight residents directory query for Dashboard listing.
+ * Uses optimized backend endpoint with reduced payload and aggressive caching.
+ */
+export function useGetResidentsDirectory(options?: { enabled?: boolean }) {
+  const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
+
+  const principalId = identity?.getPrincipal().toString();
+
+  const query = useQuery<ResidentsDirectoryResponse>({
+    queryKey: residentQueryKeys.directory(principalId || 'anonymous'),
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      
+      // Development-only timing
+      const fetchStartTime = performance.now();
+      
+      const response = await actor.getResidentsDirectory();
+      
+      const fetchDuration = performance.now() - fetchStartTime;
+      
+      // Development-only diagnostics
+      if (import.meta.env.DEV) {
+        console.log('[Residents Directory Performance]', {
+          frontendFetchMs: fetchDuration.toFixed(2),
+          backendQueryMs: (Number(response.directoryLoadPerformance.backendQueryTimeNanos) / 1_000_000).toFixed(2),
+          totalRequestMs: (Number(response.directoryLoadPerformance.totalRequestTimeNanos) / 1_000_000).toFixed(2),
+          residentCount: Number(response.directoryLoadPerformance.residentCount),
+        });
+      }
+      
+      return response;
+    },
+    enabled: (options?.enabled ?? true) && !!actor && !actorFetching && !!identity,
+    retry: false,
+    // Cache for 30 seconds to avoid refetching when navigating back to Dashboard
+    staleTime: 30_000,
+    // Disable automatic refetching on window focus/reconnect
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  return {
+    ...query,
+    isLoading: actorFetching || query.isLoading,
+    isFetched: !!actor && query.isFetched,
+  };
+}
+
 export function useListActiveResidents() {
   const { actor, isFetching: actorFetching } = useActor();
   const { identity } = useInternetIdentity();
@@ -111,6 +191,7 @@ export function useCreateResident() {
       const principalId = identity?.getPrincipal().toString();
       if (principalId) {
         queryClient.invalidateQueries({ queryKey: residentQueryKeys.list(principalId) });
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.directory(principalId) });
       }
     },
   });
@@ -130,6 +211,7 @@ export function useUpdateResident() {
       const principalId = identity?.getPrincipal().toString();
       if (principalId) {
         queryClient.invalidateQueries({ queryKey: residentQueryKeys.list(principalId) });
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.directory(principalId) });
         queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(principalId, variables.id.toString()) });
       }
     },
@@ -146,11 +228,48 @@ export function useToggleResidentStatus() {
       if (!actor) throw new Error('Actor not available');
       return actor.toggleResidentStatus(id);
     },
-    onSuccess: (_, residentId) => {
+    onMutate: async (residentId) => {
       const principalId = identity?.getPrincipal().toString();
-      if (principalId) {
-        queryClient.invalidateQueries({ queryKey: residentQueryKeys.list(principalId) });
-        queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(principalId, residentId.toString()) });
+      if (!principalId) return;
+
+      const directoryQueryKey = residentQueryKeys.directory(principalId);
+
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: directoryQueryKey });
+
+      // Snapshot the previous value
+      const previousDirectory = queryClient.getQueryData<ResidentsDirectoryResponse>(directoryQueryKey);
+
+      // Optimistically update the directory cache
+      if (previousDirectory) {
+        queryClient.setQueryData<ResidentsDirectoryResponse>(directoryQueryKey, {
+          ...previousDirectory,
+          residents: previousDirectory.residents.map((resident) =>
+            resident.id.toString() === residentId.toString()
+              ? { ...resident, active: !resident.active }
+              : resident
+          ),
+        });
+      }
+
+      // Return context with the previous value
+      return { previousDirectory, principalId };
+    },
+    onError: (err, residentId, context) => {
+      // Rollback on error
+      if (context?.previousDirectory && context?.principalId) {
+        queryClient.setQueryData(
+          residentQueryKeys.directory(context.principalId),
+          context.previousDirectory
+        );
+      }
+    },
+    onSettled: (_, __, residentId, context) => {
+      // Always refetch after error or success to sync with backend
+      if (context?.principalId) {
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.list(context.principalId) });
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.directory(context.principalId) });
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(context.principalId, residentId.toString()) });
       }
     },
   });
@@ -170,6 +289,7 @@ export function useDeleteResident() {
       const principalId = identity?.getPrincipal().toString();
       if (principalId) {
         queryClient.invalidateQueries({ queryKey: residentQueryKeys.list(principalId) });
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.directory(principalId) });
         queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(principalId, residentId.toString()) });
       }
     },

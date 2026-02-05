@@ -93,6 +93,10 @@ export interface ResidentCreateRequest {
     roomType: string;
     medicareNumber: string;
 }
+export interface ResidentsDirectoryResponse {
+    residents: Array<ResidentDirectoryEntry>;
+    directoryLoadPerformance: DirectoryLoadPerformance;
+}
 export interface VitalsRecord {
     temperature: number;
     bloodPressure: string;
@@ -101,6 +105,22 @@ export interface VitalsRecord {
     bloodOxygen: bigint;
 }
 export type ResidentId = Principal;
+export interface ResidentDirectoryEntry {
+    id: ResidentId;
+    bed?: string;
+    active: boolean;
+    birthDate: string;
+    admissionDate: string;
+    name: string;
+    createdAt: bigint;
+    roomNumber: string;
+    roomType: string;
+}
+export interface DirectoryLoadPerformance {
+    backendQueryTimeNanos: bigint;
+    totalRequestTimeNanos: bigint;
+    residentCount: bigint;
+}
 export interface UserProfile {
     name: string;
 }
@@ -134,9 +154,14 @@ export interface backendInterface {
     deleteMarRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
     deleteResident(id: ResidentId): Promise<void>;
     deleteVitalsEntry(residentId: ResidentId, timestamp: bigint): Promise<void>;
+    ensureResidentsSeeded(): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getResident(id: ResidentId): Promise<Resident | null>;
+    /**
+     * / Residents Directory - Lightweight Endpoint for Residents Card Grid (Dashboard)
+     */
+    getResidentsDirectory(): Promise<ResidentsDirectoryResponse>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
     isResidentActive(residentId: ResidentId): Promise<boolean>;

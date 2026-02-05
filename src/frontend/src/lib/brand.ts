@@ -4,5 +4,6 @@
 
 export const BRAND = {
   name: 'Maui Lane Care Home',
-  logoPath: 'assets/generated/MauiLaneCareHome-4.jpg',
+  logoPath: '/assets/MauiLaneCareHome.jpg',
 } as const;
+

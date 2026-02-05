@@ -99,6 +99,26 @@ export const VitalsRecord = IDL.Record({
   'bloodOxygen' : IDL.Nat,
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const ResidentDirectoryEntry = IDL.Record({
+  'id' : ResidentId,
+  'bed' : IDL.Opt(IDL.Text),
+  'active' : IDL.Bool,
+  'birthDate' : IDL.Text,
+  'admissionDate' : IDL.Text,
+  'name' : IDL.Text,
+  'createdAt' : IDL.Int,
+  'roomNumber' : IDL.Text,
+  'roomType' : IDL.Text,
+});
+export const DirectoryLoadPerformance = IDL.Record({
+  'backendQueryTimeNanos' : IDL.Nat64,
+  'totalRequestTimeNanos' : IDL.Nat64,
+  'residentCount' : IDL.Nat,
+});
+export const ResidentsDirectoryResponse = IDL.Record({
+  'residents' : IDL.Vec(ResidentDirectoryEntry),
+  'directoryLoadPerformance' : DirectoryLoadPerformance,
+});
 export const ResidentStatusUpdateResult = IDL.Variant({
   'activated' : IDL.Null,
   'terminated' : IDL.Null,
@@ -135,16 +155,22 @@ export const idlService = IDL.Service({
   'deleteMarRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
   'deleteResident' : IDL.Func([ResidentId], [], []),
   'deleteVitalsEntry' : IDL.Func([ResidentId, IDL.Int], [], []),
+  'ensureResidentsSeeded' : IDL.Func([], [], []),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getResident' : IDL.Func([ResidentId], [IDL.Opt(Resident)], ['query']),
+  'getResidentsDirectory' : IDL.Func(
+      [],
+      [ResidentsDirectoryResponse],
+      ['query'],
+    ),
   'getUserProfile' : IDL.Func(
       [IDL.Principal],
       [IDL.Opt(UserProfile)],
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'isResidentActive' : IDL.Func([ResidentId], [IDL.Bool], []),
+  'isResidentActive' : IDL.Func([ResidentId], [IDL.Bool], ['query']),
   'listActiveResidents' : IDL.Func([], [IDL.Vec(Resident)], ['query']),
   'listAdlRecords' : IDL.Func([ResidentId], [IDL.Vec(AdlRecord)], ['query']),
   'listMarRecords' : IDL.Func([ResidentId], [IDL.Vec(MarRecord)], ['query']),
@@ -260,6 +286,26 @@ export const idlFactory = ({ IDL }) => {
     'bloodOxygen' : IDL.Nat,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const ResidentDirectoryEntry = IDL.Record({
+    'id' : ResidentId,
+    'bed' : IDL.Opt(IDL.Text),
+    'active' : IDL.Bool,
+    'birthDate' : IDL.Text,
+    'admissionDate' : IDL.Text,
+    'name' : IDL.Text,
+    'createdAt' : IDL.Int,
+    'roomNumber' : IDL.Text,
+    'roomType' : IDL.Text,
+  });
+  const DirectoryLoadPerformance = IDL.Record({
+    'backendQueryTimeNanos' : IDL.Nat64,
+    'totalRequestTimeNanos' : IDL.Nat64,
+    'residentCount' : IDL.Nat,
+  });
+  const ResidentsDirectoryResponse = IDL.Record({
+    'residents' : IDL.Vec(ResidentDirectoryEntry),
+    'directoryLoadPerformance' : DirectoryLoadPerformance,
+  });
   const ResidentStatusUpdateResult = IDL.Variant({
     'activated' : IDL.Null,
     'terminated' : IDL.Null,
@@ -296,16 +342,22 @@ export const idlFactory = ({ IDL }) => {
     'deleteMarRecord' : IDL.Func([ResidentId, IDL.Int], [], []),
     'deleteResident' : IDL.Func([ResidentId], [], []),
     'deleteVitalsEntry' : IDL.Func([ResidentId, IDL.Int], [], []),
+    'ensureResidentsSeeded' : IDL.Func([], [], []),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getResident' : IDL.Func([ResidentId], [IDL.Opt(Resident)], ['query']),
+    'getResidentsDirectory' : IDL.Func(
+        [],
+        [ResidentsDirectoryResponse],
+        ['query'],
+      ),
     'getUserProfile' : IDL.Func(
         [IDL.Principal],
         [IDL.Opt(UserProfile)],
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'isResidentActive' : IDL.Func([ResidentId], [IDL.Bool], []),
+    'isResidentActive' : IDL.Func([ResidentId], [IDL.Bool], ['query']),
     'listActiveResidents' : IDL.Func([], [IDL.Vec(Resident)], ['query']),
     'listAdlRecords' : IDL.Func([ResidentId], [IDL.Vec(AdlRecord)], ['query']),
     'listMarRecords' : IDL.Func([ResidentId], [IDL.Vec(MarRecord)], ['query']),

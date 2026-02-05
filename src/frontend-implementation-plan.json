@@ -1,56 +1,76 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Use uploaded MauiLaneCareHome-4.jpg as logo on login page and header",
+  "title": "Rollback frontend behavior to Version 46 for Residents Dashboard stability",
   "requirements": [
     {
       "id": "REQ-20",
-      "summary": "Add uploaded MauiLaneCareHome-4.jpg to frontend static assets under frontend/public/assets/generated for reliable IC serving.",
+      "summary": "Rollback/undo frontend changes causing Residents Dashboard to fail after v47, ensuring directory loads reliably and navigation to/from Resident Profile does not poison subsequent dashboard loads.",
       "acceptanceCriteria": [
-        "The file exists at frontend/public/assets/generated/MauiLaneCareHome-4.jpg in the codebase.",
-        "The image is accessible at runtime via the app’s BASE_URL-prefixed path (no 404 in browser network panel)."
+        "When logged in with Internet Identity, the Maui Dashboard loads without the generic error banner and renders the residents directory content (grid/KPIs) successfully.",
+        "Opening a resident profile does not cause the residents directory query to immediately fail on subsequent navigation back to the dashboard.",
+        "No resident-directory backend call traps or returns an unauthorized/malformed response for a valid authenticated staff user in the normal happy path."
       ],
       "file_operations": [
         {
-          "path": "frontend/public/assets/generated/MauiLaneCareHome-4.jpg",
-          "operation": "create",
-          "description": "Add the uploaded logo image file to the committed static assets directory so it is served by the frontend in IC deployments."
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Restore Version 46-like actor initialization behavior by making access-control initialization resilient (e.g., avoid hard-failing/trapping the actor creation flow when the secret token is missing/invalid), so authenticated staff can still create an actor and perform normal reads like loading the Residents Directory. Use the selected \"authorization\" component’s frontend guidance for auth/logout cache clearing concepts as needed; verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Harden the Residents Directory query behavior to avoid persistent failure after navigation (e.g., ensure query enabling and cache scoping remain correct for authenticated users; add targeted invalidation/refetch behavior if needed when returning from Resident Profile; keep unauthorized/trap errors from surfacing as a generic banner in the happy path). Verify the selected \"core-infrastructure\" conventions around backend connection/actor usage before implementing."
+        },
+        {
+          "path": "frontend/src/pages/maui/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Adjust dashboard error handling/recovery so transient actor/directory issues do not result in an unrecoverable generic failure state (e.g., provide a retry that re-triggers seeding + directory fetch, and ensure the dashboard renders KPIs/grid when directory data is available). Compose existing UI components only; do not edit anything under frontend/src/components/ui."
+        },
+        {
+          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "operation": "modify",
+          "description": "Ensure Resident Profile navigation does not inadvertently trigger state that breaks subsequent dashboard directory loads (e.g., avoid triggering global query invalidation patterns or parsing fallbacks that can cascade into directory errors; keep resident queries correctly keyed and enabled only when a valid Principal is present). Compose existing UI components only; do not edit anything under frontend/src/components/ui."
         }
       ]
     },
     {
       "id": "REQ-21",
-      "summary": "Update global branding configuration to point the logoPath to assets/generated/MauiLaneCareHome-4.jpg so BrandLogo renders it everywhere.",
+      "summary": "Update frontend version marker(s) to reflect rollback release Version 46.",
       "acceptanceCriteria": [
-        "frontend/src/lib/brand.ts uses logoPath: \"assets/generated/MauiLaneCareHome-4.jpg\".",
-        "No other code path overrides the logo on the login screen or header."
+        "frontend/public/version.txt contains \"46\" after the change.",
+        "A production build serves the updated version marker file with the value \"46\"."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/brand.ts",
+          "path": "frontend/public/version.txt",
           "operation": "modify",
-          "description": "Replace the current BRAND.logoPath value with \"assets/generated/MauiLaneCareHome-4.jpg\" so BrandLogo resolves the new asset via BASE_URL consistently."
+          "description": "Update the version marker value from the current value to \"46\" to reflect the rollback release."
+        },
+        {
+          "path": "frontend/index.html",
+          "operation": "modify",
+          "description": "Confirm the public version marker remains served in production builds (e.g., ensure no recent changes removed/renamed public assets behavior) and, if needed, add a lightweight reference/comment to keep the asset included by tooling without changing UI behavior."
         }
       ]
     },
     {
       "id": "REQ-22",
-      "summary": "Ensure ProtectedGate (logged out) and MauiAppShell header (logged in) show the uploaded logo via the existing BrandLogo with correct sizing and fallback behavior.",
+      "summary": "Ensure the frontend can produce a clean production build suitable for deployment using the repo’s existing tooling for the Version 46 rollback.",
       "acceptanceCriteria": [
-        "When logged out, the login card shows MauiLaneCareHome-4.jpg as the large logo (no initials fallback unless the image fails to load).",
-        "When logged in, the sticky header shows MauiLaneCareHome-4.jpg as the small logo.",
-        "No broken-image icon appears on either screen in a production build."
+        "A clean install + build completes successfully for both frontend and backend using the repository’s existing tooling.",
+        "The resulting artifacts/canister state (as applicable) correspond to the rollback code intended to replicate Version 46 behavior."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/auth/ProtectedGate.tsx",
-          "operation": "modify",
-          "description": "Verify the login/sign-in screen continues to render the logo using the existing BrandLogo component (size \"lg\") and that no local override changes the logo source or breaks BASE_URL compatibility."
+          "path": "frontend/DEPLOYMENT.md",
+          "operation": "create",
+          "description": "Document the exact existing repo commands to produce a clean production build for the rollback (install, build, and the expected output locations) and how to verify the served version marker is \"46\" post-build. Keep this aligned with the selected \"github-export-icp-cli\" / \"build-template-react\" tooling present in the repo; verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/components/maui/MauiAppShell.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Verify the authenticated header continues to render the logo using the existing BrandLogo component (size \"sm\") and that no local override changes the logo source or breaks BASE_URL compatibility."
+          "description": "Add/adjust a minimal build-time sanity check (non-UI) to ensure routing/providers remain intact after rollback-related changes and avoid introducing build-only failures; do not add new routes/pages beyond what exists."
         }
       ]
     }
