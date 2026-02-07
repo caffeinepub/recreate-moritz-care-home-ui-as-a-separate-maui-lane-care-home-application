@@ -115,12 +115,14 @@ export interface PharmacyInfo {
     address: string;
     contactNumber: string;
 }
-export interface MarRecord {
+export interface MedicationUpdate {
+    id: bigint;
+    status: MedicationStatus;
     medicationName: string;
     dosage: string;
-    nurseId: Principal;
-    timestamp: bigint;
-    administrationTime: string;
+    prescribingPhysician: string;
+    administrationTimes: Array<string>;
+    route?: MedicationRoute;
 }
 export interface Resident {
     id: ResidentId;
@@ -152,12 +154,52 @@ export interface ResponsiblePerson {
     address: string;
     contactNumber: string;
 }
-export interface HealthCheckResponse {
-    status: string;
-    message: string;
-    timestamp: bigint;
-    canisterId: string;
-}
+export type MedicationRoute = {
+    __kind__: "injection";
+    injection: null;
+} | {
+    __kind__: "other";
+    other: string;
+} | {
+    __kind__: "subcutaneous_SubQ";
+    subcutaneous_SubQ: null;
+} | {
+    __kind__: "oral";
+    oral: null;
+} | {
+    __kind__: "otic";
+    otic: null;
+} | {
+    __kind__: "ophthalmic";
+    ophthalmic: null;
+} | {
+    __kind__: "vaginal";
+    vaginal: null;
+} | {
+    __kind__: "intravenous_IV";
+    intravenous_IV: null;
+} | {
+    __kind__: "sublingual_SL";
+    sublingual_SL: null;
+} | {
+    __kind__: "nasal";
+    nasal: null;
+} | {
+    __kind__: "transdermal";
+    transdermal: null;
+} | {
+    __kind__: "inhalation";
+    inhalation: null;
+} | {
+    __kind__: "intramuscular_IM";
+    intramuscular_IM: null;
+} | {
+    __kind__: "topical";
+    topical: null;
+} | {
+    __kind__: "rectal";
+    rectal: null;
+};
 export interface ResidentCreateRequest {
     id: ResidentId;
     bed?: string;
@@ -173,6 +215,19 @@ export interface ResidentCreateRequest {
     physicians: Array<Physician>;
     roomType: string;
     medicareNumber: string;
+}
+export interface MarRecord {
+    medicationName: string;
+    dosage: string;
+    nurseId: Principal;
+    timestamp: bigint;
+    administrationTime: string;
+}
+export interface HealthCheckResponse {
+    status: string;
+    message: string;
+    timestamp: bigint;
+    canisterId: string;
 }
 export interface AdlRecord {
     activityType: string;
@@ -213,10 +268,18 @@ export interface UserProfile {
     name: string;
 }
 export interface Medication {
+    id: bigint;
+    status: MedicationStatus;
     medicationName: string;
     dosage: string;
     prescribingPhysician: string;
     administrationTimes: Array<string>;
+    route?: MedicationRoute;
+}
+export enum MedicationStatus {
+    deleted = "deleted",
+    active = "active",
+    discontinued = "discontinued"
 }
 export enum ResidentStatusUpdateResult {
     activated = "activated",
@@ -234,6 +297,7 @@ export enum UserRole {
 }
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
+    addMedication(residentId: ResidentId, newMedication: Medication): Promise<Medication>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createAdlRecord(residentId: ResidentId, record: AdlRecord): Promise<void>;
     createMarRecord(residentId: ResidentId, record: MarRecord): Promise<void>;
@@ -241,8 +305,10 @@ export interface backendInterface {
     createVitalsEntry(residentId: ResidentId, record: VitalsRecord): Promise<void>;
     deleteAdlRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
     deleteMarRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
+    deleteMedication(residentId: ResidentId, medicationId: bigint): Promise<void>;
     deleteResident(id: ResidentId): Promise<void>;
     deleteVitalsEntry(residentId: ResidentId, timestamp: bigint): Promise<void>;
+    discontinueMedication(residentId: ResidentId, medicationId: bigint): Promise<Medication>;
     ensureResidentsSeeded(): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -261,9 +327,10 @@ export interface backendInterface {
     listVitalsEntries(residentId: ResidentId): Promise<Array<VitalsRecord>>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     toggleResidentStatus(id: ResidentId): Promise<ResidentStatusUpdateResult>;
+    updateMedication(residentId: ResidentId, medicationUpdate: MedicationUpdate): Promise<Medication>;
     updateResident(id: ResidentId, updateRequest: ResidentUpdateRequest): Promise<ResidentUpdateResult>;
 }
-import type { DirectoryLoadPerformance as _DirectoryLoadPerformance, InsuranceInfo as _InsuranceInfo, Medication as _Medication, PharmacyInfo as _PharmacyInfo, Physician as _Physician, Resident as _Resident, ResidentCreateRequest as _ResidentCreateRequest, ResidentDirectoryEntry as _ResidentDirectoryEntry, ResidentId as _ResidentId, ResidentStatusUpdateResult as _ResidentStatusUpdateResult, ResidentUpdateRequest as _ResidentUpdateRequest, ResidentUpdateResult as _ResidentUpdateResult, ResidentsDirectoryResponse as _ResidentsDirectoryResponse, ResponsiblePerson as _ResponsiblePerson, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
+import type { DirectoryLoadPerformance as _DirectoryLoadPerformance, InsuranceInfo as _InsuranceInfo, Medication as _Medication, MedicationRoute as _MedicationRoute, MedicationStatus as _MedicationStatus, MedicationUpdate as _MedicationUpdate, PharmacyInfo as _PharmacyInfo, Physician as _Physician, Resident as _Resident, ResidentCreateRequest as _ResidentCreateRequest, ResidentDirectoryEntry as _ResidentDirectoryEntry, ResidentId as _ResidentId, ResidentStatusUpdateResult as _ResidentStatusUpdateResult, ResidentUpdateRequest as _ResidentUpdateRequest, ResidentUpdateResult as _ResidentUpdateResult, ResidentsDirectoryResponse as _ResidentsDirectoryResponse, ResponsiblePerson as _ResponsiblePerson, UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -280,17 +347,31 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async addMedication(arg0: ResidentId, arg1: Medication): Promise<Medication> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addMedication(arg0, to_candid_Medication_n1(this._uploadFile, this._downloadFile, arg1));
+                return from_candid_Medication_n7(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addMedication(arg0, to_candid_Medication_n1(this._uploadFile, this._downloadFile, arg1));
+            return from_candid_Medication_n7(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async assignCallerUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n14(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n14(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
@@ -325,15 +406,15 @@ export class Backend implements backendInterface {
     async createResident(arg0: ResidentCreateRequest): Promise<Resident> {
         if (this.processError) {
             try {
-                const result = await this.actor.createResident(to_candid_ResidentCreateRequest_n3(this._uploadFile, this._downloadFile, arg0));
-                return from_candid_Resident_n5(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.createResident(to_candid_ResidentCreateRequest_n16(this._uploadFile, this._downloadFile, arg0));
+                return from_candid_Resident_n19(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.createResident(to_candid_ResidentCreateRequest_n3(this._uploadFile, this._downloadFile, arg0));
-            return from_candid_Resident_n5(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.createResident(to_candid_ResidentCreateRequest_n16(this._uploadFile, this._downloadFile, arg0));
+            return from_candid_Resident_n19(this._uploadFile, this._downloadFile, result);
         }
     }
     async createVitalsEntry(arg0: ResidentId, arg1: VitalsRecord): Promise<void> {
@@ -378,6 +459,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteMedication(arg0: ResidentId, arg1: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteMedication(arg0, arg1);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteMedication(arg0, arg1);
+            return result;
+        }
+    }
     async deleteResident(arg0: ResidentId): Promise<void> {
         if (this.processError) {
             try {
@@ -406,6 +501,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async discontinueMedication(arg0: ResidentId, arg1: bigint): Promise<Medication> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.discontinueMedication(arg0, arg1);
+                return from_candid_Medication_n7(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.discontinueMedication(arg0, arg1);
+            return from_candid_Medication_n7(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async ensureResidentsSeeded(): Promise<void> {
         if (this.processError) {
             try {
@@ -424,70 +533,70 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserProfile();
-                return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserProfile();
-            return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
         }
     }
     async getCallerUserRole(): Promise<UserRole> {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole_n9(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole_n24(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole_n9(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole_n24(this._uploadFile, this._downloadFile, result);
         }
     }
     async getResident(arg0: ResidentId): Promise<Resident | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getResident(arg0);
-                return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n26(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getResident(arg0);
-            return from_candid_opt_n11(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n26(this._uploadFile, this._downloadFile, result);
         }
     }
     async getResidentsDirectory(): Promise<ResidentsDirectoryResponse> {
         if (this.processError) {
             try {
                 const result = await this.actor.getResidentsDirectory();
-                return from_candid_ResidentsDirectoryResponse_n12(this._uploadFile, this._downloadFile, result);
+                return from_candid_ResidentsDirectoryResponse_n27(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getResidentsDirectory();
-            return from_candid_ResidentsDirectoryResponse_n12(this._uploadFile, this._downloadFile, result);
+            return from_candid_ResidentsDirectoryResponse_n27(this._uploadFile, this._downloadFile, result);
         }
     }
     async getUserProfile(arg0: Principal): Promise<UserProfile | null> {
         if (this.processError) {
             try {
                 const result = await this.actor.getUserProfile(arg0);
-                return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getUserProfile(arg0);
-            return from_candid_opt_n8(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n23(this._uploadFile, this._downloadFile, result);
         }
     }
     async healthCheck(): Promise<HealthCheckResponse> {
@@ -536,14 +645,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.listActiveResidents();
-                return from_candid_vec_n17(this._uploadFile, this._downloadFile, result);
+                return from_candid_vec_n32(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.listActiveResidents();
-            return from_candid_vec_n17(this._uploadFile, this._downloadFile, result);
+            return from_candid_vec_n32(this._uploadFile, this._downloadFile, result);
         }
     }
     async listAdlRecords(arg0: ResidentId): Promise<Array<AdlRecord>> {
@@ -606,59 +715,142 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.toggleResidentStatus(arg0);
-                return from_candid_ResidentStatusUpdateResult_n18(this._uploadFile, this._downloadFile, result);
+                return from_candid_ResidentStatusUpdateResult_n33(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.toggleResidentStatus(arg0);
-            return from_candid_ResidentStatusUpdateResult_n18(this._uploadFile, this._downloadFile, result);
+            return from_candid_ResidentStatusUpdateResult_n33(this._uploadFile, this._downloadFile, result);
         }
     }
-    async updateResident(arg0: ResidentId, arg1: ResidentUpdateRequest): Promise<ResidentUpdateResult> {
+    async updateMedication(arg0: ResidentId, arg1: MedicationUpdate): Promise<Medication> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateResident(arg0, to_candid_ResidentUpdateRequest_n20(this._uploadFile, this._downloadFile, arg1));
-                return from_candid_ResidentUpdateResult_n22(this._uploadFile, this._downloadFile, result);
+                const result = await this.actor.updateMedication(arg0, to_candid_MedicationUpdate_n35(this._uploadFile, this._downloadFile, arg1));
+                return from_candid_Medication_n7(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateResident(arg0, to_candid_ResidentUpdateRequest_n20(this._uploadFile, this._downloadFile, arg1));
-            return from_candid_ResidentUpdateResult_n22(this._uploadFile, this._downloadFile, result);
+            const result = await this.actor.updateMedication(arg0, to_candid_MedicationUpdate_n35(this._uploadFile, this._downloadFile, arg1));
+            return from_candid_Medication_n7(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async updateResident(arg0: ResidentId, arg1: ResidentUpdateRequest): Promise<ResidentUpdateResult> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateResident(arg0, to_candid_ResidentUpdateRequest_n36(this._uploadFile, this._downloadFile, arg1));
+                return from_candid_ResidentUpdateResult_n38(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateResident(arg0, to_candid_ResidentUpdateRequest_n36(this._uploadFile, this._downloadFile, arg1));
+            return from_candid_ResidentUpdateResult_n38(this._uploadFile, this._downloadFile, result);
         }
     }
 }
-function from_candid_ResidentDirectoryEntry_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ResidentDirectoryEntry): ResidentDirectoryEntry {
-    return from_candid_record_n16(_uploadFile, _downloadFile, value);
+function from_candid_MedicationRoute_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MedicationRoute): MedicationRoute {
+    return from_candid_variant_n13(_uploadFile, _downloadFile, value);
 }
-function from_candid_ResidentStatusUpdateResult_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ResidentStatusUpdateResult): ResidentStatusUpdateResult {
-    return from_candid_variant_n19(_uploadFile, _downloadFile, value);
-}
-function from_candid_ResidentUpdateResult_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ResidentUpdateResult): ResidentUpdateResult {
-    return from_candid_variant_n23(_uploadFile, _downloadFile, value);
-}
-function from_candid_Resident_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Resident): Resident {
-    return from_candid_record_n6(_uploadFile, _downloadFile, value);
-}
-function from_candid_ResidentsDirectoryResponse_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ResidentsDirectoryResponse): ResidentsDirectoryResponse {
-    return from_candid_record_n13(_uploadFile, _downloadFile, value);
-}
-function from_candid_UserRole_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+function from_candid_MedicationStatus_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _MedicationStatus): MedicationStatus {
     return from_candid_variant_n10(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Resident]): Resident | null {
-    return value.length === 0 ? null : from_candid_Resident_n5(_uploadFile, _downloadFile, value[0]);
+function from_candid_Medication_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Medication): Medication {
+    return from_candid_record_n8(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
+function from_candid_ResidentDirectoryEntry_n30(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ResidentDirectoryEntry): ResidentDirectoryEntry {
+    return from_candid_record_n31(_uploadFile, _downloadFile, value);
+}
+function from_candid_ResidentStatusUpdateResult_n33(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ResidentStatusUpdateResult): ResidentStatusUpdateResult {
+    return from_candid_variant_n34(_uploadFile, _downloadFile, value);
+}
+function from_candid_ResidentUpdateResult_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ResidentUpdateResult): ResidentUpdateResult {
+    return from_candid_variant_n39(_uploadFile, _downloadFile, value);
+}
+function from_candid_Resident_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _Resident): Resident {
+    return from_candid_record_n20(_uploadFile, _downloadFile, value);
+}
+function from_candid_ResidentsDirectoryResponse_n27(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _ResidentsDirectoryResponse): ResidentsDirectoryResponse {
+    return from_candid_record_n28(_uploadFile, _downloadFile, value);
+}
+function from_candid_UserRole_n24(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
+    return from_candid_variant_n25(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_MedicationRoute]): MedicationRoute | null {
+    return value.length === 0 ? null : from_candid_MedicationRoute_n12(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_opt_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [string]): string | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+function from_candid_opt_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_record_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_opt_n26(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_Resident]): Resident | null {
+    return value.length === 0 ? null : from_candid_Resident_n19(_uploadFile, _downloadFile, value[0]);
+}
+function from_candid_record_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: _ResidentId;
+    bed: [] | [string];
+    active: boolean;
+    birthDate: string;
+    owner: Principal;
+    admissionDate: string;
+    name: string;
+    createdAt: bigint;
+    roomNumber: string;
+    insurance: _InsuranceInfo;
+    medications: Array<_Medication>;
+    pharmacy: _PharmacyInfo;
+    responsiblePersons: Array<_ResponsiblePerson>;
+    medicaidNumber: string;
+    physicians: Array<_Physician>;
+    roomType: string;
+    medicareNumber: string;
+}): {
+    id: ResidentId;
+    bed?: string;
+    active: boolean;
+    birthDate: string;
+    owner: Principal;
+    admissionDate: string;
+    name: string;
+    createdAt: bigint;
+    roomNumber: string;
+    insurance: InsuranceInfo;
+    medications: Array<Medication>;
+    pharmacy: PharmacyInfo;
+    responsiblePersons: Array<ResponsiblePerson>;
+    medicaidNumber: string;
+    physicians: Array<Physician>;
+    roomType: string;
+    medicareNumber: string;
+} {
+    return {
+        id: value.id,
+        bed: record_opt_to_undefined(from_candid_opt_n21(_uploadFile, _downloadFile, value.bed)),
+        active: value.active,
+        birthDate: value.birthDate,
+        owner: value.owner,
+        admissionDate: value.admissionDate,
+        name: value.name,
+        createdAt: value.createdAt,
+        roomNumber: value.roomNumber,
+        insurance: value.insurance,
+        medications: from_candid_vec_n22(_uploadFile, _downloadFile, value.medications),
+        pharmacy: value.pharmacy,
+        responsiblePersons: value.responsiblePersons,
+        medicaidNumber: value.medicaidNumber,
+        physicians: value.physicians,
+        roomType: value.roomType,
+        medicareNumber: value.medicareNumber
+    };
+}
+function from_candid_record_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     residents: Array<_ResidentDirectoryEntry>;
     directoryLoadPerformance: _DirectoryLoadPerformance;
 }): {
@@ -666,11 +858,11 @@ function from_candid_record_n13(_uploadFile: (file: ExternalBlob) => Promise<Uin
     directoryLoadPerformance: DirectoryLoadPerformance;
 } {
     return {
-        residents: from_candid_vec_n14(_uploadFile, _downloadFile, value.residents),
+        residents: from_candid_vec_n29(_uploadFile, _downloadFile, value.residents),
         directoryLoadPerformance: value.directoryLoadPerformance
     };
 }
-function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_record_n31(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: _ResidentId;
     bed: [] | [string];
     active: boolean;
@@ -693,7 +885,7 @@ function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uin
 } {
     return {
         id: value.id,
-        bed: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.bed)),
+        bed: record_opt_to_undefined(from_candid_opt_n21(_uploadFile, _downloadFile, value.bed)),
         active: value.active,
         birthDate: value.birthDate,
         admissionDate: value.admissionDate,
@@ -703,64 +895,166 @@ function from_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uin
         roomType: value.roomType
     };
 }
-function from_candid_record_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    id: _ResidentId;
-    bed: [] | [string];
-    active: boolean;
-    birthDate: string;
-    owner: Principal;
-    admissionDate: string;
-    name: string;
-    createdAt: bigint;
-    roomNumber: string;
-    insurance: _InsuranceInfo;
-    medications: Array<_Medication>;
-    pharmacy: _PharmacyInfo;
-    responsiblePersons: Array<_ResponsiblePerson>;
-    medicaidNumber: string;
-    physicians: Array<_Physician>;
-    roomType: string;
-    medicareNumber: string;
+function from_candid_record_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    status: _MedicationStatus;
+    medicationName: string;
+    dosage: string;
+    prescribingPhysician: string;
+    administrationTimes: Array<string>;
+    route: [] | [_MedicationRoute];
 }): {
-    id: ResidentId;
-    bed?: string;
-    active: boolean;
-    birthDate: string;
-    owner: Principal;
-    admissionDate: string;
-    name: string;
-    createdAt: bigint;
-    roomNumber: string;
-    insurance: InsuranceInfo;
-    medications: Array<Medication>;
-    pharmacy: PharmacyInfo;
-    responsiblePersons: Array<ResponsiblePerson>;
-    medicaidNumber: string;
-    physicians: Array<Physician>;
-    roomType: string;
-    medicareNumber: string;
+    id: bigint;
+    status: MedicationStatus;
+    medicationName: string;
+    dosage: string;
+    prescribingPhysician: string;
+    administrationTimes: Array<string>;
+    route?: MedicationRoute;
 } {
     return {
         id: value.id,
-        bed: record_opt_to_undefined(from_candid_opt_n7(_uploadFile, _downloadFile, value.bed)),
-        active: value.active,
-        birthDate: value.birthDate,
-        owner: value.owner,
-        admissionDate: value.admissionDate,
-        name: value.name,
-        createdAt: value.createdAt,
-        roomNumber: value.roomNumber,
-        insurance: value.insurance,
-        medications: value.medications,
-        pharmacy: value.pharmacy,
-        responsiblePersons: value.responsiblePersons,
-        medicaidNumber: value.medicaidNumber,
-        physicians: value.physicians,
-        roomType: value.roomType,
-        medicareNumber: value.medicareNumber
+        status: from_candid_MedicationStatus_n9(_uploadFile, _downloadFile, value.status),
+        medicationName: value.medicationName,
+        dosage: value.dosage,
+        prescribingPhysician: value.prescribingPhysician,
+        administrationTimes: value.administrationTimes,
+        route: record_opt_to_undefined(from_candid_opt_n11(_uploadFile, _downloadFile, value.route))
     };
 }
 function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    deleted: null;
+} | {
+    active: null;
+} | {
+    discontinued: null;
+}): MedicationStatus {
+    return "deleted" in value ? MedicationStatus.deleted : "active" in value ? MedicationStatus.active : "discontinued" in value ? MedicationStatus.discontinued : value;
+}
+function from_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    injection: null;
+} | {
+    other: string;
+} | {
+    subcutaneous_SubQ: null;
+} | {
+    oral: null;
+} | {
+    otic: null;
+} | {
+    ophthalmic: null;
+} | {
+    vaginal: null;
+} | {
+    intravenous_IV: null;
+} | {
+    sublingual_SL: null;
+} | {
+    nasal: null;
+} | {
+    transdermal: null;
+} | {
+    inhalation: null;
+} | {
+    intramuscular_IM: null;
+} | {
+    topical: null;
+} | {
+    rectal: null;
+}): {
+    __kind__: "injection";
+    injection: null;
+} | {
+    __kind__: "other";
+    other: string;
+} | {
+    __kind__: "subcutaneous_SubQ";
+    subcutaneous_SubQ: null;
+} | {
+    __kind__: "oral";
+    oral: null;
+} | {
+    __kind__: "otic";
+    otic: null;
+} | {
+    __kind__: "ophthalmic";
+    ophthalmic: null;
+} | {
+    __kind__: "vaginal";
+    vaginal: null;
+} | {
+    __kind__: "intravenous_IV";
+    intravenous_IV: null;
+} | {
+    __kind__: "sublingual_SL";
+    sublingual_SL: null;
+} | {
+    __kind__: "nasal";
+    nasal: null;
+} | {
+    __kind__: "transdermal";
+    transdermal: null;
+} | {
+    __kind__: "inhalation";
+    inhalation: null;
+} | {
+    __kind__: "intramuscular_IM";
+    intramuscular_IM: null;
+} | {
+    __kind__: "topical";
+    topical: null;
+} | {
+    __kind__: "rectal";
+    rectal: null;
+} {
+    return "injection" in value ? {
+        __kind__: "injection",
+        injection: value.injection
+    } : "other" in value ? {
+        __kind__: "other",
+        other: value.other
+    } : "subcutaneous_SubQ" in value ? {
+        __kind__: "subcutaneous_SubQ",
+        subcutaneous_SubQ: value.subcutaneous_SubQ
+    } : "oral" in value ? {
+        __kind__: "oral",
+        oral: value.oral
+    } : "otic" in value ? {
+        __kind__: "otic",
+        otic: value.otic
+    } : "ophthalmic" in value ? {
+        __kind__: "ophthalmic",
+        ophthalmic: value.ophthalmic
+    } : "vaginal" in value ? {
+        __kind__: "vaginal",
+        vaginal: value.vaginal
+    } : "intravenous_IV" in value ? {
+        __kind__: "intravenous_IV",
+        intravenous_IV: value.intravenous_IV
+    } : "sublingual_SL" in value ? {
+        __kind__: "sublingual_SL",
+        sublingual_SL: value.sublingual_SL
+    } : "nasal" in value ? {
+        __kind__: "nasal",
+        nasal: value.nasal
+    } : "transdermal" in value ? {
+        __kind__: "transdermal",
+        transdermal: value.transdermal
+    } : "inhalation" in value ? {
+        __kind__: "inhalation",
+        inhalation: value.inhalation
+    } : "intramuscular_IM" in value ? {
+        __kind__: "intramuscular_IM",
+        intramuscular_IM: value.intramuscular_IM
+    } : "topical" in value ? {
+        __kind__: "topical",
+        topical: value.topical
+    } : "rectal" in value ? {
+        __kind__: "rectal",
+        rectal: value.rectal
+    } : value;
+}
+function from_candid_variant_n25(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -769,7 +1063,7 @@ function from_candid_variant_n10(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): UserRole {
     return "admin" in value ? UserRole.admin : "user" in value ? UserRole.user : "guest" in value ? UserRole.guest : value;
 }
-function from_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n34(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     activated: null;
 } | {
     terminated: null;
@@ -778,74 +1072,44 @@ function from_candid_variant_n19(_uploadFile: (file: ExternalBlob) => Promise<Ui
 }): ResidentStatusUpdateResult {
     return "activated" in value ? ResidentStatusUpdateResult.activated : "terminated" in value ? ResidentStatusUpdateResult.terminated : "notFound" in value ? ResidentStatusUpdateResult.notFound : value;
 }
-function from_candid_variant_n23(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n39(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     notFound: null;
 } | {
     updated: null;
 }): ResidentUpdateResult {
     return "notFound" in value ? ResidentUpdateResult.notFound : "updated" in value ? ResidentUpdateResult.updated : value;
 }
-function from_candid_vec_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ResidentDirectoryEntry>): Array<ResidentDirectoryEntry> {
-    return value.map((x)=>from_candid_ResidentDirectoryEntry_n15(_uploadFile, _downloadFile, x));
+function from_candid_vec_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Medication>): Array<Medication> {
+    return value.map((x)=>from_candid_Medication_n7(_uploadFile, _downloadFile, x));
 }
-function from_candid_vec_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Resident>): Array<Resident> {
-    return value.map((x)=>from_candid_Resident_n5(_uploadFile, _downloadFile, x));
+function from_candid_vec_n29(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_ResidentDirectoryEntry>): Array<ResidentDirectoryEntry> {
+    return value.map((x)=>from_candid_ResidentDirectoryEntry_n30(_uploadFile, _downloadFile, x));
 }
-function to_candid_ResidentCreateRequest_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ResidentCreateRequest): _ResidentCreateRequest {
-    return to_candid_record_n4(_uploadFile, _downloadFile, value);
+function from_candid_vec_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_Resident>): Array<Resident> {
+    return value.map((x)=>from_candid_Resident_n19(_uploadFile, _downloadFile, x));
 }
-function to_candid_ResidentUpdateRequest_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ResidentUpdateRequest): _ResidentUpdateRequest {
-    return to_candid_record_n21(_uploadFile, _downloadFile, value);
+function to_candid_MedicationRoute_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MedicationRoute): _MedicationRoute {
+    return to_candid_variant_n6(_uploadFile, _downloadFile, value);
 }
-function to_candid_UserRole_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
-    return to_candid_variant_n2(_uploadFile, _downloadFile, value);
+function to_candid_MedicationStatus_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MedicationStatus): _MedicationStatus {
+    return to_candid_variant_n4(_uploadFile, _downloadFile, value);
 }
-function to_candid_record_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
-    bed?: string;
-    birthDate: string;
-    admissionDate: string;
-    name: string;
-    roomNumber: string;
-    insurance: InsuranceInfo;
-    medications: Array<Medication>;
-    pharmacy: PharmacyInfo;
-    responsiblePersons: Array<ResponsiblePerson>;
-    medicaidNumber: string;
-    physicians: Array<Physician>;
-    roomType: string;
-    medicareNumber: string;
-}): {
-    bed: [] | [string];
-    birthDate: string;
-    admissionDate: string;
-    name: string;
-    roomNumber: string;
-    insurance: _InsuranceInfo;
-    medications: Array<_Medication>;
-    pharmacy: _PharmacyInfo;
-    responsiblePersons: Array<_ResponsiblePerson>;
-    medicaidNumber: string;
-    physicians: Array<_Physician>;
-    roomType: string;
-    medicareNumber: string;
-} {
-    return {
-        bed: value.bed ? candid_some(value.bed) : candid_none(),
-        birthDate: value.birthDate,
-        admissionDate: value.admissionDate,
-        name: value.name,
-        roomNumber: value.roomNumber,
-        insurance: value.insurance,
-        medications: value.medications,
-        pharmacy: value.pharmacy,
-        responsiblePersons: value.responsiblePersons,
-        medicaidNumber: value.medicaidNumber,
-        physicians: value.physicians,
-        roomType: value.roomType,
-        medicareNumber: value.medicareNumber
-    };
+function to_candid_MedicationUpdate_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MedicationUpdate): _MedicationUpdate {
+    return to_candid_record_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_record_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_Medication_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Medication): _Medication {
+    return to_candid_record_n2(_uploadFile, _downloadFile, value);
+}
+function to_candid_ResidentCreateRequest_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ResidentCreateRequest): _ResidentCreateRequest {
+    return to_candid_record_n17(_uploadFile, _downloadFile, value);
+}
+function to_candid_ResidentUpdateRequest_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ResidentUpdateRequest): _ResidentUpdateRequest {
+    return to_candid_record_n37(_uploadFile, _downloadFile, value);
+}
+function to_candid_UserRole_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n15(_uploadFile, _downloadFile, value);
+}
+function to_candid_record_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     id: ResidentId;
     bed?: string;
     birthDate: string;
@@ -884,7 +1148,7 @@ function to_candid_record_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
         name: value.name,
         roomNumber: value.roomNumber,
         insurance: value.insurance,
-        medications: value.medications,
+        medications: to_candid_vec_n18(_uploadFile, _downloadFile, value.medications),
         pharmacy: value.pharmacy,
         responsiblePersons: value.responsiblePersons,
         medicaidNumber: value.medicaidNumber,
@@ -893,7 +1157,79 @@ function to_candid_record_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
         medicareNumber: value.medicareNumber
     };
 }
-function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+function to_candid_record_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    id: bigint;
+    status: MedicationStatus;
+    medicationName: string;
+    dosage: string;
+    prescribingPhysician: string;
+    administrationTimes: Array<string>;
+    route?: MedicationRoute;
+}): {
+    id: bigint;
+    status: _MedicationStatus;
+    medicationName: string;
+    dosage: string;
+    prescribingPhysician: string;
+    administrationTimes: Array<string>;
+    route: [] | [_MedicationRoute];
+} {
+    return {
+        id: value.id,
+        status: to_candid_MedicationStatus_n3(_uploadFile, _downloadFile, value.status),
+        medicationName: value.medicationName,
+        dosage: value.dosage,
+        prescribingPhysician: value.prescribingPhysician,
+        administrationTimes: value.administrationTimes,
+        route: value.route ? candid_some(to_candid_MedicationRoute_n5(_uploadFile, _downloadFile, value.route)) : candid_none()
+    };
+}
+function to_candid_record_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    bed?: string;
+    birthDate: string;
+    admissionDate: string;
+    name: string;
+    roomNumber: string;
+    insurance: InsuranceInfo;
+    medications: Array<Medication>;
+    pharmacy: PharmacyInfo;
+    responsiblePersons: Array<ResponsiblePerson>;
+    medicaidNumber: string;
+    physicians: Array<Physician>;
+    roomType: string;
+    medicareNumber: string;
+}): {
+    bed: [] | [string];
+    birthDate: string;
+    admissionDate: string;
+    name: string;
+    roomNumber: string;
+    insurance: _InsuranceInfo;
+    medications: Array<_Medication>;
+    pharmacy: _PharmacyInfo;
+    responsiblePersons: Array<_ResponsiblePerson>;
+    medicaidNumber: string;
+    physicians: Array<_Physician>;
+    roomType: string;
+    medicareNumber: string;
+} {
+    return {
+        bed: value.bed ? candid_some(value.bed) : candid_none(),
+        birthDate: value.birthDate,
+        admissionDate: value.admissionDate,
+        name: value.name,
+        roomNumber: value.roomNumber,
+        insurance: value.insurance,
+        medications: to_candid_vec_n18(_uploadFile, _downloadFile, value.medications),
+        pharmacy: value.pharmacy,
+        responsiblePersons: value.responsiblePersons,
+        medicaidNumber: value.medicaidNumber,
+        physicians: value.physicians,
+        roomType: value.roomType,
+        medicareNumber: value.medicareNumber
+    };
+}
+function to_candid_variant_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
 } | {
     user: null;
@@ -907,6 +1243,132 @@ function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8
     } : value == UserRole.guest ? {
         guest: null
     } : value;
+}
+function to_candid_variant_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: MedicationStatus): {
+    deleted: null;
+} | {
+    active: null;
+} | {
+    discontinued: null;
+} {
+    return value == MedicationStatus.deleted ? {
+        deleted: null
+    } : value == MedicationStatus.active ? {
+        active: null
+    } : value == MedicationStatus.discontinued ? {
+        discontinued: null
+    } : value;
+}
+function to_candid_variant_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    __kind__: "injection";
+    injection: null;
+} | {
+    __kind__: "other";
+    other: string;
+} | {
+    __kind__: "subcutaneous_SubQ";
+    subcutaneous_SubQ: null;
+} | {
+    __kind__: "oral";
+    oral: null;
+} | {
+    __kind__: "otic";
+    otic: null;
+} | {
+    __kind__: "ophthalmic";
+    ophthalmic: null;
+} | {
+    __kind__: "vaginal";
+    vaginal: null;
+} | {
+    __kind__: "intravenous_IV";
+    intravenous_IV: null;
+} | {
+    __kind__: "sublingual_SL";
+    sublingual_SL: null;
+} | {
+    __kind__: "nasal";
+    nasal: null;
+} | {
+    __kind__: "transdermal";
+    transdermal: null;
+} | {
+    __kind__: "inhalation";
+    inhalation: null;
+} | {
+    __kind__: "intramuscular_IM";
+    intramuscular_IM: null;
+} | {
+    __kind__: "topical";
+    topical: null;
+} | {
+    __kind__: "rectal";
+    rectal: null;
+}): {
+    injection: null;
+} | {
+    other: string;
+} | {
+    subcutaneous_SubQ: null;
+} | {
+    oral: null;
+} | {
+    otic: null;
+} | {
+    ophthalmic: null;
+} | {
+    vaginal: null;
+} | {
+    intravenous_IV: null;
+} | {
+    sublingual_SL: null;
+} | {
+    nasal: null;
+} | {
+    transdermal: null;
+} | {
+    inhalation: null;
+} | {
+    intramuscular_IM: null;
+} | {
+    topical: null;
+} | {
+    rectal: null;
+} {
+    return value.__kind__ === "injection" ? {
+        injection: value.injection
+    } : value.__kind__ === "other" ? {
+        other: value.other
+    } : value.__kind__ === "subcutaneous_SubQ" ? {
+        subcutaneous_SubQ: value.subcutaneous_SubQ
+    } : value.__kind__ === "oral" ? {
+        oral: value.oral
+    } : value.__kind__ === "otic" ? {
+        otic: value.otic
+    } : value.__kind__ === "ophthalmic" ? {
+        ophthalmic: value.ophthalmic
+    } : value.__kind__ === "vaginal" ? {
+        vaginal: value.vaginal
+    } : value.__kind__ === "intravenous_IV" ? {
+        intravenous_IV: value.intravenous_IV
+    } : value.__kind__ === "sublingual_SL" ? {
+        sublingual_SL: value.sublingual_SL
+    } : value.__kind__ === "nasal" ? {
+        nasal: value.nasal
+    } : value.__kind__ === "transdermal" ? {
+        transdermal: value.transdermal
+    } : value.__kind__ === "inhalation" ? {
+        inhalation: value.inhalation
+    } : value.__kind__ === "intramuscular_IM" ? {
+        intramuscular_IM: value.intramuscular_IM
+    } : value.__kind__ === "topical" ? {
+        topical: value.topical
+    } : value.__kind__ === "rectal" ? {
+        rectal: value.rectal
+    } : value;
+}
+function to_candid_vec_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<Medication>): Array<_Medication> {
+    return value.map((x)=>to_candid_Medication_n1(_uploadFile, _downloadFile, x));
 }
 export interface CreateActorOptions {
     agent?: Agent;

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 242,
+  "projectStateVersion": 246,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "architectural_notes": [
     "Architecture: ICP canister app with Motoko backend + React (Vite) frontend.",
@@ -16,7 +16,8 @@
   ],
   "known_issues": [
     "All discharged residents disappear from the Residents dashboard instead of remaining visible under the Discharged status/tab (expected to remain visible indefinitely).",
-    "Production/backend connectivity error shown after deployment: \"Backend connection is not available. Please ensure you are logged in.\" (likely auth/actor/canister connectivity issue)."
+    "Production/backend connectivity error shown after deployment: \"Backend connection is not available. Please ensure you are logged in.\" (likely auth/actor/canister connectivity issue).",
+    "Editing medications currently triggers an error during the edit/save flow (needs review and fix)."
   ],
   "isFixRequest": true,
   "generatedImages": [
@@ -467,6 +468,62 @@
         "REQ-30"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-persist-resident-medication-changes-edit-delete-discontinue-using-the-existing-resident-update-flow-so-that-medication-updates-are-saved-to-the-backend-and-reflected-after-reload",
+      "title": "Persist resident medication changes (edit, delete, discontinue) using the existing resident update flow so that medication updates are saved to the backend and reflected after reload.",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-resident-profile-medications-ui-to-show-each-medication-with-action-controls-to-edit-discontinue-resume-if-supported-and-delete-with-confirmation-for-destructive-actions-and-clear-status-labeling-for-discontinued-medications",
+      "title": "Update the Resident Profile Medications UI to show each medication with action controls to Edit, Discontinue/Resume (if supported), and Delete, with confirmation for destructive actions and clear status labeling for discontinued medications.",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-provide-an-edit-medication-dialog-that-reuses-the-existing-medication-form-fields-name-dosage-route-times-prescriber-notes-with-initial-values-populated-from-the-selected-medication-and-saves-changes-back-to-the-resident-via-updateresident",
+      "title": "Provide an Edit Medication dialog that reuses the existing medication form fields (name, dosage, route, times, prescriber, notes) with initial values populated from the selected medication, and saves changes back to the resident via updateResident.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-discontinued-medications-are-not-selectable-as-active-medications-when-creating-mar-records-only-active-medications-should-be-offered-in-the-mar-add-flow",
+      "title": "Ensure discontinued medications are not selectable as active medications when creating MAR records (only active medications should be offered in the MAR add flow).",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-review-and-fix-the-runtime-error-that-occurs-when-editing-and-saving-a-resident-medication-from-the-resident-profile-medications-list-ensuring-the-edit-dialog-can-save-without-crashing-and-the-backend-mutation-completes-successfully",
+      "title": "Review and fix the runtime error that occurs when editing and saving a resident medication from the Resident Profile medications list, ensuring the edit dialog can save without crashing and the backend mutation completes successfully.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-dropdown-selector-input-for-medication-administration-route-in-both-the-add-medication-and-edit-medication-dialogs-using-a-consistent-predefined-list-of-common-routes-while-still-allowing-an-optional-blank-selection",
+      "title": "Add a dropdown selector input for Medication Administration Route in both the Add Medication and Edit Medication dialogs, using a consistent predefined list of common routes, while still allowing an optional/blank selection.",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-dropdown-selector-input-for-prescribing-physician-in-both-the-add-medication-and-edit-medication-dialogs-sourcing-options-from-the-resident-s-existing-physicians-list-ensure-the-field-can-be-left-unset",
+      "title": "Add a dropdown selector input for Prescribing Physician in both the Add Medication and Edit Medication dialogs, sourcing options from the resident’s existing Physicians list; ensure the field can be left unset.",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -562,6 +619,34 @@
       "reqIds": [
         "REQ-29"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Allow staff to edit, delete, and discontinue resident medications in the Medications module (including UI actions and backend persistence as needed).",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-19",
+      "summary": "Add a stable identifier and status metadata to resident medications in the backend resident schema to support reliable edit/delete/discontinue operations across sessions.",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-20",
+      "summary": "If the backend resident Medication type is changed in a way that affects existing stored state, add a conditional migration to preserve existing residents by mapping old medication entries to the new structure (e.g., assign IDs and mark them active by default).",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Add dropdown selector inputs for Medication Administration Route and Prescribing Physician in the medication add/edit flows (instead of free-text), to standardize entries.",
+      "reqIds": [],
       "status": "pending"
     }
   ],

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Plus, Trash2 } from 'lucide-react';
 import {
   Dialog,
@@ -11,89 +11,90 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { MedicationRouteSelect } from './MedicationRouteSelect';
 import { MedicationPhysicianSelect, PHYSICIAN_UNASSIGNED } from './MedicationPhysicianSelect';
-import { selectValueToRoute, ROUTE_UNSET } from '@/lib/medicationRoutes';
-import type { Physician } from '@/backend';
+import { routeToSelectValue, selectValueToRoute } from '@/lib/medicationRoutes';
+import type { Medication, Physician } from '@/backend';
 
-interface AddMedicationDialogProps {
+interface EditMedicationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  medication: Medication | null;
   physicians: Physician[];
-  onAddMedication: (medication: {
-    medicationName: string;
-    dosage: string;
-    route: string;
-    administrationTimes: string[];
-    prescribingPhysician: string;
-    notes: string;
-  }) => void;
+  onSave: (medication: Medication) => void;
 }
 
-export function AddMedicationDialog({
+export function EditMedicationDialog({
   open,
   onOpenChange,
+  medication,
   physicians,
-  onAddMedication,
-}: AddMedicationDialogProps) {
+  onSave,
+}: EditMedicationDialogProps) {
   const [medicationName, setMedicationName] = useState('');
   const [dosage, setDosage] = useState('');
-  const [route, setRoute] = useState<string>(ROUTE_UNSET);
-  const [times, setTimes] = useState<string[]>(['']);
-  const [prescriber, setPrescriber] = useState<string>(PHYSICIAN_UNASSIGNED);
-  const [notes, setNotes] = useState('');
+  const [administrationTimes, setAdministrationTimes] = useState<string[]>(['']);
+  const [route, setRoute] = useState<string>('');
+  const [prescribingPhysician, setPrescribingPhysician] = useState<string>(PHYSICIAN_UNASSIGNED);
+
+  // Reset form when medication changes
+  useEffect(() => {
+    if (medication) {
+      setMedicationName(medication.medicationName);
+      setDosage(medication.dosage);
+      setAdministrationTimes(
+        medication.administrationTimes.length > 0 ? medication.administrationTimes : ['']
+      );
+      setRoute(routeToSelectValue(medication.route));
+      setPrescribingPhysician(
+        medication.prescribingPhysician ? medication.prescribingPhysician : PHYSICIAN_UNASSIGNED
+      );
+    }
+  }, [medication]);
 
   const resetForm = () => {
     setMedicationName('');
     setDosage('');
-    setRoute(ROUTE_UNSET);
-    setTimes(['']);
-    setPrescriber(PHYSICIAN_UNASSIGNED);
-    setNotes('');
+    setAdministrationTimes(['']);
+    setRoute('');
+    setPrescribingPhysician(PHYSICIAN_UNASSIGNED);
   };
 
   const handleAddTime = () => {
-    setTimes([...times, '']);
+    setAdministrationTimes([...administrationTimes, '']);
   };
 
   const handleRemoveTime = (index: number) => {
-    if (times.length > 1) {
-      setTimes(times.filter((_, i) => i !== index));
+    if (administrationTimes.length > 1) {
+      setAdministrationTimes(administrationTimes.filter((_, i) => i !== index));
     }
   };
 
   const handleTimeChange = (index: number, value: string) => {
-    const newTimes = [...times];
+    const newTimes = [...administrationTimes];
     newTimes[index] = value;
-    setTimes(newTimes);
+    setAdministrationTimes(newTimes);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!medication) return;
+
     // Filter out empty times
-    const filteredTimes = times.filter((time) => time.trim() !== '');
+    const filteredTimes = administrationTimes.filter((time) => time.trim() !== '');
 
-    // Convert route to backend format
-    const backendRoute = selectValueToRoute(route);
-    const routeString = backendRoute
-      ? '__kind__' in backendRoute && backendRoute.__kind__ === 'other'
-        ? backendRoute.other
-        : backendRoute.__kind__
-      : '';
-
-    const medication = {
+    const updatedMedication: Medication = {
+      ...medication,
       medicationName: medicationName.trim(),
       dosage: dosage.trim(),
-      route: routeString,
       administrationTimes: filteredTimes,
+      route: selectValueToRoute(route),
       prescribingPhysician:
-        prescriber === PHYSICIAN_UNASSIGNED ? '' : prescriber.trim(),
-      notes: notes.trim(),
+        prescribingPhysician === PHYSICIAN_UNASSIGNED ? '' : prescribingPhysician.trim(),
     };
 
-    onAddMedication(medication);
+    onSave(updatedMedication);
     resetForm();
     onOpenChange(false);
   };
@@ -109,9 +110,9 @@ export function AddMedicationDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle>Add Medication</DialogTitle>
+              <DialogTitle>Edit Medication</DialogTitle>
               <DialogDescription className="mt-1">
-                Add a new medication to the resident's record
+                Update medication details
               </DialogDescription>
             </div>
             <Button
@@ -163,7 +164,7 @@ export function AddMedicationDialog({
           <div className="space-y-2">
             <Label>Administration Times</Label>
             <div className="space-y-2">
-              {times.map((time, index) => (
+              {administrationTimes.map((time, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
                     type="time"
@@ -172,7 +173,7 @@ export function AddMedicationDialog({
                     placeholder="HH:MM"
                     className="flex-1"
                   />
-                  {times.length > 1 && (
+                  {administrationTimes.length > 1 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -199,28 +200,16 @@ export function AddMedicationDialog({
 
           {/* Prescribing Physician */}
           <MedicationPhysicianSelect
-            value={prescriber}
-            onValueChange={setPrescriber}
+            value={prescribingPhysician}
+            onValueChange={setPrescribingPhysician}
             physicians={physicians}
           />
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              placeholder="Any additional notes..."
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-            />
-          </div>
 
           <DialogFooter className="gap-2">
             <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button type="submit">Add Medication</Button>
+            <Button type="submit">Save Changes</Button>
           </DialogFooter>
         </form>
       </DialogContent>

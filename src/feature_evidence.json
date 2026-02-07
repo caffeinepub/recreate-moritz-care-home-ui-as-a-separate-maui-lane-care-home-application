@@ -2,10 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-make-frontend-actor-creation-resilient-in-useactor-handle-failures-from-actor-creation-and-access-control-initialization-so-the-ui-can-present-a-clear-backend-connectivity-auth-error-state-instead-of-silently-leaving-actor-as-null",
-      "featureTitle": "Make frontend actor creation resilient: in `useActor`, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving `actor` as null.",
+      "featureId": "feature-review-and-fix-the-runtime-error-that-occurs-when-editing-and-saving-a-resident-medication-from-the-resident-profile-medications-list-ensuring-the-edit-dialog-can-save-without-crashing-and-the-backend-mutation-completes-successfully",
+      "featureTitle": "Review and fix the runtime error that occurs when editing and saving a resident medication from the Resident Profile medications list, ensuring the edit dialog can save without crashing and the backend mutation completes successfully.",
       "files": [
-        "frontend/src/pages/maui/Dashboard.tsx"
+        "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -16,16 +17,19 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-28"
+        "REQ-37"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-lightweight-frontend-diagnostic-path-that-uses-the-backend-healthcheck-to-distinguish-canister-unreachable-from-authenticated-but-not-authorized-initialized-and-incorporate-that-into-the-existing-error-ui-shown-on-the-dashboard-when-backend-calls-fail",
-      "featureTitle": "Add a lightweight frontend diagnostic path that uses the backend `healthCheck()` to distinguish 'canister unreachable' from 'authenticated but not authorized/initialized', and incorporate that into the existing error UI shown on the Dashboard when backend calls fail.",
+      "featureId": "feature-add-a-dropdown-selector-input-for-medication-administration-route-in-both-the-add-medication-and-edit-medication-dialogs-using-a-consistent-predefined-list-of-common-routes-while-still-allowing-an-optional-blank-selection",
+      "featureTitle": "Add a dropdown selector input for Medication Administration Route in both the Add Medication and Edit Medication dialogs, using a consistent predefined list of common routes, while still allowing an optional/blank selection.",
       "files": [
-        "frontend/src/hooks/useHealthCheck.ts",
-        "frontend/src/pages/maui/Dashboard.tsx"
+        "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+        "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+        "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
+        "frontend/src/lib/medicationRoutes.ts",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -36,7 +40,29 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-30"
+        "REQ-38"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-dropdown-selector-input-for-prescribing-physician-in-both-the-add-medication-and-edit-medication-dialogs-sourcing-options-from-the-resident-s-existing-physicians-list-ensure-the-field-can-be-left-unset",
+      "featureTitle": "Add a dropdown selector input for Prescribing Physician in both the Add Medication and Edit Medication dialogs, sourcing options from the resident’s existing Physicians list; ensure the field can be left unset.",
+      "files": [
+        "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+        "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+        "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-39"
       ],
       "confidence": "high"
     }

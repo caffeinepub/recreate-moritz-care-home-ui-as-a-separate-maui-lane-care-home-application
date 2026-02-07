@@ -138,7 +138,9 @@ export function AddMarRecordDialog({
               </SelectTrigger>
               <SelectContent>
                 {activeMedications.length === 0 ? (
-                  <div className="p-2 text-sm text-muted-foreground">No active medications</div>
+                  <div className="p-2 text-sm text-muted-foreground">
+                    No active medications available. Please add or resume a medication in the Medications tab.
+                  </div>
                 ) : (
                   activeMedications.map((med, index) => (
                     <SelectItem key={index} value={String(index)}>
@@ -195,7 +197,10 @@ export function AddMarRecordDialog({
             <Button type="button" variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createMarRecord.isPending}>
+            <Button 
+              type="submit" 
+              disabled={createMarRecord.isPending || activeMedications.length === 0}
+            >
               {createMarRecord.isPending ? 'Adding...' : 'Add Record'}
             </Button>
           </DialogFooter>

@@ -33,12 +33,14 @@ export interface PharmacyInfo {
     address: string;
     contactNumber: string;
 }
-export interface MarRecord {
+export interface MedicationUpdate {
+    id: bigint;
+    status: MedicationStatus;
     medicationName: string;
     dosage: string;
-    nurseId: Principal;
-    timestamp: bigint;
-    administrationTime: string;
+    prescribingPhysician: string;
+    administrationTimes: Array<string>;
+    route?: MedicationRoute;
 }
 export interface Resident {
     id: ResidentId;
@@ -70,12 +72,52 @@ export interface ResponsiblePerson {
     address: string;
     contactNumber: string;
 }
-export interface HealthCheckResponse {
-    status: string;
-    message: string;
-    timestamp: bigint;
-    canisterId: string;
-}
+export type MedicationRoute = {
+    __kind__: "injection";
+    injection: null;
+} | {
+    __kind__: "other";
+    other: string;
+} | {
+    __kind__: "subcutaneous_SubQ";
+    subcutaneous_SubQ: null;
+} | {
+    __kind__: "oral";
+    oral: null;
+} | {
+    __kind__: "otic";
+    otic: null;
+} | {
+    __kind__: "ophthalmic";
+    ophthalmic: null;
+} | {
+    __kind__: "vaginal";
+    vaginal: null;
+} | {
+    __kind__: "intravenous_IV";
+    intravenous_IV: null;
+} | {
+    __kind__: "sublingual_SL";
+    sublingual_SL: null;
+} | {
+    __kind__: "nasal";
+    nasal: null;
+} | {
+    __kind__: "transdermal";
+    transdermal: null;
+} | {
+    __kind__: "inhalation";
+    inhalation: null;
+} | {
+    __kind__: "intramuscular_IM";
+    intramuscular_IM: null;
+} | {
+    __kind__: "topical";
+    topical: null;
+} | {
+    __kind__: "rectal";
+    rectal: null;
+};
 export interface ResidentCreateRequest {
     id: ResidentId;
     bed?: string;
@@ -91,6 +133,19 @@ export interface ResidentCreateRequest {
     physicians: Array<Physician>;
     roomType: string;
     medicareNumber: string;
+}
+export interface MarRecord {
+    medicationName: string;
+    dosage: string;
+    nurseId: Principal;
+    timestamp: bigint;
+    administrationTime: string;
+}
+export interface HealthCheckResponse {
+    status: string;
+    message: string;
+    timestamp: bigint;
+    canisterId: string;
 }
 export interface AdlRecord {
     activityType: string;
@@ -131,10 +186,18 @@ export interface UserProfile {
     name: string;
 }
 export interface Medication {
+    id: bigint;
+    status: MedicationStatus;
     medicationName: string;
     dosage: string;
     prescribingPhysician: string;
     administrationTimes: Array<string>;
+    route?: MedicationRoute;
+}
+export enum MedicationStatus {
+    deleted = "deleted",
+    active = "active",
+    discontinued = "discontinued"
 }
 export enum ResidentStatusUpdateResult {
     activated = "activated",
@@ -151,6 +214,7 @@ export enum UserRole {
     guest = "guest"
 }
 export interface backendInterface {
+    addMedication(residentId: ResidentId, newMedication: Medication): Promise<Medication>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createAdlRecord(residentId: ResidentId, record: AdlRecord): Promise<void>;
     createMarRecord(residentId: ResidentId, record: MarRecord): Promise<void>;
@@ -158,8 +222,10 @@ export interface backendInterface {
     createVitalsEntry(residentId: ResidentId, record: VitalsRecord): Promise<void>;
     deleteAdlRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
     deleteMarRecord(residentId: ResidentId, timestamp: bigint): Promise<void>;
+    deleteMedication(residentId: ResidentId, medicationId: bigint): Promise<void>;
     deleteResident(id: ResidentId): Promise<void>;
     deleteVitalsEntry(residentId: ResidentId, timestamp: bigint): Promise<void>;
+    discontinueMedication(residentId: ResidentId, medicationId: bigint): Promise<Medication>;
     ensureResidentsSeeded(): Promise<void>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
@@ -178,5 +244,6 @@ export interface backendInterface {
     listVitalsEntries(residentId: ResidentId): Promise<Array<VitalsRecord>>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     toggleResidentStatus(id: ResidentId): Promise<ResidentStatusUpdateResult>;
+    updateMedication(residentId: ResidentId, medicationUpdate: MedicationUpdate): Promise<Medication>;
     updateResident(id: ResidentId, updateRequest: ResidentUpdateRequest): Promise<ResidentUpdateResult>;
 }

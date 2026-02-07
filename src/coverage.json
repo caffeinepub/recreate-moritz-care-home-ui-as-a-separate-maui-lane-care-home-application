@@ -1,64 +1,85 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T16:51:59.505Z",
+  "generatedAt": "2026-02-07T21:15:22.618Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 2,
+    "total": 3,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-27",
-        "summary": "Update backend access-control initialization so an authenticated user can create and use an authenticated actor immediately after Internet Identity login even when the `caffeineAdminToken` URL parameter is missing/empty, without trapping during `_initializeAccessControlWithSecret`.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-28",
-        "summary": "Make frontend actor creation resilient: in `useActor`, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving `actor` as null.",
+        "id": "REQ-37",
+        "summary": "Review and fix the runtime error that occurs when editing and saving a resident medication from the Resident Profile medications list, ensuring the edit dialog can save without crashing and the backend mutation completes successfully.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useActor.ts",
-          "frontend/src/pages/maui/Dashboard.tsx"
+          "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/maui/Dashboard.tsx"
+          "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
         ]
       },
       {
-        "id": "REQ-29",
-        "summary": "Ensure the backend provides a reliable unauthenticated health-check query and that its payload fields are accurate (e.g., `canisterId` should reflect the backend canister’s principal, not the caller).",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-30",
-        "summary": "Add a lightweight frontend diagnostic path that uses the backend `healthCheck()` to distinguish 'canister unreachable' from 'authenticated but not authorized/initialized', and incorporate that into the existing error UI shown on the Dashboard when backend calls fail.",
+        "id": "REQ-38",
+        "summary": "Add a dropdown selector input for Medication Administration Route in both the Add Medication and Edit Medication dialogs, using a consistent predefined list of common routes, while still allowing an optional/blank selection.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/useHealthCheck.ts",
-          "frontend/src/pages/maui/Dashboard.tsx"
+          "frontend/src/lib/medicationRoutes.ts",
+          "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
+          "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+          "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useHealthCheck.ts",
-          "frontend/src/pages/maui/Dashboard.tsx"
+          "frontend/src/lib/medicationRoutes.ts",
+          "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
+          "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+          "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        ]
+      },
+      {
+        "id": "REQ-39",
+        "summary": "Add a dropdown selector input for Prescribing Physician in both the Add Medication and Edit Medication dialogs, sourcing options from the resident’s existing Physicians list; ensure the field can be left unset.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
+          "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+          "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
+          "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+          "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "frontend/src/pages/maui/residents/ResidentProfile.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/hooks/useHealthCheck.ts",
-    "frontend/src/pages/maui/Dashboard.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+    "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+    "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
+    "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
+    "frontend/src/components/maui/residents/medications/index.ts",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/lib/medicationRoutes.ts",
+    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+    "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

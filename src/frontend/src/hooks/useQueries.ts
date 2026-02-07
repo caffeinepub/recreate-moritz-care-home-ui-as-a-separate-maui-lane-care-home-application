@@ -13,7 +13,9 @@ import type {
   ResidentUpdateRequest,
   UserProfile,
   ResidentsDirectoryResponse,
-  ResidentDirectoryEntry
+  ResidentDirectoryEntry,
+  Medication,
+  MedicationUpdate
 } from '../backend';
 
 const DIRECTORY_QUERY_TIMEOUT_MS = 15000; // 15 seconds
@@ -336,6 +338,83 @@ export function useDeleteResident() {
         queryClient.invalidateQueries({ queryKey: residentQueryKeys.list(principalId) });
         queryClient.invalidateQueries({ queryKey: residentQueryKeys.directory(principalId) });
         queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(principalId, residentId.toString()) });
+      }
+    },
+  });
+}
+
+// Medication Queries
+export function useUpdateMedication() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ residentId, medicationUpdate }: { residentId: ResidentId; medicationUpdate: MedicationUpdate }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.updateMedication(residentId, medicationUpdate);
+    },
+    onSuccess: (_, variables) => {
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(principalId, variables.residentId.toString()) });
+      }
+    },
+  });
+}
+
+export function useAddMedication() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ residentId, medication }: { residentId: ResidentId; medication: Medication }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.addMedication(residentId, medication);
+    },
+    onSuccess: (_, variables) => {
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(principalId, variables.residentId.toString()) });
+      }
+    },
+  });
+}
+
+export function useDiscontinueMedication() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ residentId, medicationId }: { residentId: ResidentId; medicationId: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.discontinueMedication(residentId, medicationId);
+    },
+    onSuccess: (_, variables) => {
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(principalId, variables.residentId.toString()) });
+      }
+    },
+  });
+}
+
+export function useDeleteMedication() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ residentId, medicationId }: { residentId: ResidentId; medicationId: bigint }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.deleteMedication(residentId, medicationId);
+    },
+    onSuccess: (_, variables) => {
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: residentQueryKeys.detail(principalId, variables.residentId.toString()) });
       }
     },
   });

@@ -1,88 +1,75 @@
 {
   "kind": "build_request",
-  "title": "Fix production backend connection error by hardening access-control initialization and actor creation",
-  "priority": "high",
+  "title": "Fix medication edit error and add dropdown selectors for Administration Route and Prescribing Physician",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-27",
-      "text": "Update backend access-control initialization so an authenticated user can create and use an authenticated actor immediately after Internet Identity login even when the `caffeineAdminToken` URL parameter is missing/empty, without trapping during `_initializeAccessControlWithSecret`.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Live app seems having trouble with the backend connection. error: Backend connection is not available. Please refresh the page or try logging in again."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Logging in with Internet Identity succeeds when the app URL does not include `caffeineAdminToken`.",
-        "Calling backend endpoints that require `#user` permission (e.g., `getCallerUserProfile`, `getResidentsDirectory`, `createResident`) works immediately after login for a new principal with no prior backend state initialization.",
-        "Backend does not trap when `_initializeAccessControlWithSecret` is invoked with an empty string secret."
-      ]
-    },
-    {
-      "id": "REQ-28",
-      "text": "Make frontend actor creation resilient: in `useActor`, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving `actor` as null.",
+      "id": "REQ-37",
+      "text": "Review and fix the runtime error that occurs when editing and saving a resident medication from the Resident Profile medications list, ensuring the edit dialog can save without crashing and the backend mutation completes successfully.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "Backend connection is not available. Please refresh the page or try logging in again."
+          "review and fix error on editing medications. add drop down selector for Administration Route and Prescribing Physician"
         ]
       },
       "acceptanceCriteria": [
-        "If actor creation or `_initializeAccessControlWithSecret` fails, the failure is captured and surfaced to the app (e.g., via an error state returned by `useActor`) rather than only resulting in `actor: null`.",
-        "Dashboard no longer shows the generic 'Backend connection is not available...' state when the underlying issue is an initialization trap; instead, it shows an actionable error message that includes the actual error message text (English) and offers retry/refresh.",
-        "Retrying after a transient failure (e.g., reload or retry button) re-attempts actor creation and recovers without requiring a code redeploy."
+        "Editing an existing medication and clicking “Save Changes” does not throw a runtime error in the browser console.",
+        "If the backend update fails, the UI shows a clear error toast and does not crash.",
+        "If the backend update succeeds, the UI shows a success toast and the updated medication values are visible after refetch/reload.",
+        "The prescribing physician selector in the edit dialog does not use an empty-string Select value that can break the Select component (use a safe sentinel value and map it to an empty physician value)."
       ]
     },
     {
-      "id": "REQ-29",
-      "text": "Ensure the backend provides a reliable unauthenticated health-check query and that its payload fields are accurate (e.g., `canisterId` should reflect the backend canister’s principal, not the caller).",
-      "target": "backend",
+      "id": "REQ-38",
+      "text": "Add a dropdown selector input for Medication Administration Route in both the Add Medication and Edit Medication dialogs, using a consistent predefined list of common routes, while still allowing an optional/blank selection.",
+      "target": "both",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "Live app seems having trouble with the backend connection. error: Backend connection is not available. Please refresh the page or try logging in again."
+          "add drop down selector for Administration Route"
         ]
       },
       "acceptanceCriteria": [
-        "`healthCheck()` can be called without authentication/permissions and returns `{ status: \"ok\", message: <non-empty>, canisterId: <backend canister principal text>, timestamp: <server time> }`.",
-        "Calling `healthCheck()` from an anonymous actor succeeds in production builds."
+        "Add Medication dialog uses a Select control (not a free-text input) for Administration Route.",
+        "Edit Medication dialog includes the same Administration Route Select control and is pre-populated with the current medication route.",
+        "The selected route is persisted to the backend as part of the resident medication record and is retained after reload.",
+        "Existing residents/medications stored before this change continue to load successfully; medications without a stored route display a blank/unset route in the UI."
       ]
     },
     {
-      "id": "REQ-30",
-      "text": "Add a lightweight frontend diagnostic path that uses the backend `healthCheck()` to distinguish 'canister unreachable' from 'authenticated but not authorized/initialized', and incorporate that into the existing error UI shown on the Dashboard when backend calls fail.",
+      "id": "REQ-39",
+      "text": "Add a dropdown selector input for Prescribing Physician in both the Add Medication and Edit Medication dialogs, sourcing options from the resident’s existing Physicians list; ensure the field can be left unset.",
       "target": "frontend",
       "source": {
         "messageIds": [
           "msg-6"
         ],
         "quotes": [
-          "Backend connection is not available. Please refresh the page or try logging in again."
+          "add drop down selector for ... Prescribing Physician"
         ]
       },
       "acceptanceCriteria": [
-        "When authenticated queries fail, the app can optionally perform a `healthCheck()` call and display one of: (a) backend reachable (health check ok) but user initialization/authorization failed, or (b) backend unreachable/timeout.",
-        "User-facing error text is in English and does not mention internal method names unless included in the caught error message.",
-        "The existing Dashboard error actions (Retry / Refresh Page) remain available and functional."
+        "Add Medication dialog uses a Select control for Prescribing Physician when the resident has physicians on file, and supports an explicit “None/Unassigned” selection.",
+        "Edit Medication dialog continues to use a Select control for Prescribing Physician (when physicians exist) and does not crash when selecting “None/Unassigned”.",
+        "If the resident has no physicians on file, the UI provides a safe fallback (e.g., disabled Select with a message, or a text input) without causing runtime errors.",
+        "The saved prescribing physician value is persisted and displayed correctly after reload."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain single-actor; keep Motoko logic in `backend/main.mo` (do not introduce additional backend services).",
-    "Do not edit frontend files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT."
+    "Backend must remain a single Motoko actor in backend/main.mo; add backend/migration.mo changes only if existing stable state needs to be upgraded for new medication fields.",
+    "Do not edit files under frontend/src/components/ui or the immutable hook paths listed in SYSTEM_CONTEXT (compose existing components instead).",
+    "Use English for all user-facing UI text."
   ],
   "nonGoals": [
-    "Implementing third-party monitoring/alerting services.",
-    "Adding WebSockets or real-time connectivity features.",
-    "Changing the app’s authentication provider (must remain Internet Identity)."
+    "Changing MAR record schema or MAR add flow behavior beyond what is required for medication field compatibility.",
+    "Adding third-party physician directories or external data sources for routes/physicians.",
+    "Introducing new authentication mechanisms beyond the existing Internet Identity flow."
   ],
   "imageRequirements": {
     "required": [],

@@ -42,10 +42,40 @@ export interface MarRecord {
   'administrationTime' : string,
 }
 export interface Medication {
+  'id' : bigint,
+  'status' : MedicationStatus,
   'medicationName' : string,
   'dosage' : string,
   'prescribingPhysician' : string,
   'administrationTimes' : Array<string>,
+  'route' : [] | [MedicationRoute],
+}
+export type MedicationRoute = { 'injection' : null } |
+  { 'other' : string } |
+  { 'subcutaneous_SubQ' : null } |
+  { 'oral' : null } |
+  { 'otic' : null } |
+  { 'ophthalmic' : null } |
+  { 'vaginal' : null } |
+  { 'intravenous_IV' : null } |
+  { 'sublingual_SL' : null } |
+  { 'nasal' : null } |
+  { 'transdermal' : null } |
+  { 'inhalation' : null } |
+  { 'intramuscular_IM' : null } |
+  { 'topical' : null } |
+  { 'rectal' : null };
+export type MedicationStatus = { 'deleted' : null } |
+  { 'active' : null } |
+  { 'discontinued' : null };
+export interface MedicationUpdate {
+  'id' : bigint,
+  'status' : MedicationStatus,
+  'medicationName' : string,
+  'dosage' : string,
+  'prescribingPhysician' : string,
+  'administrationTimes' : Array<string>,
+  'route' : [] | [MedicationRoute],
 }
 export interface PharmacyInfo {
   'name' : string,
@@ -147,6 +177,7 @@ export interface VitalsRecord {
 }
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
+  'addMedication' : ActorMethod<[ResidentId, Medication], Medication>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'createAdlRecord' : ActorMethod<[ResidentId, AdlRecord], undefined>,
   'createMarRecord' : ActorMethod<[ResidentId, MarRecord], undefined>,
@@ -154,8 +185,10 @@ export interface _SERVICE {
   'createVitalsEntry' : ActorMethod<[ResidentId, VitalsRecord], undefined>,
   'deleteAdlRecord' : ActorMethod<[ResidentId, bigint], undefined>,
   'deleteMarRecord' : ActorMethod<[ResidentId, bigint], undefined>,
+  'deleteMedication' : ActorMethod<[ResidentId, bigint], undefined>,
   'deleteResident' : ActorMethod<[ResidentId], undefined>,
   'deleteVitalsEntry' : ActorMethod<[ResidentId, bigint], undefined>,
+  'discontinueMedication' : ActorMethod<[ResidentId, bigint], Medication>,
   'ensureResidentsSeeded' : ActorMethod<[], undefined>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
@@ -177,6 +210,7 @@ export interface _SERVICE {
     [ResidentId],
     ResidentStatusUpdateResult
   >,
+  'updateMedication' : ActorMethod<[ResidentId, MedicationUpdate], Medication>,
   'updateResident' : ActorMethod<
     [ResidentId, ResidentUpdateRequest],
     ResidentUpdateResult

@@ -1,47 +1,96 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Harden frontend actor initialization errors and add backend health-check diagnostics on Dashboard",
+  "title": "Stabilize medication edit flow and add Select inputs for Route and Prescribing Physician",
   "requirements": [
     {
-      "id": "REQ-28",
-      "summary": "Make actor creation resilient by capturing actor/initialization failures in useActor and surfacing actionable error + retry to the UI.",
+      "id": "REQ-37",
+      "summary": "Fix medication edit/save runtime crash and ensure update success/error handling is resilient",
       "acceptanceCriteria": [
-        "If actor creation or `_initializeAccessControlWithSecret` fails, the failure is captured and surfaced to the app (e.g., via an error state returned by `useActor`) rather than only resulting in `actor: null`.",
-        "Dashboard no longer shows the generic 'Backend connection is not available...' state when the underlying issue is an initialization trap; instead, it shows an actionable error message that includes the actual error message text (English) and offers retry/refresh.",
-        "Retrying after a transient failure (e.g., reload or retry button) re-attempts actor creation and recovers without requiring a code redeploy."
+        "Editing an existing medication and clicking “Save Changes” does not throw a runtime error in the browser console.",
+        "If the backend update fails, the UI shows a clear error toast and does not crash.",
+        "If the backend update succeeds, the UI shows a success toast and the updated medication values are visible after refetch/reload.",
+        "The prescribing physician selector in the edit dialog does not use an empty-string Select value that can break the Select component (use a safe sentinel value and map it to an empty physician value)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useActor.ts",
+          "path": "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
           "operation": "modify",
-          "description": "Extend the actor React Query to be failure-aware: catch and expose actor/initialization errors (e.g., createActorWithConfig and access-control initialization), return a structured state (actor, isFetching, error, and a retry/refetch function) so consumers can render a clear connectivity/auth message instead of treating failures as only `actor: null`. Use the existing core-infrastructure actor factory (`createActorWithConfig`) and follow authorization component guidance for post-login initialization; verify the component's usage instructions before implementing."
+          "description": "Use the shadcn-ui Select component safely by replacing any empty-string Select values with a non-empty sentinel (e.g., for “None/Unassigned”) and mapping the sentinel back to an empty physician string when saving; keep edit dialog form state in sync with the selected medication to prevent crashes. Verify the component's usage instructions before implementing."
         },
         {
-          "path": "frontend/src/pages/maui/Dashboard.tsx",
+          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
           "operation": "modify",
-          "description": "Update Dashboard to consume the new `useActor` error state and render an actionable English error UI when actor creation/initialization fails, including the actual caught error message text and keeping existing actions (Retry/Refresh). Wire the Retry action to re-attempt actor creation (via the `useActor` retry/refetch) in addition to refetching the directory query when relevant; verify the component's usage instructions before implementing."
+          "description": "Harden the edit/save flow by ensuring the edit dialog passes a valid medication update payload (including any newly added fields) and that failures only surface as error toasts without unhandled exceptions; confirm react-query invalidation/refetch keeps the updated values visible after save."
         }
       ]
     },
     {
-      "id": "REQ-30",
-      "summary": "Add a lightweight Dashboard diagnostic that calls backend healthCheck() to distinguish unreachable canister vs authenticated initialization/authorization failure and reflect that in the error UI.",
+      "id": "REQ-38",
+      "summary": "Add a predefined Administration Route Select (optional/blank) to Add and Edit Medication dialogs and persist it",
       "acceptanceCriteria": [
-        "When authenticated queries fail, the app can optionally perform a `healthCheck()` call and display one of: (a) backend reachable (health check ok) but user initialization/authorization failed, or (b) backend unreachable/timeout.",
-        "User-facing error text is in English and does not mention internal method names unless included in the caught error message.",
-        "The existing Dashboard error actions (Retry / Refresh Page) remain available and functional."
+        "Add Medication dialog uses a Select control (not a free-text input) for Administration Route.",
+        "Edit Medication dialog includes the same Administration Route Select control and is pre-populated with the current medication route.",
+        "The selected route is persisted to the backend as part of the resident medication record and is retained after reload.",
+        "Existing residents/medications stored before this change continue to load successfully; medications without a stored route display a blank/unset route in the UI."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useHealthCheck.ts",
+          "path": "frontend/src/lib/medicationRoutes.ts",
           "operation": "create",
-          "description": "Create a small React Query hook that performs an unauthenticated `healthCheck()` using an anonymous actor (via core-infrastructure `createActorWithConfig`) with simple timeout/error handling, returning a status that callers can use to classify failures as reachable vs unreachable; verify the component's usage instructions before implementing."
+          "description": "Add a single source of truth for the predefined medication route list and conversion helpers between UI-select values and the backend MedicationRoute union (including support for optional/blank and an “Other” value with free-text)."
         },
         {
-          "path": "frontend/src/pages/maui/Dashboard.tsx",
+          "path": "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
+          "operation": "create",
+          "description": "Create a reusable Route Select field using shadcn-ui Select/SelectItem that supports an explicit blank/unset choice and an “Other” route text entry path while keeping the overall control a Select. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
           "operation": "modify",
-          "description": "Incorporate the health-check diagnostic into the existing Dashboard error UI paths: when authenticated data queries fail or when actor initialization fails, optionally trigger the unauthenticated health-check and display either (a) 'Backend reachable, but your account may not be initialized/authorized yet' or (b) 'Backend appears unreachable/timeout', while preserving the existing Retry/Refresh actions and ensuring displayed text is English and avoids internal method names unless they appear in the caught error message; verify the component's usage instructions before implementing."
+          "description": "Replace the free-text Route input with the shared MedicationRouteSelect component and ensure the dialog can submit an optional/blank route. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "operation": "modify",
+          "description": "Add the shared MedicationRouteSelect component to the edit form, pre-populate it from medication.route when present, and map the selected value into the saved Medication object so the caller can persist it. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "operation": "modify",
+          "description": "Persist route by including it in both addMedication and updateMedication flows (populate Medication.route and MedicationUpdate.route using the new conversion helpers), and update any on-screen/print mapping so medications with undefined route render as blank/unset without errors."
+        }
+      ]
+    },
+    {
+      "id": "REQ-39",
+      "summary": "Add Prescribing Physician Select (optional/None) to Add and Edit Medication dialogs with safe fallback when no physicians exist",
+      "acceptanceCriteria": [
+        "Add Medication dialog uses a Select control for Prescribing Physician when the resident has physicians on file, and supports an explicit “None/Unassigned” selection.",
+        "Edit Medication dialog continues to use a Select control for Prescribing Physician (when physicians exist) and does not crash when selecting “None/Unassigned”.",
+        "If the resident has no physicians on file, the UI provides a safe fallback (e.g., disabled Select with a message, or a text input) without causing runtime errors.",
+        "The saved prescribing physician value is persisted and displayed correctly after reload."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
+          "operation": "create",
+          "description": "Create a reusable Prescribing Physician field that uses shadcn-ui Select when physicians exist (including a non-empty sentinel for “None/Unassigned”) and provides a safe fallback UI when no physicians are available. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+          "operation": "modify",
+          "description": "Update Add Medication to source physician options from the resident’s physicians list (passed in via props) and use the shared MedicationPhysicianSelect so “None/Unassigned” never uses an empty Select value and the no-physicians fallback is safe. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "operation": "modify",
+          "description": "Replace the inlined physician Select/text fallback with the shared MedicationPhysicianSelect and ensure the dialog maps the sentinel back to an empty physician value on save (avoiding empty-string Select values that can crash shadcn-ui Select). Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "operation": "modify",
+          "description": "Pass the resident’s physicians list into both AddMedicationDialog and EditMedicationDialog, and ensure the saved prescribingPhysician persists through the existing add/update mutation paths and renders correctly after query refetch/reload."
         }
       ]
     }

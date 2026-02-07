@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix production backend connection failures after Internet Identity login by making backend access-control initialization and frontend actor creation resilient, and by adding a reliable health-check + clearer diagnostics in the UI.
+**Goal:** Fix the medication edit/save crash and replace free-text fields with safe dropdown selectors for Administration Route and Prescribing Physician in the medication dialogs.
 
 **Planned changes:**
-- Backend: Harden access-control initialization to safely handle missing/empty `caffeineAdminToken` so authenticated users can create and use an authenticated actor immediately after login without traps.
-- Backend: Ensure `healthCheck()` is unauthenticated, reliable in production, and returns accurate fields (including the backend canister’s principal as `canisterId`).
-- Frontend: Update `useActor` to capture and surface actor creation / initialization errors (instead of leaving `actor` as null) and provide retry/refresh recovery.
-- Frontend: Add a lightweight diagnostic path using `healthCheck()` to distinguish “backend unreachable” vs “reachable but user initialization/authorization failed”, and reflect this in the existing Dashboard error UI.
+- Identify and fix the runtime error triggered when saving edits to an existing resident medication from the Resident Profile medication list; ensure the backend update mutation completes and the UI handles failures without crashing.
+- Update the Edit Medication Prescribing Physician Select to avoid using an empty-string value that can break the Select component (use a safe “None/Unassigned” sentinel value and map it to an unset physician on save).
+- Add an Administration Route Select control to both Add Medication and Edit Medication dialogs using a consistent predefined list of common routes, supporting an optional/blank selection and persisting the selected route.
+- Add a Prescribing Physician Select control to both Add Medication and Edit Medication dialogs, sourcing options from the resident’s physician list; support “None/Unassigned” and provide a safe fallback UI when no physicians exist.
+- Ensure existing medications without stored route/physician values continue to load and display as blank/unset without errors.
 
-**User-visible outcome:** After logging in (even without a `caffeineAdminToken` URL parameter), the app can connect to the backend immediately; when failures occur, the Dashboard shows a clearer, actionable English error (including the caught error text) with working Retry/Refresh actions and better indication of whether the backend is reachable.
+**User-visible outcome:** Staff can add and edit resident medications without crashes, choose an Administration Route and (optionally) a Prescribing Physician from dropdowns, see clear success/error toasts after saving, and have selections persist after reload.

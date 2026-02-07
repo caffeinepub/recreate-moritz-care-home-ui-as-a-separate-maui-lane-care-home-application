@@ -9,10 +9,13 @@ import Set "mo:core/Set";
 import Blob "mo:core/Blob";
 import Array "mo:core/Array";
 import Int "mo:core/Int";
+import Nat "mo:core/Nat";
+import Migration "migration";
 
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
+(with migration = Migration.run)
 actor {
   public type HealthCheckResponse = {
     status : Text;
@@ -75,11 +78,48 @@ actor {
     address : Text;
   };
 
+  public type MedicationRoute = {
+    #oral;
+    #intravenous_IV;
+    #intramuscular_IM;
+    #topical;
+    #subcutaneous_SubQ;
+    #sublingual_SL;
+    #rectal;
+    #inhalation;
+    #nasal;
+    #ophthalmic;
+    #otic;
+    #transdermal;
+    #vaginal;
+    #injection;
+    #other : Text;
+  };
+
+  public type MedicationStatus = {
+    #active;
+    #discontinued;
+    #deleted;
+  };
+
   public type Medication = {
+    id : Nat;
     medicationName : Text;
     dosage : Text;
     administrationTimes : [Text];
+    route : ?MedicationRoute;
     prescribingPhysician : Text;
+    status : MedicationStatus;
+  };
+
+  public type MedicationUpdate = {
+    id : Nat;
+    medicationName : Text;
+    dosage : Text;
+    administrationTimes : [Text];
+    route : ?MedicationRoute;
+    prescribingPhysician : Text;
+    status : MedicationStatus;
   };
 
   public type ResidentId = Principal;
@@ -94,7 +134,7 @@ actor {
     admissionDate : Text;
     roomNumber : Text;
     roomType : Text;
-    bed : ?Text; // Optional "A" or "B" for shared rooms
+    bed : ?Text;
     medicaidNumber : Text;
     medicareNumber : Text;
     physicians : [Physician];
@@ -135,12 +175,6 @@ actor {
     insurance : InsuranceInfo;
     responsiblePersons : [ResponsiblePerson];
     medications : [Medication];
-  };
-
-  public type ResidentStatus = {
-    #active;
-    #terminated;
-    #unknown;
   };
 
   public type ResidentUpdateResult = {
@@ -625,6 +659,147 @@ actor {
     };
   };
 
+  // Medication Management
+  public shared ({ caller }) func updateMedication(residentId : ResidentId, medicationUpdate : MedicationUpdate) : async Medication {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can update medication");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot update medications for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident not found") };
+      case (?resident) {
+        let updatedMedications : [Medication] = resident.medications.map(
+          func(m) {
+            if (m.id == medicationUpdate.id) {
+              {
+                m with
+                medicationName = medicationUpdate.medicationName;
+                dosage = medicationUpdate.dosage;
+                administrationTimes = medicationUpdate.administrationTimes;
+                route = medicationUpdate.route;
+                prescribingPhysician = medicationUpdate.prescribingPhysician;
+                status = medicationUpdate.status;
+              };
+            } else {
+              m;
+            };
+          }
+        );
+
+        let updatedResident = {
+          resident with
+          medications = updatedMedications;
+        };
+
+        residentsDirectory.add(residentId, updatedResident);
+        switch (updatedMedications.find(func(m) { m.id == medicationUpdate.id })) {
+          case (null) { Runtime.trap("Medication not found after update") };
+          case (?medication) { medication };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func addMedication(residentId : ResidentId, newMedication : Medication) : async Medication {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can add medication");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot add medications for this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident not found") };
+      case (?resident) {
+        if (resident.medications.find(func(m) { m.id == newMedication.id }) != null) {
+          Runtime.trap("Medication with this ID already exists");
+        };
+
+        let updatedMedications = resident.medications.concat([newMedication]);
+        let updatedResident = {
+          resident with
+          medications = updatedMedications;
+        };
+
+        residentsDirectory.add(residentId, updatedResident);
+        newMedication;
+      };
+    };
+  };
+
+  public shared ({ caller }) func discontinueMedication(residentId : ResidentId, medicationId : Nat) : async Medication {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can discontinue medication");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot access this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident not found") };
+      case (?resident) {
+        let updatedMedications = resident.medications.map(
+          func(m) {
+            if (m.id == medicationId) {
+              { m with status = #discontinued };
+            } else {
+              m;
+            };
+          }
+        );
+
+        let updatedResident = {
+          resident with
+          medications = updatedMedications;
+        };
+
+        residentsDirectory.add(residentId, updatedResident);
+        switch (updatedMedications.find(func(m) { m.id == medicationId })) {
+          case (null) { Runtime.trap("Medication not found after update") };
+          case (?medication) { medication };
+        };
+      };
+    };
+  };
+
+  public shared ({ caller }) func deleteMedication(residentId : ResidentId, medicationId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete medication");
+    };
+
+    if (not canAccessResident(caller, residentId)) {
+      Runtime.trap("Unauthorized: Cannot access this resident");
+    };
+
+    switch (residentsDirectory.get(residentId)) {
+      case (null) { Runtime.trap("Resident not found") };
+      case (?resident) {
+        let updatedMedications = resident.medications.map(
+          func(m) {
+            if (m.id == medicationId) {
+              { m with status = #deleted };
+            } else {
+              m;
+            };
+          }
+        );
+
+        let updatedResident = {
+          resident with
+          medications = updatedMedications;
+        };
+
+        residentsDirectory.add(residentId, updatedResident);
+      };
+    };
+  };
+
   // User Profile Support
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
@@ -707,16 +882,22 @@ actor {
 
       let medications : [Medication] = [
         {
+          id = 1;
           medicationName = "Enalapril";
           dosage = "10mg";
           administrationTimes = ["08:00", "20:00"];
+          route = null;
           prescribingPhysician = "Dr. Samantha Richards";
+          status = #active;
         },
         {
+          id = 2;
           medicationName = "Lasix";
           dosage = "40mg";
           administrationTimes = ["09:00"];
+          route = null;
           prescribingPhysician = "Dr. Samantha Richards";
+          status = #active;
         },
       ];
 

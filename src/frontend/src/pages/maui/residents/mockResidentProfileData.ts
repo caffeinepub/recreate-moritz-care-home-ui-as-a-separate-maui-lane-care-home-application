@@ -1,3 +1,5 @@
+import type { Medication, Physician, PharmacyInfo, InsuranceInfo, ResponsiblePerson } from '@/backend';
+
 export interface ResidentProfileData {
   id: string;
   name: string;
@@ -5,13 +7,15 @@ export interface ResidentProfileData {
   admissionDate: string;
   room: string;
   roomType: string;
+  bed?: string;
   status: string;
   medicaidNumber: string;
   medicareNumber: string;
-  physicians: Array<{ name: string; contactNumber: string; specialty: string }>;
-  pharmacy: { name: string; address: string; contactNumber: string };
-  insurance: { company: string; policyNumber: string; address: string; contactNumber: string };
-  responsiblePersons: Array<{ name: string; relationship: string; contactNumber: string; address: string }>;
+  physicians: Physician[];
+  pharmacy: PharmacyInfo;
+  insurance: InsuranceInfo;
+  responsiblePersons: ResponsiblePerson[];
+  medications: Medication[];
 }
 
 export interface ResidentMedication {
@@ -34,6 +38,7 @@ export function getResidentProfileData(residentId: string): ResidentProfileData 
     admissionDate: '2024-01-01',
     room: 'Room TBD',
     roomType: 'TBD',
+    bed: undefined,
     status: 'Active',
     medicaidNumber: '-',
     medicareNumber: '-',
@@ -41,5 +46,6 @@ export function getResidentProfileData(residentId: string): ResidentProfileData 
     pharmacy: { name: '-', address: '-', contactNumber: '-' },
     insurance: { company: '-', policyNumber: '-', address: '-', contactNumber: '-' },
     responsiblePersons: [],
+    medications: [],
   };
 }

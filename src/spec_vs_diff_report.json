@@ -1,41 +1,52 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-05T16:51:59.501Z",
-  "summary": "Diff adds a new frontend health-check hook and updates the Dashboard to trigger health checks when actor/directory access fails. The diff does not provide evidence that backend access-control initialization was hardened for empty secrets, that useActor was updated to surface initialization errors, or that a reliable unauthenticated backend healthCheck() query with accurate canisterId was implemented.",
+  "generatedAt": "2026-02-07T21:15:22.615Z",
+  "summary": "Diff adds backend support for an optional Medication.route field (including a migration) and introduces new frontend Select-based components for Administration Route and Prescribing Physician (with sentinel values to avoid empty-string Select issues). However, due to truncation and some type/value conversions shown, it’s not fully evidenced that the edit/save crash is fixed end-to-end with correct toast handling and that route values are persisted in the backend’s new union-typed field.",
   "missing_requirements": [
     {
-      "id": "REQ-27",
-      "requirement": "Update backend access-control initialization so an authenticated user can create and use an authenticated actor immediately after Internet Identity login even when the caffeineAdminToken URL parameter is missing/empty, without trapping during _initializeAccessControlWithSecret.",
-      "reason": "The backend diff snippet only shows type declarations and existing access control state initialization; it does not show any changes to _initializeAccessControlWithSecret or logic that handles empty/missing secrets without trapping.",
+      "id": "REQ-37",
+      "requirement": "Fix the runtime error when editing and saving a resident medication; ensure backend mutation completes; show success/error toasts and do not crash.",
+      "reason": "The diff shows the edit dialog now builds an updated Medication object and uses a sentinel for physician Select values, but the actual save/mutation handler (where the crash and toast behavior would be enforced) is not shown in the provided truncated diff. Therefore the acceptance criteria about no runtime error, mutation completion, and success/error toasts cannot be verified from the evidence.",
       "evidence": [
-        "backend/main.mo"
+        "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx (truncated)",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx (truncated)"
       ]
     },
     {
-      "id": "REQ-28",
-      "requirement": "Make frontend actor creation resilient: in useActor, handle failures from actor creation and access-control initialization so the UI can present a clear backend connectivity/auth error state instead of silently leaving actor as null.",
-      "reason": "No diff evidence shows modifications to frontend/src/hooks/useActor (or any actor-creation hook). Dashboard changes reference useActor but do not demonstrate that useActor now captures and returns an actionable error state.",
+      "id": "REQ-38",
+      "requirement": "Persist the selected Administration Route to the backend as part of the resident medication record and retain after reload; medications without a stored route display blank/unset.",
+      "reason": "Backend types were updated to store `route : ?MedicationRoute`, but the Add Medication dialog appears to pass `route` as a string (derived from `__kind__`/`other`) rather than a `MedicationRoute` option, and the ResidentProfile wiring that submits to the backend is truncated. From the visible code, it’s unclear that the UI selection is actually persisted into the new backend `?MedicationRoute` field and round-trips correctly on reload.",
       "evidence": [
-        "frontend/src/pages/maui/Dashboard.tsx"
-      ]
-    },
-    {
-      "id": "REQ-29",
-      "requirement": "Ensure the backend provides a reliable unauthenticated health-check query and that its payload fields are accurate (canisterId should be the backend canister principal, not the caller).",
-      "reason": "The diff shows a HealthCheckResponse type but does not show an implemented public query function healthCheck() nor logic ensuring canisterId equals the canister’s own principal and that the call is unauthenticated.",
-      "evidence": [
-        "backend/main.mo"
+        "backend/main.mo (truncated) — Medication.route : ?MedicationRoute",
+        "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx (truncated) — onAddMedication route: string and routeString conversion",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx (truncated)"
       ]
     }
   ],
-  "hallucinated_features": [],
-  "confidence": 0.64,
+  "hallucinated_features": [
+    {
+      "description": "Route selector supports an explicit \"Other (specify)\" option with a free-text input and encodes it as `other:<text>`.",
+      "reason": "REQ-38 asks for a dropdown from a predefined list of common routes with an optional/blank selection; it does not request an 'Other' flow with custom text entry.",
+      "evidence": [
+        "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
+        "frontend/src/lib/medicationRoutes.ts"
+      ]
+    }
+  ],
+  "confidence": 0.58,
   "changed_files": [
     "backend/main.mo",
+    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/hooks/useHealthCheck.ts",
-    "frontend/src/pages/maui/Dashboard.tsx",
+    "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+    "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+    "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
+    "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
+    "frontend/src/components/maui/residents/medications/index.ts",
+    "frontend/src/lib/medicationRoutes.ts",
+    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+    "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
     "project_state.json"
   ]
 }

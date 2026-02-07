@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 import { Principal } from '@dfinity/principal';
 import { useCreateResident } from '@/hooks/useQueries';
 import type { Physician, PharmacyInfo, InsuranceInfo, ResponsiblePerson, Medication } from '@/backend';
+import { MedicationStatus } from '@/backend';
 
 interface AddResidentFormData {
   firstName: string;
@@ -155,11 +156,22 @@ export function AddNewResidentDialog({
   };
 
   const addMedication = () => {
+    const newMedicationId = formData.medications.length > 0
+      ? Math.max(...formData.medications.map(m => Number(m.id))) + 1
+      : 1;
+    
     setFormData((prev) => ({
       ...prev,
       medications: [
         ...prev.medications,
-        { medicationName: '', dosage: '', administrationTimes: [], prescribingPhysician: '' },
+        { 
+          id: BigInt(newMedicationId),
+          medicationName: '', 
+          dosage: '', 
+          administrationTimes: [], 
+          prescribingPhysician: '',
+          status: MedicationStatus.active
+        },
       ],
     }));
   };
@@ -499,7 +511,7 @@ export function AddNewResidentDialog({
                   <Label htmlFor="pharmacyContact">Contact Number</Label>
                   <Input
                     id="pharmacyContact"
-                    placeholder="(555) 987-6543"
+                    placeholder="(555) 123-4567"
                     value={formData.pharmacy.contactNumber}
                     onChange={(e) => handleNestedChange('pharmacy', 'contactNumber', e.target.value)}
                   />
@@ -517,7 +529,7 @@ export function AddNewResidentDialog({
                   <Label htmlFor="insuranceCompany">Insurance Company</Label>
                   <Input
                     id="insuranceCompany"
-                    placeholder="Blue Cross Blue Shield"
+                    placeholder="Blue Cross"
                     value={formData.insurance.company}
                     onChange={(e) => handleNestedChange('insurance', 'company', e.target.value)}
                   />
@@ -526,7 +538,7 @@ export function AddNewResidentDialog({
                   <Label htmlFor="policyNumber">Policy Number</Label>
                   <Input
                     id="policyNumber"
-                    placeholder="POL-123456"
+                    placeholder="ABC123456"
                     value={formData.insurance.policyNumber}
                     onChange={(e) => handleNestedChange('insurance', 'policyNumber', e.target.value)}
                   />
@@ -544,7 +556,7 @@ export function AddNewResidentDialog({
                   <Label htmlFor="insuranceContact">Contact Number</Label>
                   <Input
                     id="insuranceContact"
-                    placeholder="(555) 111-2222"
+                    placeholder="(555) 987-6543"
                     value={formData.insurance.contactNumber}
                     onChange={(e) => handleNestedChange('insurance', 'contactNumber', e.target.value)}
                   />
@@ -565,13 +577,13 @@ export function AddNewResidentDialog({
                   onClick={addResponsiblePerson}
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Contact
+                  Add Person
                 </Button>
               </div>
               <div className="space-y-4">
                 {formData.responsiblePersons.map((person, index) => (
                   <div key={index} className="rounded-lg border border-border bg-muted/30 p-4">
-                    <h4 className="mb-3 text-sm font-medium">Contact Person {index + 1}</h4>
+                    <h4 className="mb-3 text-sm font-medium">Person {index + 1}</h4>
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
                         <Label htmlFor={`person-name-${index}`}>Name</Label>
@@ -604,78 +616,9 @@ export function AddNewResidentDialog({
                         <Label htmlFor={`person-address-${index}`}>Address</Label>
                         <Input
                           id={`person-address-${index}`}
-                          placeholder="789 Oak Ave"
+                          placeholder="789 Oak St"
                           value={person.address}
                           onChange={(e) => updateResponsiblePerson(index, 'address', e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Medications */}
-            <div>
-              <div className="mb-4 flex items-center justify-between">
-                <h3 className="text-base font-semibold">Medications</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={addMedication}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Medication
-                </Button>
-              </div>
-              <div className="space-y-4">
-                {formData.medications.map((medication, index) => (
-                  <div key={index} className="rounded-lg border border-border bg-muted/30 p-4">
-                    <h4 className="mb-3 text-sm font-medium">Medication {index + 1}</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="space-y-2">
-                        <Label htmlFor={`med-name-${index}`}>Medication Name</Label>
-                        <Input
-                          id={`med-name-${index}`}
-                          placeholder="Aspirin"
-                          value={medication.medicationName}
-                          onChange={(e) => updateMedication(index, 'medicationName', e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`med-dosage-${index}`}>Dosage</Label>
-                        <Input
-                          id={`med-dosage-${index}`}
-                          placeholder="100mg"
-                          value={medication.dosage}
-                          onChange={(e) => updateMedication(index, 'dosage', e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`med-times-${index}`}>Administration Times</Label>
-                        <Input
-                          id={`med-times-${index}`}
-                          placeholder="8:00 AM, 8:00 PM (comma separated)"
-                          value={medication.administrationTimes.join(', ')}
-                          onChange={(e) =>
-                            updateMedication(
-                              index,
-                              'administrationTimes',
-                              e.target.value.split(',').map((t) => t.trim())
-                            )
-                          }
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`med-physician-${index}`}>Prescribing Physician</Label>
-                        <Input
-                          id={`med-physician-${index}`}
-                          placeholder="Enter physician name"
-                          value={medication.prescribingPhysician}
-                          onChange={(e) => updateMedication(index, 'prescribingPhysician', e.target.value)}
                         />
                       </div>
                     </div>
@@ -688,7 +631,11 @@ export function AddNewResidentDialog({
 
         <div className="sticky bottom-0 border-t border-border bg-background px-6 py-4">
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button
