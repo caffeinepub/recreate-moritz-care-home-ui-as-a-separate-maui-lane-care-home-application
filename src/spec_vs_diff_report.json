@@ -1,56 +1,58 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T21:29:17.683Z",
-  "summary": "Frontend version markers were updated to 58 and a new Version 58 deployment guide was added. However, the diff also includes unrelated modifications (not explicitly requested) to backend code and project metadata, and it cannot demonstrate that an actual IC mainnet deployment and post-deploy smoke checks were performed.",
+  "generatedAt": "2026-02-07T21:39:23.403Z",
+  "summary": "REQ-46 and REQ-48 appear implemented: version markers updated to 59 in the specified files and a new Version 59 deployment guide was added under frontend/docs with the requested verification checks, commands, and smoke-test checklist. REQ-47 (actual production deployment success on IC) cannot be confirmed/implemented via the provided code diff; the diff only adds documentation/scripts, not evidence of a successful `dfx deploy --network ic` or live endpoint verification. The diff also includes substantial unrelated frontend feature/UI changes beyond a version-promotion scope.",
   "missing_requirements": [
     {
-      "id": "REQ-44",
-      "requirement": "Deploy Version 58 to the Internet Computer production network so the live canisters serve the Version 58 build (including executing `dfx deploy --network ic` and completing post-deploy smoke checks).",
-      "reason": "The diff only shows code/documentation changes; it does not provide evidence of an executed production deployment or results of required smoke checks on the live site.",
+      "id": "REQ-47",
+      "requirement": "Deploy Version 59 to the Internet Computer production network so the live canisters serve the Version 59 build.",
+      "reason": "The diff shows documentation and a helper script referencing `dfx deploy --network ic`, but provides no evidence that production deployment was performed successfully or that live canisters/endpoints were verified (these are operational outcomes, not implemented changes).",
       "evidence": [
-        "frontend/docs/deploy-v58.md"
+        "frontend/docs/deploy-v59.md",
+        "frontend/scripts/deploy-ic-v59.sh"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Backend canister code changes in `backend/main.mo` (new/expanded type definitions and imports shown) that are not requested by the BuildRequest, which focuses on version markers and deployment/docs.",
-      "reason": "No requirement asks for backend schema/type modifications as part of taking Version 58 live, and the BuildRequest explicitly discourages backend schema changes unless required by already-implemented Version 58 changes (not evidenced in the diff summary).",
-      "evidence": [
-        "backend/main.mo"
-      ]
-    },
-    {
-      "description": "Updates/additions to repository metadata/state files not requested for the Version 58 publish (e.g., `project_state.json`).",
-      "reason": "The BuildRequest requirements are limited to version markers, production deployment, and deployment documentation; project state tracking updates are not requested.",
-      "evidence": [
-        "project_state.json"
-      ]
-    },
-    {
-      "description": "Modification of `frontend-file-summaries.txt` (large descriptive summary content) not requested for Version 58 deployment/version marker work.",
-      "reason": "The BuildRequest does not request generating or updating a frontend file summary artifact.",
+      "description": "Large set of frontend application/UI/behavior changes (routing/pages/nav/auth shell/dashboard error handling, React Query hooks including new medication management hooks, design system/print CSS, Tailwind theme changes, resident mock data/utilities, etc.) unrelated to a version-marker update/promotion.",
+      "reason": "BuildRequest explicitly lists non-goals as implementing new product features or UI changes unrelated to the Version 59 production promotion; these modifications go far beyond updating version markers and adding deployment documentation.",
       "evidence": [
         "frontend-file-summaries.txt"
       ]
     },
     {
-      "description": "Edits to the Version 57 deployment guide adding a superseded note while leaving Version 57 marker checks in place.",
-      "reason": "REQ-45 allows either updating `deploy-v57.md` to Version 58 wording or adding a new `deploy-v58.md`. Since a new `deploy-v58.md` was added, changing `deploy-v57.md` is extra and not required by any acceptance criteria.",
+      "description": "Added a new production deployment helper script for Version 59 (`frontend/scripts/deploy-ic-v59.sh`).",
+      "reason": "Not requested by REQ-46/47/48 (REQ-48 asks for documentation under `frontend/docs/`; it does not request adding scripts).",
       "evidence": [
-        "frontend/docs/deploy-v57.md"
+        "frontend/scripts/deploy-ic-v59.sh"
+      ]
+    },
+    {
+      "description": "Modified/added deployment scripts README content under `frontend/scripts/README.md`.",
+      "reason": "Not requested; REQ-48 only requires a Version 59 deployment doc under `frontend/docs/`.",
+      "evidence": [
+        "frontend/scripts/README.md"
+      ]
+    },
+    {
+      "description": "Updated `project_state.json` summary/content describing broader product work (Maui Lane Care Home app copying Moritz app) unrelated to version promotion.",
+      "reason": "Not part of the version marker update or deployment documentation requirements; also suggests scope creep beyond the stated non-goals.",
+      "evidence": [
+        "project_state.json"
       ]
     }
   ],
-  "confidence": 0.72,
+  "confidence": 0.74,
   "changed_files": [
-    "backend/main.mo",
     "frontend-file-summaries.txt",
-    "frontend/docs/deploy-v57.md",
     "frontend/docs/deploy-v58.md",
+    "frontend/docs/deploy-v59.md",
     "frontend/index.html",
     "frontend/public/version.txt",
+    "frontend/scripts/README.md",
+    "frontend/scripts/deploy-ic-v59.sh",
     "project_state.json"
   ]
 }

@@ -1,80 +1,84 @@
 {
   "kind": "build_request",
-  "title": "Take Version 58 live on ICP production and update version markers/docs",
-  "priority": "high",
+  "title": "Promote Version 59 to Production (IC)",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-43",
-      "text": "Update the frontend version markers to Version 58 so the deployed app clearly reports the correct release version.",
+      "id": "REQ-46",
+      "text": "Update all frontend version markers to Version 59 so the deployed app clearly reports the correct release version.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2",
-          "msg-3"
+          "msg-4"
         ],
         "quotes": [
-          "Version 58 is ready — want me to take it live when you’re satisfied with how it looks?",
-          "yes"
+          "promote version 59 to production"
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/public/version.txt` contains exactly `58`.",
-        "`frontend/index.html` contains `<meta name=\"app-version\" content=\"58\" />`.",
-        "After deployment, fetching the deployed app HTML shows the app-version meta content as `58` and the `/version.txt` asset returns `58`."
+        "`frontend/public/version.txt` contains exactly `59`.",
+        "`frontend/index.html` contains `<meta name=\"app-version\" content=\"59\" />`.",
+        "After building locally, the generated output serves Version 59 markers (no remaining `58` marker in the built HTML/version endpoint)."
       ]
     },
     {
-      "id": "REQ-44",
-      "text": "Deploy Version 58 to the Internet Computer production network so the live canisters serve the Version 58 build.",
+      "id": "REQ-47",
+      "text": "Deploy Version 59 to the Internet Computer production network so the live canisters serve the Version 59 build.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-2",
-          "msg-3"
+          "msg-4"
         ],
         "quotes": [
-          "Version 58 is ready — want me to take it live when you’re satisfied with how it looks?",
-          "yes"
+          "promote version 59 to production"
         ]
       },
       "acceptanceCriteria": [
-        "A production deployment is executed using `dfx deploy --network ic` for the app canisters.",
-        "Post-deploy smoke checks confirm: (1) Internet Identity login works, (2) the Dashboard loads, (3) navigating to a resident profile works, and (4) no new blocking console errors are introduced.",
-        "The live site reports version `58` via the version markers (`version.txt` and the `app-version` meta tag)."
+        "Running the production deploy command (`dfx deploy --network ic`) completes successfully for the app canisters.",
+        "After deployment, the live `version.txt` endpoint returns `59`.",
+        "Post-deploy smoke test passes at minimum: Internet Identity login works; Dashboard loads; Resident Profile page can be opened; no new console errors introduced."
       ]
     },
     {
-      "id": "REQ-45",
-      "text": "Update the deployment documentation checklist to reflect Version 58 verification (version marker checks) so operators can validate the live publish consistently.",
+      "id": "REQ-48",
+      "text": "Add/update production deployment documentation for Version 59 by creating a Version 59 deployment guide (or updating the latest guide) with Version 59 verification steps (version marker checks) and post-deploy checklist.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2",
-          "msg-3"
+          "msg-4"
         ],
         "quotes": [
-          "Version 58 is ready — want me to take it live when you’re satisfied with how it looks?",
-          "yes"
+          "promote version 59 to production"
         ]
       },
       "acceptanceCriteria": [
-        "A Version 58 deployment guide exists (either update `frontend/docs/deploy-v57.md` to v58 wording, or add a new `frontend/docs/deploy-v58.md`) and includes: (1) checking `frontend/public/version.txt` is `58`, (2) checking `frontend/index.html` meta `app-version` is `58`, and (3) post-deploy verification steps for the live publish.",
-        "Any version numbers mentioned in the updated/new deployment doc are consistent with `58` (no lingering `57` references in version marker verification steps)."
+        "A Version 59 deployment doc exists under `frontend/docs/` (e.g., `deploy-v59.md`) and references Version 59 in its title and verification steps.",
+        "The document includes explicit checks for `frontend/public/version.txt == 59` and `<meta name=\"app-version\" content=\"59\" />`.",
+        "The document includes deployment commands and a post-deploy smoke-test checklist consistent with the current app behavior."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in `backend/main.mo`; do not introduce additional backend services.",
-    "Do not modify files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or `frontend/src/components/ui` (immutable paths).",
-    "Use English for any user-facing text."
+    "Do not edit files under `frontend/src/components/ui` (compose existing Shadcn components instead).",
+    "Do not edit any paths listed in `frontend.immutablePaths` in SYSTEM_CONTEXT.",
+    "Backend remains a single Motoko actor in `backend/main.mo`; only add `backend/migration.mo` if a state migration is required (not expected for a version-only promotion)."
   ],
   "nonGoals": [
-    "Implement new product features unrelated to publishing Version 58.",
-    "Redesign UI/branding assets as part of this deployment.",
-    "Change backend schemas or add migrations unless required by Version 58 changes already implemented."
+    "Implementing new product features or UI changes unrelated to the Version 59 production promotion.",
+    "Changing backend schemas, data models, or resident/MAR/ADL/vitals behavior unless required to complete deployment successfully."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
+  },
+  "userProfileUpdate": {
+    "goalsToAdd": [],
+    "goalsToRemove": [],
+    "preferencesToAdd": [],
+    "preferencesToRemove": [],
+    "miscToAdd": [],
+    "miscToRemove": [],
+    "fieldsToSet": {},
+    "fieldsToDelete": []
   }
 }

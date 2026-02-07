@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 250,
+  "projectStateVersion": 252,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "architectural_notes": [
     "Architecture: ICP canister app with Motoko backend + React (Vite) frontend.",
@@ -572,6 +572,30 @@
         "REQ-45"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-all-frontend-version-markers-to-version-59-so-the-deployed-app-clearly-reports-the-correct-release-version",
+      "title": "Update all frontend version markers to Version 59 so the deployed app clearly reports the correct release version.",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-deploy-version-59-to-the-internet-computer-production-network-so-the-live-canisters-serve-the-version-59-build",
+      "title": "Deploy Version 59 to the Internet Computer production network so the live canisters serve the Version 59 build.",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-update-production-deployment-documentation-for-version-59-by-creating-a-version-59-deployment-guide-or-updating-the-latest-guide-with-version-59-verification-steps-version-marker-checks-and-post-deploy-checklist",
+      "title": "Add/update production deployment documentation for Version 59 by creating a Version 59 deployment guide (or updating the latest guide) with Version 59 verification steps (version marker checks) and post-deploy checklist.",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -700,6 +724,12 @@
     {
       "id": "AR-22",
       "summary": "Deploy Version 58 to the Internet Computer production network (take Version 58 live) after the build completes.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-23",
+      "summary": "Deploy Version 59 to the Internet Computer production network (take Version 59 live) after the build completes.",
       "reqIds": [],
       "status": "pending"
     }

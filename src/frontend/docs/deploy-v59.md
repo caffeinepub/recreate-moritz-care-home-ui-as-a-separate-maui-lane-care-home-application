@@ -1,14 +1,12 @@
-# Version 58 Production Deployment Guide
+# Version 59 Production Deployment Guide
 
-> **Note:** This guide is retained for historical reference. For current production publishes, use [deploy-v59.md](./deploy-v59.md).
-
-This document provides a comprehensive checklist for deploying Version 58 to the Internet Computer production network.
+This document provides a comprehensive checklist for deploying Version 59 to the Internet Computer production network.
 
 ## Pre-Deployment Verification
 
 1. **Version Markers**
-   - [ ] Verify `frontend/public/version.txt` contains exactly `58`
-   - [ ] Verify `frontend/index.html` contains `<meta name="app-version" content="58" />`
+   - [ ] Verify `frontend/public/version.txt` contains exactly `59`
+   - [ ] Verify `frontend/index.html` contains `<meta name="app-version" content="59" />`
 
 2. **Code Quality**
    - [ ] All TypeScript compilation passes without errors
@@ -29,8 +27,8 @@ This document provides a comprehensive checklist for deploying Version 58 to the
    ```
 
 3. **Post-Deployment Verification**
-   - [ ] Check `version.txt` endpoint returns `58`
-   - [ ] Verify `<meta name="app-version" content="58" />` in deployed HTML
+   - [ ] Check `version.txt` endpoint returns `59`
+   - [ ] Verify `<meta name="app-version" content="59" />` in deployed HTML
    - [ ] Confirm canister status: `dfx canister status backend --network ic`
 
 ## Post-Deploy Smoke Test Checklist
@@ -101,9 +99,9 @@ Perform these tests immediately after deployment to production:
 - [ ] Toggle resident status (Active/Discharged) works
 - [ ] Delete resident works with confirmation
 
-## Version 58 Success Criteria
+## Version 59 Success Criteria
 
-- ✅ All version markers report `58`
+- ✅ All version markers report `59`
 - ✅ Dashboard loads with proper error handling
 - ✅ Resident profiles fully functional
 - ✅ All CRUD operations work correctly
@@ -149,19 +147,19 @@ If critical issues are discovered:
 
 1. **Immediate Rollback**
    ```bash
-   # Deploy previous stable version (Version 57)
-   git checkout v57
+   # Deploy previous stable version (Version 58)
+   git checkout v58
    dfx deploy --network ic
    ```
 
 2. **Verify Rollback**
-   - Check version markers return `57`
+   - Check version markers return `58`
    - Run smoke tests
    - Confirm issue resolved
 
 ## Notes
 
-- Version 58 is a production publish of Version 57 features
+- Version 59 is a production publish of Version 58 features
 - Includes full medication CRUD operations
 - Enhanced error handling for actor initialization
 - Improved loading states across all components

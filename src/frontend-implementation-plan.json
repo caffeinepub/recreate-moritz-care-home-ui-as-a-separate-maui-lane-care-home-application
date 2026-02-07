@@ -1,62 +1,68 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Publish Version 58: update version markers and deployment verification docs",
+  "title": "Promote Version 59 to Production (IC) — Frontend Version Markers + Deployment Docs",
   "requirements": [
     {
-      "id": "REQ-43",
-      "summary": "Update frontend version markers so the deployed app reports Version 58.",
+      "id": "REQ-46",
+      "summary": "Update all frontend version markers to Version 59 so the deployed app reports the correct release version.",
       "acceptanceCriteria": [
-        "`frontend/public/version.txt` contains exactly `58`.",
-        "`frontend/index.html` contains `<meta name=\"app-version\" content=\"58\" />`.",
-        "After deployment, fetching the deployed app HTML shows the app-version meta content as `58` and the `/version.txt` asset returns `58`."
+        "`frontend/public/version.txt` contains exactly `59`.",
+        "`frontend/index.html` contains `<meta name=\"app-version\" content=\"59\" />`.",
+        "After building locally, the generated output serves Version 59 markers (no remaining `58` marker in the built HTML/version endpoint)."
       ],
       "file_operations": [
         {
           "path": "frontend/public/version.txt",
           "operation": "modify",
-          "description": "Change the version marker contents from `57` to exactly `58` (no extra whitespace/newlines beyond the existing file format)."
+          "description": "Update the version marker file content to exactly `59` (including ensuring no extra whitespace/newlines beyond the current convention)."
         },
         {
           "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Update the `<meta name=\"app-version\" ...>` tag content from `57` to `58`."
+          "description": "Update the `<meta name=\"app-version\" ... />` tag content value from `58` to `59`."
         }
       ]
     },
     {
-      "id": "REQ-44",
-      "summary": "Ensure the production publish process for Version 58 is executable and verifiable (operator runbook + smoke checks).",
+      "id": "REQ-47",
+      "summary": "Prepare frontend-side production deploy support for Version 59 so the IC production deploy can be executed and verified against Version 59 markers.",
       "acceptanceCriteria": [
-        "A production deployment is executed using `dfx deploy --network ic` for the app canisters.",
-        "Post-deploy smoke checks confirm: (1) Internet Identity login works, (2) the Dashboard loads, (3) navigating to a resident profile works, and (4) no new blocking console errors are introduced.",
-        "The live site reports version `58` via the version markers (`version.txt` and the `app-version` meta tag)."
+        "Running the production deploy command (`dfx deploy --network ic`) completes successfully for the app canisters.",
+        "After deployment, the live `version.txt` endpoint returns `59`.",
+        "Post-deploy smoke test passes at minimum: Internet Identity login works; Dashboard loads; Resident Profile page can be opened; no new console errors introduced."
       ],
       "file_operations": [
         {
-          "path": "frontend/docs/deploy-v58.md",
+          "path": "frontend/scripts/deploy-ic-v59.sh",
           "operation": "create",
-          "description": "Create a Version 58 production deployment runbook that includes the required `dfx deploy --network ic` command and a concise post-deploy smoke-check section covering: Internet Identity login, Dashboard load, resident profile navigation, and checking for blocking console errors."
+          "description": "Create a small, repo-local helper script that runs the production deployment command (`dfx deploy --network ic`) and prints reminders for the required Version 59 verification steps (version marker check + basic smoke test). Keep it non-interactive and documented at top-of-file."
         },
         {
-          "path": "frontend/docs/deploy-v57.md",
-          "operation": "modify",
-          "description": "Add a brief note at the top indicating this guide is superseded by `deploy-v58.md` for current production publishes (keep existing V57 steps intact for historical reference)."
+          "path": "frontend/scripts/README.md",
+          "operation": "create",
+          "description": "Document how to use the Version 59 deploy helper script, including prerequisites (dfx installed/configured) and how to perform the required smoke test checks after deployment."
         }
       ]
     },
     {
-      "id": "REQ-45",
-      "summary": "Update deployment documentation checklist to include Version 58 version marker verification steps.",
+      "id": "REQ-48",
+      "summary": "Create/update Version 59 production deployment documentation with verification steps and post-deploy checklist.",
       "acceptanceCriteria": [
-        "A Version 58 deployment guide exists (either update `frontend/docs/deploy-v57.md` to v58 wording, or add a new `frontend/docs/deploy-v58.md`) and includes: (1) checking `frontend/public/version.txt` is `58`, (2) checking `frontend/index.html` meta `app-version` is `58`, and (3) post-deploy verification steps for the live publish.",
-        "Any version numbers mentioned in the updated/new deployment doc are consistent with `58` (no lingering `57` references in version marker verification steps)."
+        "A Version 59 deployment doc exists under `frontend/docs/` (e.g., `deploy-v59.md`) and references Version 59 in its title and verification steps.",
+        "The document includes explicit checks for `frontend/public/version.txt == 59` and `<meta name=\"app-version\" content=\"59\" />`.",
+        "The document includes deployment commands and a post-deploy smoke-test checklist consistent with the current app behavior."
       ],
       "file_operations": [
         {
-          "path": "frontend/docs/deploy-v58.md",
+          "path": "frontend/docs/deploy-v59.md",
           "operation": "create",
-          "description": "Write the Version 58 deployment checklist, explicitly documenting the two version marker checks (`frontend/public/version.txt` == `58` and `frontend/index.html` meta `app-version` == `58`) plus post-deploy live verification steps (confirming the deployed HTML meta and `version.txt` asset return `58`)."
+          "description": "Create the Version 59 production deployment guide by adapting the existing latest guide (v58). Ensure the title and all verification steps explicitly reference Version 59, including checks for `frontend/public/version.txt == 59` and `<meta name=\"app-version\" content=\"59\" />`, plus deployment commands and the post-deploy smoke-test checklist."
+        },
+        {
+          "path": "frontend/docs/deploy-v58.md",
+          "operation": "modify",
+          "description": "Update the Version 58 deployment guide header/note to indicate it is superseded by `deploy-v59.md` (retain the rest for historical reference)."
         }
       ]
     }
