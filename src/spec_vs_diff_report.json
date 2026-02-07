@@ -1,52 +1,56 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T21:15:22.615Z",
-  "summary": "Diff adds backend support for an optional Medication.route field (including a migration) and introduces new frontend Select-based components for Administration Route and Prescribing Physician (with sentinel values to avoid empty-string Select issues). However, due to truncation and some type/value conversions shown, it’s not fully evidenced that the edit/save crash is fixed end-to-end with correct toast handling and that route values are persisted in the backend’s new union-typed field.",
+  "generatedAt": "2026-02-07T21:29:17.683Z",
+  "summary": "Frontend version markers were updated to 58 and a new Version 58 deployment guide was added. However, the diff also includes unrelated modifications (not explicitly requested) to backend code and project metadata, and it cannot demonstrate that an actual IC mainnet deployment and post-deploy smoke checks were performed.",
   "missing_requirements": [
     {
-      "id": "REQ-37",
-      "requirement": "Fix the runtime error when editing and saving a resident medication; ensure backend mutation completes; show success/error toasts and do not crash.",
-      "reason": "The diff shows the edit dialog now builds an updated Medication object and uses a sentinel for physician Select values, but the actual save/mutation handler (where the crash and toast behavior would be enforced) is not shown in the provided truncated diff. Therefore the acceptance criteria about no runtime error, mutation completion, and success/error toasts cannot be verified from the evidence.",
+      "id": "REQ-44",
+      "requirement": "Deploy Version 58 to the Internet Computer production network so the live canisters serve the Version 58 build (including executing `dfx deploy --network ic` and completing post-deploy smoke checks).",
+      "reason": "The diff only shows code/documentation changes; it does not provide evidence of an executed production deployment or results of required smoke checks on the live site.",
       "evidence": [
-        "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx (truncated)",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx (truncated)"
-      ]
-    },
-    {
-      "id": "REQ-38",
-      "requirement": "Persist the selected Administration Route to the backend as part of the resident medication record and retain after reload; medications without a stored route display blank/unset.",
-      "reason": "Backend types were updated to store `route : ?MedicationRoute`, but the Add Medication dialog appears to pass `route` as a string (derived from `__kind__`/`other`) rather than a `MedicationRoute` option, and the ResidentProfile wiring that submits to the backend is truncated. From the visible code, it’s unclear that the UI selection is actually persisted into the new backend `?MedicationRoute` field and round-trips correctly on reload.",
-      "evidence": [
-        "backend/main.mo (truncated) — Medication.route : ?MedicationRoute",
-        "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx (truncated) — onAddMedication route: string and routeString conversion",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx (truncated)"
+        "frontend/docs/deploy-v58.md"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "Route selector supports an explicit \"Other (specify)\" option with a free-text input and encodes it as `other:<text>`.",
-      "reason": "REQ-38 asks for a dropdown from a predefined list of common routes with an optional/blank selection; it does not request an 'Other' flow with custom text entry.",
+      "description": "Backend canister code changes in `backend/main.mo` (new/expanded type definitions and imports shown) that are not requested by the BuildRequest, which focuses on version markers and deployment/docs.",
+      "reason": "No requirement asks for backend schema/type modifications as part of taking Version 58 live, and the BuildRequest explicitly discourages backend schema changes unless required by already-implemented Version 58 changes (not evidenced in the diff summary).",
       "evidence": [
-        "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
-        "frontend/src/lib/medicationRoutes.ts"
+        "backend/main.mo"
+      ]
+    },
+    {
+      "description": "Updates/additions to repository metadata/state files not requested for the Version 58 publish (e.g., `project_state.json`).",
+      "reason": "The BuildRequest requirements are limited to version markers, production deployment, and deployment documentation; project state tracking updates are not requested.",
+      "evidence": [
+        "project_state.json"
+      ]
+    },
+    {
+      "description": "Modification of `frontend-file-summaries.txt` (large descriptive summary content) not requested for Version 58 deployment/version marker work.",
+      "reason": "The BuildRequest does not request generating or updating a frontend file summary artifact.",
+      "evidence": [
+        "frontend-file-summaries.txt"
+      ]
+    },
+    {
+      "description": "Edits to the Version 57 deployment guide adding a superseded note while leaving Version 57 marker checks in place.",
+      "reason": "REQ-45 allows either updating `deploy-v57.md` to Version 58 wording or adding a new `deploy-v58.md`. Since a new `deploy-v58.md` was added, changing `deploy-v57.md` is extra and not required by any acceptance criteria.",
+      "evidence": [
+        "frontend/docs/deploy-v57.md"
       ]
     }
   ],
-  "confidence": 0.58,
+  "confidence": 0.72,
   "changed_files": [
     "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
-    "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
-    "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
-    "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
-    "frontend/src/components/maui/residents/medications/index.ts",
-    "frontend/src/lib/medicationRoutes.ts",
-    "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-    "frontend/src/pages/maui/residents/mockResidentProfileData.ts",
+    "frontend/docs/deploy-v57.md",
+    "frontend/docs/deploy-v58.md",
+    "frontend/index.html",
+    "frontend/public/version.txt",
     "project_state.json"
   ]
 }

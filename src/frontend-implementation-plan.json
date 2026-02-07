@@ -1,96 +1,62 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Stabilize medication edit flow and add Select inputs for Route and Prescribing Physician",
+  "title": "Publish Version 58: update version markers and deployment verification docs",
   "requirements": [
     {
-      "id": "REQ-37",
-      "summary": "Fix medication edit/save runtime crash and ensure update success/error handling is resilient",
+      "id": "REQ-43",
+      "summary": "Update frontend version markers so the deployed app reports Version 58.",
       "acceptanceCriteria": [
-        "Editing an existing medication and clicking “Save Changes” does not throw a runtime error in the browser console.",
-        "If the backend update fails, the UI shows a clear error toast and does not crash.",
-        "If the backend update succeeds, the UI shows a success toast and the updated medication values are visible after refetch/reload.",
-        "The prescribing physician selector in the edit dialog does not use an empty-string Select value that can break the Select component (use a safe sentinel value and map it to an empty physician value)."
+        "`frontend/public/version.txt` contains exactly `58`.",
+        "`frontend/index.html` contains `<meta name=\"app-version\" content=\"58\" />`.",
+        "After deployment, fetching the deployed app HTML shows the app-version meta content as `58` and the `/version.txt` asset returns `58`."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
+          "path": "frontend/public/version.txt",
           "operation": "modify",
-          "description": "Use the shadcn-ui Select component safely by replacing any empty-string Select values with a non-empty sentinel (e.g., for “None/Unassigned”) and mapping the sentinel back to an empty physician string when saving; keep edit dialog form state in sync with the selected medication to prevent crashes. Verify the component's usage instructions before implementing."
+          "description": "Change the version marker contents from `57` to exactly `58` (no extra whitespace/newlines beyond the existing file format)."
         },
         {
-          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
+          "path": "frontend/index.html",
           "operation": "modify",
-          "description": "Harden the edit/save flow by ensuring the edit dialog passes a valid medication update payload (including any newly added fields) and that failures only surface as error toasts without unhandled exceptions; confirm react-query invalidation/refetch keeps the updated values visible after save."
+          "description": "Update the `<meta name=\"app-version\" ...>` tag content from `57` to `58`."
         }
       ]
     },
     {
-      "id": "REQ-38",
-      "summary": "Add a predefined Administration Route Select (optional/blank) to Add and Edit Medication dialogs and persist it",
+      "id": "REQ-44",
+      "summary": "Ensure the production publish process for Version 58 is executable and verifiable (operator runbook + smoke checks).",
       "acceptanceCriteria": [
-        "Add Medication dialog uses a Select control (not a free-text input) for Administration Route.",
-        "Edit Medication dialog includes the same Administration Route Select control and is pre-populated with the current medication route.",
-        "The selected route is persisted to the backend as part of the resident medication record and is retained after reload.",
-        "Existing residents/medications stored before this change continue to load successfully; medications without a stored route display a blank/unset route in the UI."
+        "A production deployment is executed using `dfx deploy --network ic` for the app canisters.",
+        "Post-deploy smoke checks confirm: (1) Internet Identity login works, (2) the Dashboard loads, (3) navigating to a resident profile works, and (4) no new blocking console errors are introduced.",
+        "The live site reports version `58` via the version markers (`version.txt` and the `app-version` meta tag)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/lib/medicationRoutes.ts",
+          "path": "frontend/docs/deploy-v58.md",
           "operation": "create",
-          "description": "Add a single source of truth for the predefined medication route list and conversion helpers between UI-select values and the backend MedicationRoute union (including support for optional/blank and an “Other” value with free-text)."
+          "description": "Create a Version 58 production deployment runbook that includes the required `dfx deploy --network ic` command and a concise post-deploy smoke-check section covering: Internet Identity login, Dashboard load, resident profile navigation, and checking for blocking console errors."
         },
         {
-          "path": "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
-          "operation": "create",
-          "description": "Create a reusable Route Select field using shadcn-ui Select/SelectItem that supports an explicit blank/unset choice and an “Other” route text entry path while keeping the overall control a Select. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
+          "path": "frontend/docs/deploy-v57.md",
           "operation": "modify",
-          "description": "Replace the free-text Route input with the shared MedicationRouteSelect component and ensure the dialog can submit an optional/blank route. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
-          "operation": "modify",
-          "description": "Add the shared MedicationRouteSelect component to the edit form, pre-populate it from medication.route when present, and map the selected value into the saved Medication object so the caller can persist it. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "operation": "modify",
-          "description": "Persist route by including it in both addMedication and updateMedication flows (populate Medication.route and MedicationUpdate.route using the new conversion helpers), and update any on-screen/print mapping so medications with undefined route render as blank/unset without errors."
+          "description": "Add a brief note at the top indicating this guide is superseded by `deploy-v58.md` for current production publishes (keep existing V57 steps intact for historical reference)."
         }
       ]
     },
     {
-      "id": "REQ-39",
-      "summary": "Add Prescribing Physician Select (optional/None) to Add and Edit Medication dialogs with safe fallback when no physicians exist",
+      "id": "REQ-45",
+      "summary": "Update deployment documentation checklist to include Version 58 version marker verification steps.",
       "acceptanceCriteria": [
-        "Add Medication dialog uses a Select control for Prescribing Physician when the resident has physicians on file, and supports an explicit “None/Unassigned” selection.",
-        "Edit Medication dialog continues to use a Select control for Prescribing Physician (when physicians exist) and does not crash when selecting “None/Unassigned”.",
-        "If the resident has no physicians on file, the UI provides a safe fallback (e.g., disabled Select with a message, or a text input) without causing runtime errors.",
-        "The saved prescribing physician value is persisted and displayed correctly after reload."
+        "A Version 58 deployment guide exists (either update `frontend/docs/deploy-v57.md` to v58 wording, or add a new `frontend/docs/deploy-v58.md`) and includes: (1) checking `frontend/public/version.txt` is `58`, (2) checking `frontend/index.html` meta `app-version` is `58`, and (3) post-deploy verification steps for the live publish.",
+        "Any version numbers mentioned in the updated/new deployment doc are consistent with `58` (no lingering `57` references in version marker verification steps)."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
+          "path": "frontend/docs/deploy-v58.md",
           "operation": "create",
-          "description": "Create a reusable Prescribing Physician field that uses shadcn-ui Select when physicians exist (including a non-empty sentinel for “None/Unassigned”) and provides a safe fallback UI when no physicians are available. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
-          "operation": "modify",
-          "description": "Update Add Medication to source physician options from the resident’s physicians list (passed in via props) and use the shared MedicationPhysicianSelect so “None/Unassigned” never uses an empty Select value and the no-physicians fallback is safe. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
-          "operation": "modify",
-          "description": "Replace the inlined physician Select/text fallback with the shared MedicationPhysicianSelect and ensure the dialog maps the sentinel back to an empty physician value on save (avoiding empty-string Select values that can crash shadcn-ui Select). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
-          "operation": "modify",
-          "description": "Pass the resident’s physicians list into both AddMedicationDialog and EditMedicationDialog, and ensure the saved prescribingPhysician persists through the existing add/update mutation paths and renders correctly after query refetch/reload."
+          "description": "Write the Version 58 deployment checklist, explicitly documenting the two version marker checks (`frontend/public/version.txt` == `58` and `frontend/index.html` meta `app-version` == `58`) plus post-deploy live verification steps (confirming the deployed HTML meta and `version.txt` asset return `58`)."
         }
       ]
     }

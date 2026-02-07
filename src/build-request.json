@@ -1,88 +1,80 @@
 {
   "kind": "build_request",
-  "title": "Fix medication edit error and add dropdown selectors for Administration Route and Prescribing Physician",
-  "priority": "normal",
+  "title": "Take Version 58 live on ICP production and update version markers/docs",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-37",
-      "text": "Review and fix the runtime error that occurs when editing and saving a resident medication from the Resident Profile medications list, ensuring the edit dialog can save without crashing and the backend mutation completes successfully.",
+      "id": "REQ-43",
+      "text": "Update the frontend version markers to Version 58 so the deployed app clearly reports the correct release version.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-2",
+          "msg-3"
         ],
         "quotes": [
-          "review and fix error on editing medications. add drop down selector for Administration Route and Prescribing Physician"
+          "Version 58 is ready — want me to take it live when you’re satisfied with how it looks?",
+          "yes"
         ]
       },
       "acceptanceCriteria": [
-        "Editing an existing medication and clicking “Save Changes” does not throw a runtime error in the browser console.",
-        "If the backend update fails, the UI shows a clear error toast and does not crash.",
-        "If the backend update succeeds, the UI shows a success toast and the updated medication values are visible after refetch/reload.",
-        "The prescribing physician selector in the edit dialog does not use an empty-string Select value that can break the Select component (use a safe sentinel value and map it to an empty physician value)."
+        "`frontend/public/version.txt` contains exactly `58`.",
+        "`frontend/index.html` contains `<meta name=\"app-version\" content=\"58\" />`.",
+        "After deployment, fetching the deployed app HTML shows the app-version meta content as `58` and the `/version.txt` asset returns `58`."
       ]
     },
     {
-      "id": "REQ-38",
-      "text": "Add a dropdown selector input for Medication Administration Route in both the Add Medication and Edit Medication dialogs, using a consistent predefined list of common routes, while still allowing an optional/blank selection.",
+      "id": "REQ-44",
+      "text": "Deploy Version 58 to the Internet Computer production network so the live canisters serve the Version 58 build.",
       "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-2",
+          "msg-3"
         ],
         "quotes": [
-          "add drop down selector for Administration Route"
+          "Version 58 is ready — want me to take it live when you’re satisfied with how it looks?",
+          "yes"
         ]
       },
       "acceptanceCriteria": [
-        "Add Medication dialog uses a Select control (not a free-text input) for Administration Route.",
-        "Edit Medication dialog includes the same Administration Route Select control and is pre-populated with the current medication route.",
-        "The selected route is persisted to the backend as part of the resident medication record and is retained after reload.",
-        "Existing residents/medications stored before this change continue to load successfully; medications without a stored route display a blank/unset route in the UI."
+        "A production deployment is executed using `dfx deploy --network ic` for the app canisters.",
+        "Post-deploy smoke checks confirm: (1) Internet Identity login works, (2) the Dashboard loads, (3) navigating to a resident profile works, and (4) no new blocking console errors are introduced.",
+        "The live site reports version `58` via the version markers (`version.txt` and the `app-version` meta tag)."
       ]
     },
     {
-      "id": "REQ-39",
-      "text": "Add a dropdown selector input for Prescribing Physician in both the Add Medication and Edit Medication dialogs, sourcing options from the resident’s existing Physicians list; ensure the field can be left unset.",
+      "id": "REQ-45",
+      "text": "Update the deployment documentation checklist to reflect Version 58 verification (version marker checks) so operators can validate the live publish consistently.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-2",
+          "msg-3"
         ],
         "quotes": [
-          "add drop down selector for ... Prescribing Physician"
+          "Version 58 is ready — want me to take it live when you’re satisfied with how it looks?",
+          "yes"
         ]
       },
       "acceptanceCriteria": [
-        "Add Medication dialog uses a Select control for Prescribing Physician when the resident has physicians on file, and supports an explicit “None/Unassigned” selection.",
-        "Edit Medication dialog continues to use a Select control for Prescribing Physician (when physicians exist) and does not crash when selecting “None/Unassigned”.",
-        "If the resident has no physicians on file, the UI provides a safe fallback (e.g., disabled Select with a message, or a text input) without causing runtime errors.",
-        "The saved prescribing physician value is persisted and displayed correctly after reload."
+        "A Version 58 deployment guide exists (either update `frontend/docs/deploy-v57.md` to v58 wording, or add a new `frontend/docs/deploy-v58.md`) and includes: (1) checking `frontend/public/version.txt` is `58`, (2) checking `frontend/index.html` meta `app-version` is `58`, and (3) post-deploy verification steps for the live publish.",
+        "Any version numbers mentioned in the updated/new deployment doc are consistent with `58` (no lingering `57` references in version marker verification steps)."
       ]
     }
   ],
   "constraints": [
-    "Backend must remain a single Motoko actor in backend/main.mo; add backend/migration.mo changes only if existing stable state needs to be upgraded for new medication fields.",
-    "Do not edit files under frontend/src/components/ui or the immutable hook paths listed in SYSTEM_CONTEXT (compose existing components instead).",
-    "Use English for all user-facing UI text."
+    "Backend must remain a single Motoko actor in `backend/main.mo`; do not introduce additional backend services.",
+    "Do not modify files under `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, or `frontend/src/components/ui` (immutable paths).",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Changing MAR record schema or MAR add flow behavior beyond what is required for medication field compatibility.",
-    "Adding third-party physician directories or external data sources for routes/physicians.",
-    "Introducing new authentication mechanisms beyond the existing Internet Identity flow."
+    "Implement new product features unrelated to publishing Version 58.",
+    "Redesign UI/branding assets as part of this deployment.",
+    "Change backend schemas or add migrations unless required by Version 58 changes already implemented."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

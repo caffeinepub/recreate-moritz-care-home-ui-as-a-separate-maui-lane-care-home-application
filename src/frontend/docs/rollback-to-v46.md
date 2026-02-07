@@ -1,12 +1,12 @@
-# Rollback to Version 46 Deployment Guide
+# Rollback to Version 57 Deployment Guide
 
-This document provides a checklist for deploying the Version 46 rollback build to production.
+This document provides a checklist for deploying the Version 57 rollback build to production.
 
 ## Pre-Deployment Verification
 
 1. **Version Markers**
-   - [ ] Verify `frontend/public/version.txt` contains exactly `46`
-   - [ ] Verify `frontend/index.html` contains `<meta name="app-version" content="46" />`
+   - [ ] Verify `frontend/public/version.txt` contains exactly `57`
+   - [ ] Verify `frontend/index.html` contains `<meta name="app-version" content="57" />`
 
 2. **Code Changes**
    - [ ] Dashboard no longer gates directory load behind seeding
@@ -27,7 +27,7 @@ This document provides a checklist for deploying the Version 46 rollback build t
    ```
 
 3. **Verify Deployment**
-   - [ ] Check version marker endpoint returns `46`
+   - [ ] Check version marker endpoint returns `57`
    - [ ] Smoke test: Navigate to Residents dashboard
    - [ ] Verify: Dashboard shows loading state, then resident list (or empty state)
    - [ ] Verify: No immediate error on dashboard load
@@ -59,7 +59,7 @@ After deployment, perform these tests in production:
 - ✅ Production no longer exhibits Version 47 regression (immediate dashboard failure)
 - ✅ Residents dashboard loads normally with proper loading states
 - ✅ Resident profiles are accessible from dashboard
-- ✅ Version markers report `46`
+- ✅ Version markers report `57`
 
 ## Troubleshooting
 

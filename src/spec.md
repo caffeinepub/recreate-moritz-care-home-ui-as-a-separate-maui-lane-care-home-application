@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the medication edit/save crash and replace free-text fields with safe dropdown selectors for Administration Route and Prescribing Physician in the medication dialogs.
+**Goal:** Publish Version 58 to ICP production and ensure the live app and operator docs clearly reflect Version 58.
 
 **Planned changes:**
-- Identify and fix the runtime error triggered when saving edits to an existing resident medication from the Resident Profile medication list; ensure the backend update mutation completes and the UI handles failures without crashing.
-- Update the Edit Medication Prescribing Physician Select to avoid using an empty-string value that can break the Select component (use a safe “None/Unassigned” sentinel value and map it to an unset physician on save).
-- Add an Administration Route Select control to both Add Medication and Edit Medication dialogs using a consistent predefined list of common routes, supporting an optional/blank selection and persisting the selected route.
-- Add a Prescribing Physician Select control to both Add Medication and Edit Medication dialogs, sourcing options from the resident’s physician list; support “None/Unassigned” and provide a safe fallback UI when no physicians exist.
-- Ensure existing medications without stored route/physician values continue to load and display as blank/unset without errors.
+- Update frontend version markers to 58 (`frontend/public/version.txt` and `frontend/index.html` meta `app-version`).
+- Deploy the current Version 58 build to the Internet Computer production network (`dfx deploy --network ic`) and run basic post-deploy smoke checks (Internet Identity login, Dashboard load, resident profile navigation, no new blocking console errors).
+- Update/create the deployment checklist documentation to include Version 58 verification steps for the version markers and post-deploy validation.
 
-**User-visible outcome:** Staff can add and edit resident medications without crashes, choose an Administration Route and (optionally) a Prescribing Physician from dropdowns, see clear success/error toasts after saving, and have selections persist after reload.
+**User-visible outcome:** The live ICP site serves Version 58 and reports version `58` via `/version.txt` and the `app-version` meta tag, with updated operator documentation for consistent verification.

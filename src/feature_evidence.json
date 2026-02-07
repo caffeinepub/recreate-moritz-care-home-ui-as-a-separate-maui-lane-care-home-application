@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-review-and-fix-the-runtime-error-that-occurs-when-editing-and-saving-a-resident-medication-from-the-resident-profile-medications-list-ensuring-the-edit-dialog-can-save-without-crashing-and-the-backend-mutation-completes-successfully",
-      "featureTitle": "Review and fix the runtime error that occurs when editing and saving a resident medication from the Resident Profile medications list, ensuring the edit dialog can save without crashing and the backend mutation completes successfully.",
+      "featureId": "feature-update-the-frontend-version-markers-to-version-58-so-the-deployed-app-clearly-reports-the-correct-release-version",
+      "featureTitle": "Update the frontend version markers to Version 58 so the deployed app clearly reports the correct release version.",
       "files": [
-        "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        "frontend/index.html",
+        "frontend/public/version.txt"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,19 +17,16 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-37"
+        "REQ-43"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-dropdown-selector-input-for-medication-administration-route-in-both-the-add-medication-and-edit-medication-dialogs-using-a-consistent-predefined-list-of-common-routes-while-still-allowing-an-optional-blank-selection",
-      "featureTitle": "Add a dropdown selector input for Medication Administration Route in both the Add Medication and Edit Medication dialogs, using a consistent predefined list of common routes, while still allowing an optional/blank selection.",
+      "featureId": "feature-deploy-version-58-to-the-internet-computer-production-network-so-the-live-canisters-serve-the-version-58-build",
+      "featureTitle": "Deploy Version 58 to the Internet Computer production network so the live canisters serve the Version 58 build.",
       "files": [
-        "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
-        "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
-        "frontend/src/components/maui/residents/medications/MedicationRouteSelect.tsx",
-        "frontend/src/lib/medicationRoutes.ts",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        "frontend/docs/deploy-v57.md",
+        "frontend/docs/deploy-v58.md"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -40,18 +37,15 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-38"
+        "REQ-44"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-dropdown-selector-input-for-prescribing-physician-in-both-the-add-medication-and-edit-medication-dialogs-sourcing-options-from-the-resident-s-existing-physicians-list-ensure-the-field-can-be-left-unset",
-      "featureTitle": "Add a dropdown selector input for Prescribing Physician in both the Add Medication and Edit Medication dialogs, sourcing options from the resident’s existing Physicians list; ensure the field can be left unset.",
+      "featureId": "feature-update-the-deployment-documentation-checklist-to-reflect-version-58-verification-version-marker-checks-so-operators-can-validate-the-live-publish-consistently",
+      "featureTitle": "Update the deployment documentation checklist to reflect Version 58 verification (version marker checks) so operators can validate the live publish consistently.",
       "files": [
-        "frontend/src/components/maui/residents/medications/AddMedicationDialog.tsx",
-        "frontend/src/components/maui/residents/medications/EditMedicationDialog.tsx",
-        "frontend/src/components/maui/residents/medications/MedicationPhysicianSelect.tsx",
-        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
+        "frontend/docs/deploy-v58.md"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -62,7 +56,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-39"
+        "REQ-45"
       ],
       "confidence": "high"
     }

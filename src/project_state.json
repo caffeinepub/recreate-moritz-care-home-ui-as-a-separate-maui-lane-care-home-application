@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 246,
+  "projectStateVersion": 250,
   "summary": "Build a separate Maui Lane Care Home application by closely copying the Moritz Care Home application's layout, UI, and details, on the existing ICP canister (Motoko) + React (Vite) scaffold with Internet Identity.",
   "architectural_notes": [
     "Architecture: ICP canister app with Motoko backend + React (Vite) frontend.",
@@ -19,7 +19,7 @@
     "Production/backend connectivity error shown after deployment: \"Backend connection is not available. Please ensure you are logged in.\" (likely auth/actor/canister connectivity issue).",
     "Editing medications currently triggers an error during the edit/save flow (needs review and fix)."
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "generatedImages": [
     {
       "filename": "frontend/public/assets/generated/maui-lane-logo.photo.v3.dim_512x512.png",
@@ -524,6 +524,54 @@
         "REQ-39"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-version-markers-to-version-57-so-the-deployed-app-clearly-reports-the-correct-release-version",
+      "title": "Update the frontend version markers to Version 57 so the deployed app clearly reports the correct release version.",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-deploy-version-57-to-the-internet-computer-production-network-so-the-live-canisters-serve-the-version-57-build",
+      "title": "Deploy Version 57 to the Internet Computer production network so the live canisters serve the Version 57 build.",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-existing-deployment-documentation-checklist-to-reflect-version-57-verification-version-marker-checks-so-operators-can-validate-the-live-publish-consistently",
+      "title": "Update the existing deployment documentation checklist to reflect Version 57 verification (version marker checks) so operators can validate the live publish consistently.",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-version-markers-to-version-58-so-the-deployed-app-clearly-reports-the-correct-release-version",
+      "title": "Update the frontend version markers to Version 58 so the deployed app clearly reports the correct release version.",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-deploy-version-58-to-the-internet-computer-production-network-so-the-live-canisters-serve-the-version-58-build",
+      "title": "Deploy Version 58 to the Internet Computer production network so the live canisters serve the Version 58 build.",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-deployment-documentation-checklist-to-reflect-version-58-verification-version-marker-checks-so-operators-can-validate-the-live-publish-consistently",
+      "title": "Update the deployment documentation checklist to reflect Version 58 verification (version marker checks) so operators can validate the live publish consistently.",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -646,6 +694,12 @@
     {
       "id": "AR-21",
       "summary": "Add dropdown selector inputs for Medication Administration Route and Prescribing Physician in the medication add/edit flows (instead of free-text), to standardize entries.",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-22",
+      "summary": "Deploy Version 58 to the Internet Computer production network (take Version 58 live) after the build completes.",
       "reqIds": [],
       "status": "pending"
     }
