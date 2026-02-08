@@ -1,84 +1,57 @@
 {
   "kind": "build_request",
-  "title": "Promote Version 59 to Production (IC)",
-  "priority": "normal",
+  "title": "Fix app getting stuck on “Connecting to Backend” after “Loading Profile” by eliminating actor/health-check race conditions",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-46",
-      "text": "Update all frontend version markers to Version 59 so the deployed app clearly reports the correct release version.",
+      "id": "REQ-1",
+      "text": "Prevent any resident/profile React Query calls from executing until the backend actor is fully initialized and stable, so the app cannot enter a stuck “Connecting to Backend” state immediately after the profile finishes loading.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "promote version 59 to production"
+          "stucked on connecting to backend after it swys loading profile",
+          "yes"
         ]
       },
       "acceptanceCriteria": [
-        "`frontend/public/version.txt` contains exactly `59`.",
-        "`frontend/index.html` contains `<meta name=\"app-version\" content=\"59\" />`.",
-        "After building locally, the generated output serves Version 59 markers (no remaining `58` marker in the built HTML/version endpoint)."
+        "When the user signs in and the app finishes “Loading Profile”, the UI proceeds into the app without switching back to “Connecting to Backend”.",
+        "No React Query request should throw an \"Actor not available\" error during initial load or when navigating to ResidentProfile.",
+        "ResidentProfile data fetching does not start until the actor is available (and any required identity prerequisites are satisfied)."
       ]
     },
     {
-      "id": "REQ-47",
-      "text": "Deploy Version 59 to the Internet Computer production network so the live canisters serve the Version 59 build.",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "promote version 59 to production"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Running the production deploy command (`dfx deploy --network ic`) completes successfully for the app canisters.",
-        "After deployment, the live `version.txt` endpoint returns `59`.",
-        "Post-deploy smoke test passes at minimum: Internet Identity login works; Dashboard loads; Resident Profile page can be opened; no new console errors introduced."
-      ]
-    },
-    {
-      "id": "REQ-48",
-      "text": "Add/update production deployment documentation for Version 59 by creating a Version 59 deployment guide (or updating the latest guide) with Version 59 verification steps (version marker checks) and post-deploy checklist.",
+      "id": "REQ-2",
+      "text": "Stabilize the startup gating flow so BackendReachabilityGate and ProfileBootstrapGate do not re-trigger in a loop (or remount in a way that re-runs health checks indefinitely) after profile load and during route transitions (e.g., navigating to the Medication tab / ResidentProfile page).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-1"
         ],
         "quotes": [
-          "promote version 59 to production"
+          "stucked on connecting to backend after it swys loading profile"
         ]
       },
       "acceptanceCriteria": [
-        "A Version 59 deployment doc exists under `frontend/docs/` (e.g., `deploy-v59.md`) and references Version 59 in its title and verification steps.",
-        "The document includes explicit checks for `frontend/public/version.txt == 59` and `<meta name=\"app-version\" content=\"59\" />`.",
-        "The document includes deployment commands and a post-deploy smoke-test checklist consistent with the current app behavior."
+        "After successful initial backend reachability and profile bootstrap, navigating between routes (including ResidentProfile and tabs like Medications) does not show the full-screen “Connecting to Backend” gate again unless the backend is actually unreachable.",
+        "If the backend is unreachable, the user sees the existing error UI with a working Retry button; if reachable, the app transitions to content and stays there.",
+        "Health check behavior does not cause infinite loading states; it either resolves to reachable/unreachable within its timeout and surfaces a clear error message on failure."
       ]
     }
   ],
   "constraints": [
-    "Do not edit files under `frontend/src/components/ui` (compose existing Shadcn components instead).",
-    "Do not edit any paths listed in `frontend.immutablePaths` in SYSTEM_CONTEXT.",
-    "Backend remains a single Motoko actor in `backend/main.mo`; only add `backend/migration.mo` if a state migration is required (not expected for a version-only promotion)."
+    "Do not edit any files under frontend/src/components/ui or any paths listed in frontend.immutablePaths (e.g., frontend/src/hooks/useInternetIdentity.ts(x), frontend/src/hooks/useActor.ts, frontend/src/main.tsx).",
+    "Keep all backend logic in the single Motoko actor (backend/main.mo) if backend changes are required; add backend/migration.mo only if state migration is necessary.",
+    "Use English for any user-facing text."
   ],
   "nonGoals": [
-    "Implementing new product features or UI changes unrelated to the Version 59 production promotion.",
-    "Changing backend schemas, data models, or resident/MAR/ADL/vitals behavior unless required to complete deployment successfully."
+    "Adding new product features unrelated to startup connectivity (e.g., new tabs, new resident workflows).",
+    "Introducing external auth providers, databases, or real-time transports."
   ],
   "imageRequirements": {
     "required": [],
     "edits": []
-  },
-  "userProfileUpdate": {
-    "goalsToAdd": [],
-    "goalsToRemove": [],
-    "preferencesToAdd": [],
-    "preferencesToRemove": [],
-    "miscToAdd": [],
-    "miscToRemove": [],
-    "fieldsToSet": {},
-    "fieldsToDelete": []
   }
 }

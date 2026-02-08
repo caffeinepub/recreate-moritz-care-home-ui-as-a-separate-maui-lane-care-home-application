@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Promote Version 59 to production by updating version markers, deploying the Version 59 build to the Internet Computer, and documenting the production deployment/verification steps.
+**Goal:** Fix the app getting stuck on “Connecting to Backend” after “Loading Profile” by ensuring React Query requests only run once the backend actor is fully initialized and by preventing startup gates/health checks from looping or remounting during navigation.
 
 **Planned changes:**
-- Update frontend version markers to Version 59 (version.txt and app-version meta tag) and verify no remaining Version 58 markers in built output.
-- Deploy the Version 59 build to the Internet Computer production network so live canisters serve Version 59.
-- Create or update a Version 59 production deployment guide under `frontend/docs/` with verification steps and a post-deploy smoke-test checklist.
+- Add a stable “actor ready” gating signal and ensure resident/profile React Query calls (including ResidentProfile-related fetching) do not execute until the actor and identity prerequisites are fully available.
+- Stabilize the startup gating flow so BackendReachabilityGate and ProfileBootstrapGate do not re-trigger, remount, or re-run health checks indefinitely after successful load or during route transitions.
+- Ensure health checks resolve deterministically (reachable/unreachable) and only show the full-screen “Connecting to Backend” gate when the backend is actually unreachable; keep existing Retry/error UI behavior.
 
-**User-visible outcome:** The live production app reports Version 59 (including the live `version.txt` endpoint) and continues to function normally (login works, Dashboard loads, Resident Profile opens) after deployment.
+**User-visible outcome:** After signing in, the app proceeds into content after “Loading Profile” without reverting to “Connecting to Backend,” and navigating to ResidentProfile/Medications no longer triggers repeated full-screen connection gating or “Actor not available” errors.

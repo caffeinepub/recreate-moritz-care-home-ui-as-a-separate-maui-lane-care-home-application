@@ -7,7 +7,21 @@ import { MoritzReferenceCapture } from './pages/references/MoritzReferenceCaptur
 import { ResidentProfile } from './pages/maui/residents/ResidentProfile';
 import { Toaster } from './components/ui/sonner';
 
-const queryClient = new QueryClient();
+// Configure QueryClient with reduced automatic refetching to prevent
+// startup gates from re-triggering during navigation
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Disable automatic refetching on window focus/reconnect by default
+      // Individual queries can override this if needed
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      // Keep queries in cache longer to avoid unnecessary refetches
+      staleTime: 30_000, // 30 seconds
+      gcTime: 300_000, // 5 minutes
+    },
+  },
+});
 
 const rootRoute = createRootRoute({
   component: MauiAppShell,

@@ -1,58 +1,19 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-07T21:39:23.403Z",
-  "summary": "REQ-46 and REQ-48 appear implemented: version markers updated to 59 in the specified files and a new Version 59 deployment guide was added under frontend/docs with the requested verification checks, commands, and smoke-test checklist. REQ-47 (actual production deployment success on IC) cannot be confirmed/implemented via the provided code diff; the diff only adds documentation/scripts, not evidence of a successful `dfx deploy --network ic` or live endpoint verification. The diff also includes substantial unrelated frontend feature/UI changes beyond a version-promotion scope.",
-  "missing_requirements": [
-    {
-      "id": "REQ-47",
-      "requirement": "Deploy Version 59 to the Internet Computer production network so the live canisters serve the Version 59 build.",
-      "reason": "The diff shows documentation and a helper script referencing `dfx deploy --network ic`, but provides no evidence that production deployment was performed successfully or that live canisters/endpoints were verified (these are operational outcomes, not implemented changes).",
-      "evidence": [
-        "frontend/docs/deploy-v59.md",
-        "frontend/scripts/deploy-ic-v59.sh"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "Large set of frontend application/UI/behavior changes (routing/pages/nav/auth shell/dashboard error handling, React Query hooks including new medication management hooks, design system/print CSS, Tailwind theme changes, resident mock data/utilities, etc.) unrelated to a version-marker update/promotion.",
-      "reason": "BuildRequest explicitly lists non-goals as implementing new product features or UI changes unrelated to the Version 59 production promotion; these modifications go far beyond updating version markers and adding deployment documentation.",
-      "evidence": [
-        "frontend-file-summaries.txt"
-      ]
-    },
-    {
-      "description": "Added a new production deployment helper script for Version 59 (`frontend/scripts/deploy-ic-v59.sh`).",
-      "reason": "Not requested by REQ-46/47/48 (REQ-48 asks for documentation under `frontend/docs/`; it does not request adding scripts).",
-      "evidence": [
-        "frontend/scripts/deploy-ic-v59.sh"
-      ]
-    },
-    {
-      "description": "Modified/added deployment scripts README content under `frontend/scripts/README.md`.",
-      "reason": "Not requested; REQ-48 only requires a Version 59 deployment doc under `frontend/docs/`.",
-      "evidence": [
-        "frontend/scripts/README.md"
-      ]
-    },
-    {
-      "description": "Updated `project_state.json` summary/content describing broader product work (Maui Lane Care Home app copying Moritz app) unrelated to version promotion.",
-      "reason": "Not part of the version marker update or deployment documentation requirements; also suggests scope creep beyond the stated non-goals.",
-      "evidence": [
-        "project_state.json"
-      ]
-    }
-  ],
+  "generatedAt": "2026-02-08T03:25:11.408Z",
+  "summary": "Diff implements actor-readiness gating for React Query hooks (via new useActorReady) and stabilizes startup gates by latching successful health check/profile bootstrap states and reducing automatic refetch behaviors, addressing the reported “Connecting to Backend” loop/race conditions.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
   "confidence": 0.74,
   "changed_files": [
     "frontend-file-summaries.txt",
-    "frontend/docs/deploy-v58.md",
-    "frontend/docs/deploy-v59.md",
-    "frontend/index.html",
-    "frontend/public/version.txt",
-    "frontend/scripts/README.md",
-    "frontend/scripts/deploy-ic-v59.sh",
+    "frontend/src/App.tsx",
+    "frontend/src/components/startup/BackendReachabilityGate.tsx",
+    "frontend/src/components/startup/ProfileBootstrapGate.tsx",
+    "frontend/src/hooks/useActorReady.ts",
+    "frontend/src/hooks/useHealthCheck.ts",
+    "frontend/src/hooks/useQueries.ts",
     "project_state.json"
   ]
 }

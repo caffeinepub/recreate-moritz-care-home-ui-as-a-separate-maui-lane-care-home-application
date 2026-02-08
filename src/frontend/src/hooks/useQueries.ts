@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
+import { useActorReady } from './useActorReady';
 import { useInternetIdentity } from './useInternetIdentity';
 import { Principal } from '@dfinity/principal';
 import { residentQueryKeys } from './residentQueryKeys';
@@ -22,33 +22,44 @@ const DIRECTORY_QUERY_TIMEOUT_MS = 15000; // 15 seconds
 
 // User Profile Queries
 export function useGetCallerUserProfile() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actorReady, actor } = useActorReady();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      try {
+        return await actor.getCallerUserProfile();
+      } catch (error: any) {
+        // Ensure errors are thrown as Error instances with clear messages
+        const errorMessage = error?.message || String(error);
+        throw new Error(`Failed to load user profile: ${errorMessage}`);
+      }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: actorReady,
     retry: false,
   });
 
   return {
     ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
+    isLoading: !actorReady || query.isLoading,
+    isFetched: actorReady && query.isFetched,
   };
 }
 
 export function useSaveCallerUserProfile() {
-  const { actor } = useActor();
+  const { actor } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.saveCallerUserProfile(profile);
+      try {
+        return await actor.saveCallerUserProfile(profile);
+      } catch (error: any) {
+        const errorMessage = error?.message || String(error);
+        throw new Error(`Failed to save user profile: ${errorMessage}`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -64,8 +75,7 @@ export function useSaveCallerUserProfile() {
  * Includes compatibility fallback for older backend deployments.
  */
 export function useGetResidentsDirectory() {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actorReady, actor, identity } = useActorReady();
 
   const principalId = identity?.getPrincipal().toString();
 
@@ -162,7 +172,7 @@ export function useGetResidentsDirectory() {
         throw error;
       }
     },
-    enabled: !!actor && !actorFetching && !!identity,
+    enabled: actorReady,
     retry: false,
     // Cache for 30 seconds to avoid refetching when navigating back to Dashboard
     staleTime: 30_000,
@@ -173,14 +183,13 @@ export function useGetResidentsDirectory() {
 
   return {
     ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
+    isLoading: !actorReady || query.isLoading,
+    isFetched: actorReady && query.isFetched,
   };
 }
 
 export function useListActiveResidents() {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actorReady, actor, identity } = useActorReady();
 
   const principalId = identity?.getPrincipal().toString();
 
@@ -190,20 +199,19 @@ export function useListActiveResidents() {
       if (!actor) throw new Error('Actor not available');
       return actor.listActiveResidents();
     },
-    enabled: !!actor && !actorFetching && !!identity,
+    enabled: actorReady,
     retry: false,
   });
 
   return {
     ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
+    isLoading: !actorReady || query.isLoading,
+    isFetched: actorReady && query.isFetched,
   };
 }
 
 export function useGetResident(residentId: ResidentId | null) {
-  const { actor, isFetching: actorFetching } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actorReady, actor, identity } = useActorReady();
 
   const principalId = identity?.getPrincipal().toString();
 
@@ -213,20 +221,19 @@ export function useGetResident(residentId: ResidentId | null) {
       if (!actor || !residentId) throw new Error('Actor or residentId not available');
       return actor.getResident(residentId);
     },
-    enabled: !!actor && !actorFetching && !!identity && !!residentId,
+    enabled: actorReady && !!residentId,
     retry: false,
   });
 
   return {
     ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
+    isLoading: !actorReady || query.isLoading,
+    isFetched: actorReady && query.isFetched,
   };
 }
 
 export function useCreateResident() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -245,8 +252,7 @@ export function useCreateResident() {
 }
 
 export function useUpdateResident() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -266,8 +272,7 @@ export function useUpdateResident() {
 }
 
 export function useToggleResidentStatus() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -323,8 +328,7 @@ export function useToggleResidentStatus() {
 }
 
 export function useDeleteResident() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -345,8 +349,7 @@ export function useDeleteResident() {
 
 // Medication Queries
 export function useUpdateMedication() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -364,8 +367,7 @@ export function useUpdateMedication() {
 }
 
 export function useAddMedication() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -383,8 +385,7 @@ export function useAddMedication() {
 }
 
 export function useDiscontinueMedication() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -402,8 +403,7 @@ export function useDiscontinueMedication() {
 }
 
 export function useDeleteMedication() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -421,28 +421,8 @@ export function useDeleteMedication() {
 }
 
 // Vitals Queries
-export function useListVitalsEntries(residentId: ResidentId) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  const query = useQuery<VitalsRecord[]>({
-    queryKey: ['vitalsEntries', residentId.toString()],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.listVitalsEntries(residentId);
-    },
-    enabled: !!actor && !actorFetching && !!residentId,
-    retry: false,
-  });
-
-  return {
-    ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
-  };
-}
-
 export function useCreateVitalsEntry() {
-  const { actor } = useActor();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -451,13 +431,37 @@ export function useCreateVitalsEntry() {
       return actor.createVitalsEntry(residentId, record);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['vitalsEntries', variables.residentId.toString()] });
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: ['vitals', principalId, variables.residentId.toString()] });
+      }
     },
   });
 }
 
+export function useListVitalsEntries(residentId: ResidentId | null) {
+  const { actorReady, actor, identity } = useActorReady();
+
+  const principalId = identity?.getPrincipal().toString();
+
+  const query = useQuery<VitalsRecord[]>({
+    queryKey: ['vitals', principalId || 'anonymous', residentId?.toString() || ''],
+    queryFn: async () => {
+      if (!actor || !residentId) throw new Error('Actor or residentId not available');
+      return actor.listVitalsEntries(residentId);
+    },
+    enabled: actorReady && !!residentId,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: !actorReady || query.isLoading,
+  };
+}
+
 export function useDeleteVitalsEntry() {
-  const { actor } = useActor();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -466,34 +470,17 @@ export function useDeleteVitalsEntry() {
       return actor.deleteVitalsEntry(residentId, timestamp);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['vitalsEntries', variables.residentId.toString()] });
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: ['vitals', principalId, variables.residentId.toString()] });
+      }
     },
   });
 }
 
 // MAR Queries
-export function useListMarRecords(residentId: ResidentId) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  const query = useQuery<MarRecord[]>({
-    queryKey: ['marRecords', residentId.toString()],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.listMarRecords(residentId);
-    },
-    enabled: !!actor && !actorFetching && !!residentId,
-    retry: false,
-  });
-
-  return {
-    ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
-  };
-}
-
 export function useCreateMarRecord() {
-  const { actor } = useActor();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -502,13 +489,37 @@ export function useCreateMarRecord() {
       return actor.createMarRecord(residentId, record);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['marRecords', variables.residentId.toString()] });
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: ['mar', principalId, variables.residentId.toString()] });
+      }
     },
   });
 }
 
+export function useListMarRecords(residentId: ResidentId | null) {
+  const { actorReady, actor, identity } = useActorReady();
+
+  const principalId = identity?.getPrincipal().toString();
+
+  const query = useQuery<MarRecord[]>({
+    queryKey: ['mar', principalId || 'anonymous', residentId?.toString() || ''],
+    queryFn: async () => {
+      if (!actor || !residentId) throw new Error('Actor or residentId not available');
+      return actor.listMarRecords(residentId);
+    },
+    enabled: actorReady && !!residentId,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: !actorReady || query.isLoading,
+  };
+}
+
 export function useDeleteMarRecord() {
-  const { actor } = useActor();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -517,34 +528,17 @@ export function useDeleteMarRecord() {
       return actor.deleteMarRecord(residentId, timestamp);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['marRecords', variables.residentId.toString()] });
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: ['mar', principalId, variables.residentId.toString()] });
+      }
     },
   });
 }
 
 // ADL Queries
-export function useListAdlRecords(residentId: ResidentId) {
-  const { actor, isFetching: actorFetching } = useActor();
-
-  const query = useQuery<AdlRecord[]>({
-    queryKey: ['adlRecords', residentId.toString()],
-    queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.listAdlRecords(residentId);
-    },
-    enabled: !!actor && !actorFetching && !!residentId,
-    retry: false,
-  });
-
-  return {
-    ...query,
-    isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
-  };
-}
-
 export function useCreateAdlRecord() {
-  const { actor } = useActor();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -553,13 +547,37 @@ export function useCreateAdlRecord() {
       return actor.createAdlRecord(residentId, record);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['adlRecords', variables.residentId.toString()] });
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: ['adl', principalId, variables.residentId.toString()] });
+      }
     },
   });
 }
 
+export function useListAdlRecords(residentId: ResidentId | null) {
+  const { actorReady, actor, identity } = useActorReady();
+
+  const principalId = identity?.getPrincipal().toString();
+
+  const query = useQuery<AdlRecord[]>({
+    queryKey: ['adl', principalId || 'anonymous', residentId?.toString() || ''],
+    queryFn: async () => {
+      if (!actor || !residentId) throw new Error('Actor or residentId not available');
+      return actor.listAdlRecords(residentId);
+    },
+    enabled: actorReady && !!residentId,
+    retry: false,
+  });
+
+  return {
+    ...query,
+    isLoading: !actorReady || query.isLoading,
+  };
+}
+
 export function useDeleteAdlRecord() {
-  const { actor } = useActor();
+  const { actor, identity } = useActorReady();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -568,7 +586,22 @@ export function useDeleteAdlRecord() {
       return actor.deleteAdlRecord(residentId, timestamp);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['adlRecords', variables.residentId.toString()] });
+      const principalId = identity?.getPrincipal().toString();
+      if (principalId) {
+        queryClient.invalidateQueries({ queryKey: ['adl', principalId, variables.residentId.toString()] });
+      }
+    },
+  });
+}
+
+// Seeding
+export function useEnsureResidentsSeeded() {
+  const { actor } = useActorReady();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.ensureResidentsSeeded();
     },
   });
 }

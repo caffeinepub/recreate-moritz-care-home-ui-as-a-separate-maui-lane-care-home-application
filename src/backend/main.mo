@@ -10,7 +10,6 @@ import Blob "mo:core/Blob";
 import Array "mo:core/Array";
 import Int "mo:core/Int";
 import Nat "mo:core/Nat";
-
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
 
@@ -397,11 +396,7 @@ actor {
 
     let isAdmin = AccessControl.isAdmin(accessControlState, caller);
 
-    let filteredResidents = residentsDirectory.values().toArray().filter(
-      func(resident) {
-        isAdmin or resident.owner == caller;
-      }
-    );
+    let filteredResidents = residentsDirectory.values().toArray().filter(func(resident) { isAdmin or resident.owner == caller });
 
     let residentEntries = filteredResidents.map(
       func(resident) {

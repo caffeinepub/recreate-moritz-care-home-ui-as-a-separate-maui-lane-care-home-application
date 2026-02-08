@@ -1,6 +1,12 @@
 import { useState } from 'react';
-import { Edit, Trash2, Ban, Play } from 'lucide-react';
+import { Edit, Ban, Play, MoreVertical, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,6 +18,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import type { Medication } from '@/backend';
+import { MedicationStatus } from '@/backend';
 
 interface MedicationRowActionsProps {
   medication: Medication;
@@ -19,7 +26,6 @@ interface MedicationRowActionsProps {
   onDiscontinue: (medicationId: bigint) => void;
   onResume: (medicationId: bigint) => void;
   onDelete: (medicationId: bigint) => void;
-  isProcessing?: boolean;
 }
 
 export function MedicationRowActions({
@@ -28,22 +34,37 @@ export function MedicationRowActions({
   onDiscontinue,
   onResume,
   onDelete,
-  isProcessing = false,
 }: MedicationRowActionsProps) {
   const [showDiscontinueDialog, setShowDiscontinueDialog] = useState(false);
   const [showResumeDialog, setShowResumeDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const isDiscontinued = medication.status === 'discontinued';
+  const isActive = medication.status === MedicationStatus.active;
+
+  const handleEdit = () => {
+    onEdit(medication);
+  };
+
+  const handleDiscontinueClick = () => {
+    setShowDiscontinueDialog(true);
+  };
 
   const handleDiscontinueConfirm = () => {
     onDiscontinue(medication.id);
     setShowDiscontinueDialog(false);
   };
 
+  const handleResumeClick = () => {
+    setShowResumeDialog(true);
+  };
+
   const handleResumeConfirm = () => {
     onResume(medication.id);
     setShowResumeDialog(false);
+  };
+
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
   };
 
   const handleDeleteConfirm = () => {
@@ -53,48 +74,63 @@ export function MedicationRowActions({
 
   return (
     <>
-      <div className="flex gap-2">
+      <div className="flex items-center gap-1">
+        {/* Edit Button - Always visible */}
         <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onEdit(medication)}
-          disabled={isProcessing}
+          variant="ghost"
+          size="icon"
+          onClick={handleEdit}
+          className="h-8 w-8"
+          title="Edit medication"
         >
-          <Edit className="mr-1 h-3 w-3" />
-          Edit
+          <Edit className="h-4 w-4" />
         </Button>
 
-        {isDiscontinued ? (
+        {/* Discontinue/Resume Button - Prominent */}
+        {isActive ? (
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowResumeDialog(true)}
-            disabled={isProcessing}
+            variant="ghost"
+            size="icon"
+            onClick={handleDiscontinueClick}
+            className="h-8 w-8"
+            title="Discontinue medication"
           >
-            <Play className="mr-1 h-3 w-3" />
-            Resume
+            <Ban className="h-4 w-4" />
           </Button>
         ) : (
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowDiscontinueDialog(true)}
-            disabled={isProcessing}
+            variant="ghost"
+            size="icon"
+            onClick={handleResumeClick}
+            className="h-8 w-8"
+            title="Resume medication"
           >
-            <Ban className="mr-1 h-3 w-3" />
-            Discontinue
+            <Play className="h-4 w-4" />
           </Button>
         )}
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowDeleteDialog(true)}
-          disabled={isProcessing}
-        >
-          <Trash2 className="mr-1 h-3 w-3" />
-          Delete
-        </Button>
+        {/* Overflow Menu - Delete hidden here */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              title="More actions"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={handleDeleteClick}
+              className="text-destructive focus:text-destructive"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Discontinue Confirmation Dialog */}
@@ -104,8 +140,7 @@ export function MedicationRowActions({
             <AlertDialogTitle>Discontinue Medication</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to discontinue <strong>{medication.medicationName}</strong>?
-              This medication will no longer be available for MAR records, but you can resume it
-              later if needed.
+              This medication will be marked as discontinued but can be resumed later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -123,13 +158,15 @@ export function MedicationRowActions({
           <AlertDialogHeader>
             <AlertDialogTitle>Resume Medication</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to resume <strong>{medication.medicationName}</strong>? This
-              medication will become active and available for MAR records again.
+              Are you sure you want to resume <strong>{medication.medicationName}</strong>?
+              This medication will be marked as active again.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleResumeConfirm}>Resume</AlertDialogAction>
+            <AlertDialogAction onClick={handleResumeConfirm}>
+              Resume
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -141,13 +178,15 @@ export function MedicationRowActions({
             <AlertDialogTitle>Delete Medication</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to permanently delete <strong>{medication.medicationName}</strong>?
-              This action cannot be undone and the medication will be removed from the resident's
-              record.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

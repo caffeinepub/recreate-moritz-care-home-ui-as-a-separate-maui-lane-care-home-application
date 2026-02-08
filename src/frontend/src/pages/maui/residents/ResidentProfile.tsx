@@ -29,7 +29,7 @@ import { AddMarRecordDialog } from '@/components/maui/residents/mar/AddMarRecord
 import { MarHistoryList } from '@/components/maui/residents/mar/MarHistoryList';
 import { AddAdlRecordDialog } from '@/components/maui/residents/adl/AddAdlRecordDialog';
 import { AdlHistoryList } from '@/components/maui/residents/adl/AdlHistoryList';
-import { AddMedicationDialog, EditMedicationDialog, MedicationRowActions } from '@/components/maui/residents/medications';
+import { AddMedicationDialog, EditMedicationDialog, MedicationsTab } from '@/components/maui/residents/medications';
 import { EditResidentInformationDialog, type EditResidentFormData } from '@/components/maui/residents/EditResidentInformationDialog';
 import { ResidentProfilePrintReport } from './ResidentProfilePrintReport';
 import { 
@@ -477,14 +477,14 @@ export function ResidentProfile() {
           <CardContent className="space-y-3 print:space-y-2 print:text-sm">
             {profileData.physicians.length > 0 ? (
               profileData.physicians.map((physician, index) => (
-                <div key={index} className="border-l-2 border-primary pl-3 print:pl-2">
+                <div key={index} className="border-l-2 border-primary pl-3">
                   <p className="font-medium">{physician.name}</p>
                   <p className="text-sm text-muted-foreground">{physician.specialty}</p>
                   <p className="text-sm text-muted-foreground">{physician.contactNumber}</p>
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground">No physicians on file</p>
+              <p className="text-muted-foreground">No physicians assigned</p>
             )}
           </CardContent>
         </Card>
@@ -494,42 +494,23 @@ export function ResidentProfile() {
           <CardHeader className="print:pb-2">
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              Pharmacy Information
+              Pharmacy
             </CardTitle>
           </CardHeader>
           <CardContent className="print:text-sm">
-            <div className="space-y-1">
-              <p className="font-medium">{profileData.pharmacy.name}</p>
-              <p className="text-sm text-muted-foreground">{profileData.pharmacy.address}</p>
-              <p className="text-sm text-muted-foreground">{profileData.pharmacy.contactNumber}</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Insurance Card */}
-        <Card className="print:shadow-none print:border-0 print:break-inside-avoid">
-          <CardHeader className="print:pb-2">
-            <CardTitle className="flex items-center gap-2">
-              <Heart className="h-5 w-5" />
-              Insurance Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 print:gap-2 print:text-sm">
-            <div>
-              <p className="text-sm text-muted-foreground">Company</p>
-              <p className="font-medium">{profileData.insurance.company}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Policy Number</p>
-              <p className="font-medium">{profileData.insurance.policyNumber}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Address</p>
-              <p className="font-medium">{profileData.insurance.address}</p>
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Contact Number</p>
-              <p className="font-medium">{profileData.insurance.contactNumber}</p>
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm text-muted-foreground">Name</p>
+                <p className="font-medium">{profileData.pharmacy.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Address</p>
+                <p className="font-medium">{profileData.pharmacy.address}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Contact</p>
+                <p className="font-medium">{profileData.pharmacy.contactNumber}</p>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -545,7 +526,7 @@ export function ResidentProfile() {
           <CardContent className="space-y-3 print:space-y-2 print:text-sm">
             {profileData.responsiblePersons.length > 0 ? (
               profileData.responsiblePersons.map((person, index) => (
-                <div key={index} className="border-l-2 border-primary pl-3 print:pl-2">
+                <div key={index} className="border-l-2 border-primary pl-3">
                   <p className="font-medium">{person.name}</p>
                   <p className="text-sm text-muted-foreground">{person.relationship}</p>
                   <p className="text-sm text-muted-foreground">{person.contactNumber}</p>
@@ -553,179 +534,117 @@ export function ResidentProfile() {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground">No responsible persons on file</p>
+              <p className="text-muted-foreground">No responsible persons assigned</p>
             )}
           </CardContent>
         </Card>
 
         {/* Tabs Section - Hidden on Print */}
-        <div className="print:hidden">
-          <Tabs defaultValue="vitals" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="vitals">
-                <Activity className="mr-2 h-4 w-4" />
-                Daily Vitals
-              </TabsTrigger>
-              <TabsTrigger value="mar">
-                <Pill className="mr-2 h-4 w-4" />
-                MAR
-              </TabsTrigger>
-              <TabsTrigger value="adl">
-                <FileText className="mr-2 h-4 w-4" />
-                ADL
-              </TabsTrigger>
-              <TabsTrigger value="medications">
-                <Pill className="mr-2 h-4 w-4" />
-                Medications
-              </TabsTrigger>
-            </TabsList>
+        <Tabs defaultValue="vitals" className="print:hidden">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="vitals">
+              <Activity className="mr-2 h-4 w-4" />
+              Daily Vitals
+            </TabsTrigger>
+            <TabsTrigger value="mar">
+              <Pill className="mr-2 h-4 w-4" />
+              MAR
+            </TabsTrigger>
+            <TabsTrigger value="adl">
+              <Heart className="mr-2 h-4 w-4" />
+              ADL
+            </TabsTrigger>
+            <TabsTrigger value="medications">
+              <Pill className="mr-2 h-4 w-4" />
+              Medications
+            </TabsTrigger>
+          </TabsList>
 
-            <TabsContent value="vitals" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Daily Vitals History</h2>
-                <Button onClick={() => setIsVitalsDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Record Vitals
-                </Button>
-              </div>
-              {residentPrincipal && <VitalsHistoryList residentId={residentPrincipal} />}
-            </TabsContent>
+          {/* Daily Vitals Tab */}
+          <TabsContent value="vitals" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Daily Vitals</h2>
+              <Button onClick={() => setIsVitalsDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Record Vitals
+              </Button>
+            </div>
+            {residentPrincipal ? (
+              <VitalsHistoryList residentId={residentPrincipal} />
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Vitals history is only available for backend residents.
+                </AlertDescription>
+              </Alert>
+            )}
+          </TabsContent>
 
-            <TabsContent value="mar" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Medication Administration Records</h2>
-                <Button
-                  onClick={() => setIsMarDialogOpen(true)}
-                  disabled={activeMedications.length === 0}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add MAR Record
-                </Button>
-              </div>
-              {activeMedications.length === 0 && (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    No active medications available. Add medications in the Medications tab first.
-                  </AlertDescription>
-                </Alert>
-              )}
-              {residentPrincipal && <MarHistoryList residentId={residentPrincipal} />}
-            </TabsContent>
+          {/* MAR Tab */}
+          <TabsContent value="mar" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Medication Administration Record</h2>
+              <Button onClick={() => setIsMarDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add MAR Record
+              </Button>
+            </div>
+            {residentPrincipal ? (
+              <MarHistoryList residentId={residentPrincipal} />
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  MAR history is only available for backend residents.
+                </AlertDescription>
+              </Alert>
+            )}
+          </TabsContent>
 
-            <TabsContent value="adl" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Activities of Daily Living</h2>
-                <Button onClick={() => setIsAdlDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add ADL Record
-                </Button>
-              </div>
-              {residentPrincipal && <AdlHistoryList residentId={residentPrincipal} />}
-            </TabsContent>
+          {/* ADL Tab */}
+          <TabsContent value="adl" className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold">Activities of Daily Living</h2>
+              <Button onClick={() => setIsAdlDialogOpen(true)}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add ADL Record
+              </Button>
+            </div>
+            {residentPrincipal ? (
+              <AdlHistoryList residentId={residentPrincipal} />
+            ) : (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  ADL history is only available for backend residents.
+                </AlertDescription>
+              </Alert>
+            )}
+          </TabsContent>
 
-            <TabsContent value="medications" className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">Current Medications</h2>
-                <Button onClick={() => setIsAddMedicationDialogOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Medication
-                </Button>
-              </div>
-
-              <Card>
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-muted/50">
-                        <tr>
-                          <th className="text-left p-3 font-medium">Medication</th>
-                          <th className="text-left p-3 font-medium">Dosage</th>
-                          <th className="text-left p-3 font-medium">Route</th>
-                          <th className="text-left p-3 font-medium">Times</th>
-                          <th className="text-left p-3 font-medium">Prescriber</th>
-                          <th className="text-left p-3 font-medium">Status</th>
-                          <th className="text-right p-3 font-medium">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {visibleMedications.length > 0 ? (
-                          visibleMedications.map((medication) => (
-                            <tr key={medication.id.toString()} className="hover:bg-muted/30">
-                              <td className="p-3 font-medium">{medication.medicationName}</td>
-                              <td className="p-3">{medication.dosage}</td>
-                              <td className="p-3">
-                                {medication.route
-                                  ? '__kind__' in medication.route && medication.route.__kind__ === 'other'
-                                    ? medication.route.other
-                                    : medication.route.__kind__
-                                  : '-'}
-                              </td>
-                              <td className="p-3">
-                                {medication.administrationTimes.length > 0
-                                  ? medication.administrationTimes.join(', ')
-                                  : '-'}
-                              </td>
-                              <td className="p-3">{medication.prescribingPhysician || '-'}</td>
-                              <td className="p-3">
-                                <Badge
-                                  variant={
-                                    medication.status === MedicationStatus.active
-                                      ? 'default'
-                                      : 'secondary'
-                                  }
-                                >
-                                  {medication.status}
-                                </Badge>
-                              </td>
-                              <td className="p-3">
-                                <MedicationRowActions
-                                  medication={medication}
-                                  onEdit={handleEditMedication}
-                                  onDiscontinue={handleDiscontinueMedication}
-                                  onResume={handleResumeMedication}
-                                  onDelete={handleDeleteMedication}
-                                />
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                              No medications on file. Click "Add Medication" to get started.
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        {/* Print Report Section - Only visible when printing */}
-        <div className="hidden print:block">
-          <div className="mb-4 flex items-center gap-2">
-            <Label htmlFor="physician-signature-toggle" className="text-sm">
-              Include Physician Signature Section
-            </Label>
-            <Switch
-              id="physician-signature-toggle"
-              checked={includePhysicianSignature}
-              onCheckedChange={setIncludePhysicianSignature}
+          {/* Medications Tab */}
+          <TabsContent value="medications" className="space-y-4">
+            <MedicationsTab
+              medications={visibleMedications}
+              onAddMedication={() => setIsAddMedicationDialogOpen(true)}
+              onEditMedication={handleEditMedication}
+              onDiscontinueMedication={handleDiscontinueMedication}
+              onResumeMedication={handleResumeMedication}
+              onDeleteMedication={handleDeleteMedication}
             />
-          </div>
-          <ResidentProfilePrintReport
-            resident={profileData}
-            includePhysicianSignature={includePhysicianSignature}
-            medications={printMedications}
-          />
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
-      {/* Dialogs */}
+      {/* Print Report Component */}
+      <ResidentProfilePrintReport
+        resident={profileData}
+        medications={printMedications}
+        includePhysicianSignature={includePhysicianSignature}
+      />
+
+      {/* Dialogs - Only render if residentPrincipal is valid */}
       {residentPrincipal && (
         <>
           <RecordDailyVitalsDialog
@@ -733,12 +652,14 @@ export function ResidentProfile() {
             onOpenChange={setIsVitalsDialogOpen}
             residentId={residentPrincipal}
           />
+
           <AddMarRecordDialog
             open={isMarDialogOpen}
             onOpenChange={setIsMarDialogOpen}
             residentId={residentPrincipal}
             activeMedications={activeMedicationsForMAR}
           />
+
           <AddAdlRecordDialog
             open={isAdlDialogOpen}
             onOpenChange={setIsAdlDialogOpen}

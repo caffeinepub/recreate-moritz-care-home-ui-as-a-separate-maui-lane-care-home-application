@@ -2,11 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-all-frontend-version-markers-to-version-59-so-the-deployed-app-clearly-reports-the-correct-release-version",
-      "featureTitle": "Update all frontend version markers to Version 59 so the deployed app clearly reports the correct release version.",
+      "featureId": "feature-prevent-any-resident-profile-react-query-calls-from-executing-until-the-backend-actor-is-fully-initialized-and-stable-so-the-app-cannot-enter-a-stuck-connecting-to-backend-state-immediately-after-the-profile-finishes-loading",
+      "featureTitle": "Prevent any resident/profile React Query calls from executing until the backend actor is fully initialized and stable, so the app cannot enter a stuck “Connecting to Backend” state immediately after the profile finishes loading.",
       "files": [
-        "frontend/index.html",
-        "frontend/public/version.txt"
+        "frontend/src/hooks/useActorReady.ts",
+        "frontend/src/hooks/useQueries.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,16 +17,18 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-46"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-deploy-version-59-to-the-internet-computer-production-network-so-the-live-canisters-serve-the-version-59-build",
-      "featureTitle": "Deploy Version 59 to the Internet Computer production network so the live canisters serve the Version 59 build.",
+      "featureId": "feature-stabilize-the-startup-gating-flow-so-backendreachabilitygate-and-profilebootstrapgate-do-not-re-trigger-in-a-loop-or-remount-in-a-way-that-re-runs-health-checks-indefinitely-after-profile-load-and-during-route-transitions-e-g-navigating-to-the-medication-tab-residentprofile-page",
+      "featureTitle": "Stabilize the startup gating flow so BackendReachabilityGate and ProfileBootstrapGate do not re-trigger in a loop (or remount in a way that re-runs health checks indefinitely) after profile load and during route transitions (e.g., navigating to the Medication tab / ResidentProfile page).",
       "files": [
-        "frontend/scripts/README.md",
-        "frontend/scripts/deploy-ic-v59.sh"
+        "frontend/src/App.tsx",
+        "frontend/src/components/startup/BackendReachabilityGate.tsx",
+        "frontend/src/components/startup/ProfileBootstrapGate.tsx",
+        "frontend/src/hooks/useHealthCheck.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -37,27 +39,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-47"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-update-production-deployment-documentation-for-version-59-by-creating-a-version-59-deployment-guide-or-updating-the-latest-guide-with-version-59-verification-steps-version-marker-checks-and-post-deploy-checklist",
-      "featureTitle": "Add/update production deployment documentation for Version 59 by creating a Version 59 deployment guide (or updating the latest guide) with Version 59 verification steps (version marker checks) and post-deploy checklist.",
-      "files": [
-        "frontend/docs/deploy-v58.md",
-        "frontend/docs/deploy-v59.md"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-48"
+        "REQ-2"
       ],
       "confidence": "high"
     }

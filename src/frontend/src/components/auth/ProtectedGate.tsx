@@ -4,6 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui
 import { Loader2 } from 'lucide-react';
 import { BRAND } from '../../lib/brand';
 import { BrandLogo } from '../brand/BrandLogo';
+import { BackendReachabilityGate } from '../startup/BackendReachabilityGate';
+import { ProfileBootstrapGate } from '../startup/ProfileBootstrapGate';
 
 interface ProtectedGateProps {
   children: React.ReactNode;
@@ -65,6 +67,12 @@ export function ProtectedGate({ children }: ProtectedGateProps) {
     );
   }
 
-  // Render authenticated content
-  return <>{children}</>;
+  // After authentication, gate on backend reachability and profile bootstrap
+  return (
+    <BackendReachabilityGate>
+      <ProfileBootstrapGate>
+        {children}
+      </ProfileBootstrapGate>
+    </BackendReachabilityGate>
+  );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2 } from 'lucide-react';
+import { X, Plus, Trash2, AlertCircle } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -11,9 +11,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MedicationRouteSelect } from './MedicationRouteSelect';
 import { MedicationPhysicianSelect, PHYSICIAN_UNASSIGNED } from './MedicationPhysicianSelect';
-import { routeToSelectValue, selectValueToRoute } from '@/lib/medicationRoutes';
+import { routeToSelectValue, selectValueToRoute, ROUTE_UNSET } from '@/lib/medicationRoutes';
 import type { Medication, Physician } from '@/backend';
 
 interface EditMedicationDialogProps {
@@ -33,47 +34,65 @@ export function EditMedicationDialog({
 }: EditMedicationDialogProps) {
   const [medicationName, setMedicationName] = useState('');
   const [dosage, setDosage] = useState('');
-  const [administrationTimes, setAdministrationTimes] = useState<string[]>(['']);
-  const [route, setRoute] = useState<string>('');
-  const [prescribingPhysician, setPrescribingPhysician] = useState<string>(PHYSICIAN_UNASSIGNED);
+  const [route, setRoute] = useState<string>(ROUTE_UNSET);
+  const [times, setTimes] = useState<string[]>(['']);
+  const [prescriber, setPrescriber] = useState<string>(PHYSICIAN_UNASSIGNED);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
-  // Reset form when medication changes
+  // Initialize form when medication changes or dialog opens
   useEffect(() => {
-    if (medication) {
+    if (open && medication) {
       setMedicationName(medication.medicationName);
       setDosage(medication.dosage);
-      setAdministrationTimes(
-        medication.administrationTimes.length > 0 ? medication.administrationTimes : ['']
+      // Reset to placeholder (required fields)
+      setRoute(ROUTE_UNSET);
+      setPrescriber(PHYSICIAN_UNASSIGNED);
+      setTimes(
+        medication.administrationTimes.length > 0
+          ? medication.administrationTimes
+          : ['']
       );
-      setRoute(routeToSelectValue(medication.route));
-      setPrescribingPhysician(
-        medication.prescribingPhysician ? medication.prescribingPhysician : PHYSICIAN_UNASSIGNED
-      );
+      setValidationErrors([]);
     }
-  }, [medication]);
-
-  const resetForm = () => {
-    setMedicationName('');
-    setDosage('');
-    setAdministrationTimes(['']);
-    setRoute('');
-    setPrescribingPhysician(PHYSICIAN_UNASSIGNED);
-  };
+  }, [open, medication]);
 
   const handleAddTime = () => {
-    setAdministrationTimes([...administrationTimes, '']);
+    setTimes([...times, '']);
   };
 
   const handleRemoveTime = (index: number) => {
-    if (administrationTimes.length > 1) {
-      setAdministrationTimes(administrationTimes.filter((_, i) => i !== index));
+    if (times.length > 1) {
+      setTimes(times.filter((_, i) => i !== index));
     }
   };
 
   const handleTimeChange = (index: number, value: string) => {
-    const newTimes = [...administrationTimes];
+    const newTimes = [...times];
     newTimes[index] = value;
-    setAdministrationTimes(newTimes);
+    setTimes(newTimes);
+  };
+
+  const validateForm = (): boolean => {
+    const errors: string[] = [];
+
+    if (!medicationName.trim()) {
+      errors.push('Medication name is required');
+    }
+
+    if (!dosage.trim()) {
+      errors.push('Dosage is required');
+    }
+
+    if (route === ROUTE_UNSET) {
+      errors.push('Route is required');
+    }
+
+    if (prescriber === PHYSICIAN_UNASSIGNED || !prescriber.trim()) {
+      errors.push('Prescribing physician is required');
+    }
+
+    setValidationErrors(errors);
+    return errors.length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -81,28 +100,35 @@ export function EditMedicationDialog({
 
     if (!medication) return;
 
+    // Validate form
+    if (!validateForm()) {
+      return;
+    }
+
     // Filter out empty times
-    const filteredTimes = administrationTimes.filter((time) => time.trim() !== '');
+    const filteredTimes = times.filter((time) => time.trim() !== '');
+
+    // Convert route to backend format
+    const backendRoute = selectValueToRoute(route);
 
     const updatedMedication: Medication = {
       ...medication,
       medicationName: medicationName.trim(),
       dosage: dosage.trim(),
+      route: backendRoute,
       administrationTimes: filteredTimes,
-      route: selectValueToRoute(route),
-      prescribingPhysician:
-        prescribingPhysician === PHYSICIAN_UNASSIGNED ? '' : prescribingPhysician.trim(),
+      prescribingPhysician: prescriber.trim(),
     };
 
     onSave(updatedMedication);
-    resetForm();
-    onOpenChange(false);
   };
 
   const handleCancel = () => {
-    resetForm();
+    setValidationErrors([]);
     onOpenChange(false);
   };
+
+  if (!medication) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,7 +138,7 @@ export function EditMedicationDialog({
             <div>
               <DialogTitle>Edit Medication</DialogTitle>
               <DialogDescription className="mt-1">
-                Update medication details
+                Update medication details for this resident
               </DialogDescription>
             </div>
             <Button
@@ -125,6 +151,19 @@ export function EditMedicationDialog({
             </Button>
           </div>
         </DialogHeader>
+
+        {validationErrors.length > 0 && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <ul className="list-disc list-inside space-y-1">
+                {validationErrors.map((error, index) => (
+                  <li key={index}>{error}</li>
+                ))}
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Medication Name */}
@@ -158,13 +197,17 @@ export function EditMedicationDialog({
           </div>
 
           {/* Administration Route */}
-          <MedicationRouteSelect value={route} onValueChange={setRoute} />
+          <MedicationRouteSelect
+            value={route}
+            onValueChange={setRoute}
+            required
+          />
 
           {/* Administration Times */}
           <div className="space-y-2">
             <Label>Administration Times</Label>
             <div className="space-y-2">
-              {administrationTimes.map((time, index) => (
+              {times.map((time, index) => (
                 <div key={index} className="flex gap-2">
                   <Input
                     type="time"
@@ -173,7 +216,7 @@ export function EditMedicationDialog({
                     placeholder="HH:MM"
                     className="flex-1"
                   />
-                  {administrationTimes.length > 1 && (
+                  {times.length > 1 && (
                     <Button
                       type="button"
                       variant="outline"
@@ -200,9 +243,10 @@ export function EditMedicationDialog({
 
           {/* Prescribing Physician */}
           <MedicationPhysicianSelect
-            value={prescribingPhysician}
-            onValueChange={setPrescribingPhysician}
+            value={prescriber}
+            onValueChange={setPrescriber}
             physicians={physicians}
+            required
           />
 
           <DialogFooter className="gap-2">

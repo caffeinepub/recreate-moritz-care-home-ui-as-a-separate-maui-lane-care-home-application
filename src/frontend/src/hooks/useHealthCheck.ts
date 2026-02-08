@@ -30,8 +30,12 @@ export function useHealthCheck(enabled: boolean = false) {
     },
     enabled,
     retry: false,
-    staleTime: 0, // Always fresh
-    gcTime: 0, // Don't cache
+    staleTime: 60_000, // Cache successful health checks for 60 seconds
+    gcTime: 300_000, // Keep in cache for 5 minutes
+    // Disable automatic refetching to prevent re-triggering gates
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
   });
 
   const getStatus = (): HealthCheckStatus => {
