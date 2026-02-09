@@ -40,17 +40,12 @@ import {
   useDiscontinueMedication,
   useDeleteMedication
 } from '@/hooks/useQueries';
+import { useInternetIdentity } from '@/hooks/useInternetIdentity';
 import { toast } from 'sonner';
 import type { ResidentUpdateRequest, Medication, MedicationUpdate } from '@/backend';
 import { MedicationStatus } from '@/backend';
-import {
-  getResidentProfileData,
-  type ResidentMedication,
-  type ResidentProfileData,
-} from './mockResidentProfileData';
 import { calculateAge, formatAge } from './residentAge';
 import { getActiveMedications, getVisibleMedications, generateMedicationId } from '@/lib/medications';
-import { selectValueToRoute } from '@/lib/medicationRoutes';
 
 export function ResidentProfile() {
   const { residentId } = useParams({ from: '/resident/$residentId' });
@@ -63,12 +58,14 @@ export function ResidentProfile() {
   const [selectedMedication, setSelectedMedication] = useState<Medication | null>(null);
   const [includePhysicianSignature, setIncludePhysicianSignature] = useState(false);
 
-  // Try to parse residentId as Principal, fallback to mock data if invalid
+  const { identity } = useInternetIdentity();
+
+  // Try to parse residentId as Principal
   let residentPrincipal: Principal | null = null;
   try {
     residentPrincipal = Principal.fromText(residentId);
   } catch {
-    // Invalid principal, will use mock data
+    // Invalid principal
   }
 
   const { data: backendResident, isLoading, error, refetch } = useGetResident(residentPrincipal);
@@ -78,28 +75,13 @@ export function ResidentProfile() {
   const discontinueMedicationMutation = useDiscontinueMedication();
   const deleteMedicationMutation = useDeleteMedication();
 
-  // Use backend data if available, otherwise fallback to mock
-  const profileData: ResidentProfileData = backendResident
-    ? {
-        id: backendResident.id.toString(),
-        name: backendResident.name,
-        dateOfBirth: backendResident.birthDate,
-        admissionDate: backendResident.admissionDate,
-        room: backendResident.roomNumber ? `Room ${backendResident.roomNumber}` : 'Room TBD',
-        roomType: backendResident.roomType || 'TBD',
-        bed: backendResident.bed,
-        status: backendResident.active ? 'Active' : 'Inactive',
-        medicaidNumber: backendResident.medicaidNumber,
-        medicareNumber: backendResident.medicareNumber,
-        physicians: backendResident.physicians,
-        pharmacy: backendResident.pharmacy,
-        insurance: backendResident.insurance,
-        responsiblePersons: backendResident.responsiblePersons,
-        medications: backendResident.medications,
-      }
-    : getResidentProfileData(residentId);
+  // Check if current user is the owner or admin
+  const currentUserPrincipal = identity?.getPrincipal().toString();
+  const isOwner = backendResident && currentUserPrincipal 
+    ? backendResident.owner.toString() === currentUserPrincipal 
+    : false;
 
-  const age = calculateAge(profileData.dateOfBirth);
+  const age = backendResident ? calculateAge(backendResident.birthDate) : 0;
 
   const handlePrint = () => {
     window.print();
@@ -129,7 +111,7 @@ export function ResidentProfile() {
           address: formData.pharmacyAddress,
           contactNumber: formData.pharmacyContactNumber,
         },
-        insurance: profileData.insurance, // Use existing insurance data since form doesn't have these fields
+        insurance: backendResident.insurance,
         responsiblePersons: formData.responsiblePersons,
         medications: backendResident.medications,
       };
@@ -143,7 +125,8 @@ export function ResidentProfile() {
       setIsEditDialogOpen(false);
     } catch (error: any) {
       console.error('Failed to update resident:', error);
-      toast.error(error?.message || 'Failed to update resident information');
+      const errorMessage = error?.message || 'Failed to update resident information';
+      toast.error(errorMessage);
     }
   };
 
@@ -166,7 +149,6 @@ export function ResidentProfile() {
       // Convert route string back to MedicationRoute type
       let routeValue: any = undefined;
       if (medicationData.route) {
-        // Try to match against known routes
         const routeMap: Record<string, any> = {
           oral: { __kind__: 'oral', oral: null },
           intravenous_IV: { __kind__: 'intravenous_IV', intravenous_IV: null },
@@ -187,7 +169,6 @@ export function ResidentProfile() {
         if (routeMap[medicationData.route]) {
           routeValue = routeMap[medicationData.route];
         } else {
-          // Treat as "other"
           routeValue = { __kind__: 'other', other: medicationData.route };
         }
       }
@@ -210,7 +191,8 @@ export function ResidentProfile() {
       toast.success('Medication added successfully');
     } catch (error: any) {
       console.error('Failed to add medication:', error);
-      toast.error(error?.message || 'Failed to add medication');
+      const errorMessage = error?.message || 'Failed to add medication';
+      toast.error(errorMessage);
     }
   };
 
@@ -246,7 +228,8 @@ export function ResidentProfile() {
       setSelectedMedication(null);
     } catch (error: any) {
       console.error('Failed to update medication:', error);
-      toast.error(error?.message || 'Failed to update medication');
+      const errorMessage = error?.message || 'Failed to update medication';
+      toast.error(errorMessage);
     }
   };
 
@@ -265,7 +248,8 @@ export function ResidentProfile() {
       toast.success('Medication discontinued successfully');
     } catch (error: any) {
       console.error('Failed to discontinue medication:', error);
-      toast.error(error?.message || 'Failed to discontinue medication');
+      const errorMessage = error?.message || 'Failed to discontinue medication';
+      toast.error(errorMessage);
     }
   };
 
@@ -276,14 +260,12 @@ export function ResidentProfile() {
     }
 
     try {
-      // Find the medication to resume
       const medication = backendResident.medications.find(m => m.id === medicationId);
       if (!medication) {
         toast.error('Medication not found');
         return;
       }
 
-      // Update the medication status to active
       const medicationUpdate: MedicationUpdate = {
         id: medication.id,
         medicationName: medication.medicationName,
@@ -302,7 +284,8 @@ export function ResidentProfile() {
       toast.success('Medication resumed successfully');
     } catch (error: any) {
       console.error('Failed to resume medication:', error);
-      toast.error(error?.message || 'Failed to resume medication');
+      const errorMessage = error?.message || 'Failed to resume medication';
+      toast.error(errorMessage);
     }
   };
 
@@ -321,8 +304,22 @@ export function ResidentProfile() {
       toast.success('Medication deleted successfully');
     } catch (error: any) {
       console.error('Failed to delete medication:', error);
-      toast.error(error?.message || 'Failed to delete medication');
+      const errorMessage = error?.message || 'Failed to delete medication';
+      toast.error(errorMessage);
     }
+  };
+
+  // No-op handlers for non-owners
+  const handleNoOpVoid = () => {
+    toast.error('You do not have permission to perform this action.');
+  };
+
+  const handleNoOpMedication = (_medication: Medication) => {
+    toast.error('You do not have permission to perform this action.');
+  };
+
+  const handleNoOpMedicationId = (_medicationId: bigint) => {
+    toast.error('You do not have permission to perform this action.');
   };
 
   if (isLoading) {
@@ -336,47 +333,47 @@ export function ResidentProfile() {
     );
   }
 
-  if (error) {
+  if (error || !backendResident || !residentPrincipal) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <Alert variant="destructive" className="max-w-md">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load resident profile. Please try again.
+            {error instanceof Error ? error.message : 'Resident not found or you do not have permission to view this profile.'}
           </AlertDescription>
         </Alert>
       </div>
     );
   }
 
-  const visibleMedications = getVisibleMedications(profileData.medications);
-  const activeMedications = getActiveMedications(profileData.medications);
+  const visibleMedications = getVisibleMedications(backendResident.medications);
+  const activeMedications = getActiveMedications(backendResident.medications);
 
   // Prepare initial values for edit dialog
-  const nameParts = profileData.name.split(' ');
+  const nameParts = backendResident.name.split(' ');
   const firstName = nameParts[0] || '';
   const lastName = nameParts.slice(1).join(' ') || '';
 
   const editInitialValues: EditResidentFormData = {
     firstName,
     lastName,
-    dateOfBirth: profileData.dateOfBirth,
-    admissionDate: profileData.admissionDate,
-    roomNumber: profileData.room.replace('Room ', ''),
-    roomType: profileData.roomType,
-    bed: profileData.bed || '',
-    status: profileData.status,
-    medicaidNumber: profileData.medicaidNumber,
-    medicareNumber: profileData.medicareNumber,
-    physicians: profileData.physicians,
-    pharmacyName: profileData.pharmacy.name,
-    pharmacyAddress: profileData.pharmacy.address,
-    pharmacyContactNumber: profileData.pharmacy.contactNumber,
-    responsiblePersons: profileData.responsiblePersons,
+    dateOfBirth: backendResident.birthDate,
+    admissionDate: backendResident.admissionDate,
+    roomNumber: backendResident.roomNumber,
+    roomType: backendResident.roomType,
+    bed: backendResident.bed || '',
+    status: backendResident.active ? 'Active' : 'Inactive',
+    medicaidNumber: backendResident.medicaidNumber,
+    medicareNumber: backendResident.medicareNumber,
+    physicians: backendResident.physicians,
+    pharmacyName: backendResident.pharmacy.name,
+    pharmacyAddress: backendResident.pharmacy.address,
+    pharmacyContactNumber: backendResident.pharmacy.contactNumber,
+    responsiblePersons: backendResident.responsiblePersons,
   };
 
   // Convert Medication[] to ResidentMedication[] for print report and MAR dialog
-  const printMedications: ResidentMedication[] = visibleMedications.map(med => ({
+  const printMedications = visibleMedications.map(med => ({
     name: med.medicationName,
     dosage: med.dosage,
     route: med.route
@@ -389,7 +386,7 @@ export function ResidentProfile() {
     notes: undefined,
   }));
 
-  const activeMedicationsForMAR: ResidentMedication[] = activeMedications.map(med => ({
+  const activeMedicationsForMAR = activeMedications.map(med => ({
     name: med.medicationName,
     dosage: med.dosage,
     route: med.route
@@ -408,9 +405,9 @@ export function ResidentProfile() {
         {/* Header Section - Hidden on Print */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 print:hidden">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">{profileData.name}</h1>
+            <h1 className="text-3xl font-bold text-foreground">{backendResident.name}</h1>
             <p className="text-muted-foreground mt-1">
-              {profileData.room} • {age} years old
+              Room {backendResident.roomNumber} • {age} years old
             </p>
           </div>
           <div className="flex gap-2">
@@ -418,10 +415,12 @@ export function ResidentProfile() {
               <Printer className="mr-2 h-4 w-4" />
               Print Report
             </Button>
-            <Button variant="default" size="sm" onClick={() => setIsEditDialogOpen(true)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Information
-            </Button>
+            {isOwner && (
+              <Button variant="default" size="sm" onClick={() => setIsEditDialogOpen(true)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Information
+              </Button>
+            )}
           </div>
         </div>
 
@@ -437,31 +436,31 @@ export function ResidentProfile() {
             <div>
               <p className="text-sm text-muted-foreground">Date of Birth</p>
               <p className="font-medium">
-                {profileData.dateOfBirth} {formatAge(age)}
+                {backendResident.birthDate} {formatAge(age)}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Admission Date</p>
-              <p className="font-medium">{profileData.admissionDate}</p>
+              <p className="font-medium">{backendResident.admissionDate}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Room Assignment</p>
               <p className="font-medium">
-                {profileData.room}
-                {profileData.bed && ` - Bed ${profileData.bed}`}
+                Room {backendResident.roomNumber}
+                {backendResident.bed && ` - Bed ${backendResident.bed}`}
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Room Type</p>
-              <p className="font-medium">{profileData.roomType}</p>
+              <p className="font-medium">{backendResident.roomType}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Medicaid Number</p>
-              <p className="font-medium">{profileData.medicaidNumber}</p>
+              <p className="font-medium">{backendResident.medicaidNumber}</p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Medicare Number</p>
-              <p className="font-medium">{profileData.medicareNumber}</p>
+              <p className="font-medium">{backendResident.medicareNumber}</p>
             </div>
           </CardContent>
         </Card>
@@ -475,8 +474,8 @@ export function ResidentProfile() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 print:space-y-2 print:text-sm">
-            {profileData.physicians.length > 0 ? (
-              profileData.physicians.map((physician, index) => (
+            {backendResident.physicians.length > 0 ? (
+              backendResident.physicians.map((physician, index) => (
                 <div key={index} className="border-l-2 border-primary pl-3">
                   <p className="font-medium">{physician.name}</p>
                   <p className="text-sm text-muted-foreground">{physician.specialty}</p>
@@ -484,7 +483,7 @@ export function ResidentProfile() {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground">No physicians assigned</p>
+              <p className="text-sm text-muted-foreground">No physicians assigned</p>
             )}
           </CardContent>
         </Card>
@@ -500,16 +499,9 @@ export function ResidentProfile() {
           <CardContent className="print:text-sm">
             <div className="space-y-2">
               <div>
-                <p className="text-sm text-muted-foreground">Name</p>
-                <p className="font-medium">{profileData.pharmacy.name}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Address</p>
-                <p className="font-medium">{profileData.pharmacy.address}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Contact</p>
-                <p className="font-medium">{profileData.pharmacy.contactNumber}</p>
+                <p className="font-medium">{backendResident.pharmacy.name}</p>
+                <p className="text-sm text-muted-foreground">{backendResident.pharmacy.address}</p>
+                <p className="text-sm text-muted-foreground">{backendResident.pharmacy.contactNumber}</p>
               </div>
             </div>
           </CardContent>
@@ -524,9 +516,9 @@ export function ResidentProfile() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 print:space-y-2 print:text-sm">
-            {profileData.responsiblePersons.length > 0 ? (
-              profileData.responsiblePersons.map((person, index) => (
-                <div key={index} className="border-l-2 border-primary pl-3">
+            {backendResident.responsiblePersons.length > 0 ? (
+              backendResident.responsiblePersons.map((person, index) => (
+                <div key={index} className="border-l-2 border-secondary pl-3">
                   <p className="font-medium">{person.name}</p>
                   <p className="text-sm text-muted-foreground">{person.relationship}</p>
                   <p className="text-sm text-muted-foreground">{person.contactNumber}</p>
@@ -534,161 +526,151 @@ export function ResidentProfile() {
                 </div>
               ))
             ) : (
-              <p className="text-muted-foreground">No responsible persons assigned</p>
+              <p className="text-sm text-muted-foreground">No responsible persons assigned</p>
             )}
           </CardContent>
         </Card>
 
         {/* Tabs Section - Hidden on Print */}
-        <Tabs defaultValue="vitals" className="print:hidden">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="vitals">
-              <Activity className="mr-2 h-4 w-4" />
-              Daily Vitals
-            </TabsTrigger>
-            <TabsTrigger value="mar">
-              <Pill className="mr-2 h-4 w-4" />
-              MAR
-            </TabsTrigger>
-            <TabsTrigger value="adl">
-              <Heart className="mr-2 h-4 w-4" />
-              ADL
-            </TabsTrigger>
-            <TabsTrigger value="medications">
-              <Pill className="mr-2 h-4 w-4" />
-              Medications
-            </TabsTrigger>
-          </TabsList>
+        <div className="print:hidden">
+          <Tabs defaultValue="vitals" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="vitals">
+                <Activity className="mr-2 h-4 w-4" />
+                Daily Vitals
+              </TabsTrigger>
+              <TabsTrigger value="mar">
+                <Pill className="mr-2 h-4 w-4" />
+                MAR
+              </TabsTrigger>
+              <TabsTrigger value="adl">
+                <FileText className="mr-2 h-4 w-4" />
+                ADL
+              </TabsTrigger>
+              <TabsTrigger value="medications">
+                <Heart className="mr-2 h-4 w-4" />
+                Medications
+              </TabsTrigger>
+            </TabsList>
 
-          {/* Daily Vitals Tab */}
-          <TabsContent value="vitals" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Daily Vitals</h2>
-              <Button onClick={() => setIsVitalsDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Record Vitals
-              </Button>
-            </div>
-            {residentPrincipal ? (
+            <TabsContent value="vitals" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Daily Vitals Records</h3>
+                {isOwner && (
+                  <Button onClick={() => setIsVitalsDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Record Vitals
+                  </Button>
+                )}
+              </div>
               <VitalsHistoryList residentId={residentPrincipal} />
-            ) : (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  Vitals history is only available for backend residents.
-                </AlertDescription>
-              </Alert>
-            )}
-          </TabsContent>
+            </TabsContent>
 
-          {/* MAR Tab */}
-          <TabsContent value="mar" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Medication Administration Record</h2>
-              <Button onClick={() => setIsMarDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add MAR Record
-              </Button>
-            </div>
-            {residentPrincipal ? (
+            <TabsContent value="mar" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Medication Administration Records</h3>
+                {isOwner && (
+                  <Button onClick={() => setIsMarDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add MAR Record
+                  </Button>
+                )}
+              </div>
               <MarHistoryList residentId={residentPrincipal} />
-            ) : (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  MAR history is only available for backend residents.
-                </AlertDescription>
-              </Alert>
-            )}
-          </TabsContent>
+            </TabsContent>
 
-          {/* ADL Tab */}
-          <TabsContent value="adl" className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Activities of Daily Living</h2>
-              <Button onClick={() => setIsAdlDialogOpen(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add ADL Record
-              </Button>
-            </div>
-            {residentPrincipal ? (
+            <TabsContent value="adl" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold">Activities of Daily Living</h3>
+                {isOwner && (
+                  <Button onClick={() => setIsAdlDialogOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add ADL Record
+                  </Button>
+                )}
+              </div>
               <AdlHistoryList residentId={residentPrincipal} />
-            ) : (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  ADL history is only available for backend residents.
-                </AlertDescription>
-              </Alert>
-            )}
-          </TabsContent>
+            </TabsContent>
 
-          {/* Medications Tab */}
-          <TabsContent value="medications" className="space-y-4">
-            <MedicationsTab
-              medications={visibleMedications}
-              onAddMedication={() => setIsAddMedicationDialogOpen(true)}
-              onEditMedication={handleEditMedication}
-              onDiscontinueMedication={handleDiscontinueMedication}
-              onResumeMedication={handleResumeMedication}
-              onDeleteMedication={handleDeleteMedication}
-            />
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="medications" className="space-y-4">
+              <MedicationsTab
+                medications={visibleMedications}
+                onAddMedication={isOwner ? () => setIsAddMedicationDialogOpen(true) : handleNoOpVoid}
+                onEditMedication={isOwner ? handleEditMedication : handleNoOpMedication}
+                onDiscontinueMedication={isOwner ? handleDiscontinueMedication : handleNoOpMedicationId}
+                onResumeMedication={isOwner ? handleResumeMedication : handleNoOpMedicationId}
+                onDeleteMedication={isOwner ? handleDeleteMedication : handleNoOpMedicationId}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
 
       {/* Print Report Component */}
       <ResidentProfilePrintReport
-        resident={profileData}
+        resident={{
+          id: backendResident.id.toString(),
+          name: backendResident.name,
+          dateOfBirth: backendResident.birthDate,
+          admissionDate: backendResident.admissionDate,
+          room: `Room ${backendResident.roomNumber}`,
+          roomType: backendResident.roomType,
+          bed: backendResident.bed,
+          status: backendResident.active ? 'Active' : 'Inactive',
+          medicaidNumber: backendResident.medicaidNumber,
+          medicareNumber: backendResident.medicareNumber,
+          physicians: backendResident.physicians,
+          pharmacy: backendResident.pharmacy,
+          insurance: backendResident.insurance,
+          responsiblePersons: backendResident.responsiblePersons,
+          medications: backendResident.medications,
+        }}
         medications={printMedications}
         includePhysicianSignature={includePhysicianSignature}
       />
 
-      {/* Dialogs - Only render if residentPrincipal is valid */}
-      {residentPrincipal && (
+      {/* Dialogs */}
+      {isOwner && (
         <>
           <RecordDailyVitalsDialog
             open={isVitalsDialogOpen}
             onOpenChange={setIsVitalsDialogOpen}
             residentId={residentPrincipal}
           />
-
           <AddMarRecordDialog
             open={isMarDialogOpen}
             onOpenChange={setIsMarDialogOpen}
             residentId={residentPrincipal}
             activeMedications={activeMedicationsForMAR}
           />
-
           <AddAdlRecordDialog
             open={isAdlDialogOpen}
             onOpenChange={setIsAdlDialogOpen}
             residentId={residentPrincipal}
           />
+          <AddMedicationDialog
+            open={isAddMedicationDialogOpen}
+            onOpenChange={setIsAddMedicationDialogOpen}
+            onAddMedication={handleAddMedication}
+            physicians={backendResident.physicians}
+          />
+          {selectedMedication && (
+            <EditMedicationDialog
+              open={isEditMedicationDialogOpen}
+              onOpenChange={setIsEditMedicationDialogOpen}
+              medication={selectedMedication}
+              onSave={handleSaveMedication}
+              physicians={backendResident.physicians}
+            />
+          )}
+          <EditResidentInformationDialog
+            open={isEditDialogOpen}
+            onOpenChange={setIsEditDialogOpen}
+            initialValues={editInitialValues}
+            onSave={handleEditResident}
+          />
         </>
       )}
-
-      <AddMedicationDialog
-        open={isAddMedicationDialogOpen}
-        onOpenChange={setIsAddMedicationDialogOpen}
-        physicians={profileData.physicians}
-        onAddMedication={handleAddMedication}
-      />
-
-      <EditMedicationDialog
-        open={isEditMedicationDialogOpen}
-        onOpenChange={setIsEditMedicationDialogOpen}
-        medication={selectedMedication}
-        physicians={profileData.physicians}
-        onSave={handleSaveMedication}
-      />
-
-      <EditResidentInformationDialog
-        open={isEditDialogOpen}
-        onOpenChange={setIsEditDialogOpen}
-        initialValues={editInitialValues}
-        onSave={handleEditResident}
-      />
     </>
   );
 }

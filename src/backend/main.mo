@@ -294,18 +294,12 @@ actor {
       Runtime.trap("Unauthorized: Only users can list residents");
     };
 
-    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
-
-    residentsDirectory.values().toArray().filter(func(resident) { resident.active and (isAdmin or resident.owner == caller) });
+    residentsDirectory.values().toArray().filter(func(resident) { resident.active });
   };
 
   public query ({ caller }) func getResident(id : ResidentId) : async ?Resident {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view residents");
-    };
-
-    if (not canAccessResident(caller, id)) {
-      Runtime.trap("Unauthorized: Cannot access this resident");
     };
 
     residentsDirectory.get(id);
@@ -394,11 +388,7 @@ actor {
 
     let backendQueryStartTime = Time.now();
 
-    let isAdmin = AccessControl.isAdmin(accessControlState, caller);
-
-    let filteredResidents = residentsDirectory.values().toArray().filter(func(resident) { isAdmin or resident.owner == caller });
-
-    let residentEntries = filteredResidents.map(
+    let residentEntries : [ResidentDirectoryEntry] = residentsDirectory.values().toArray().map(
       func(resident) {
         {
           id = resident.id;
@@ -460,10 +450,6 @@ actor {
   public query ({ caller }) func listVitalsEntries(residentId : ResidentId) : async [VitalsRecord] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can list vitals entries");
-    };
-
-    if (not canAccessResident(caller, residentId)) {
-      Runtime.trap("Unauthorized: Cannot view vitals for this resident");
     };
 
     switch (residentsDirectory.get(residentId)) {
@@ -537,10 +523,6 @@ actor {
       Runtime.trap("Unauthorized: Only users can list MAR records");
     };
 
-    if (not canAccessResident(caller, residentId)) {
-      Runtime.trap("Unauthorized: Cannot view MAR records for this resident");
-    };
-
     switch (residentsDirectory.get(residentId)) {
       case (null) { Runtime.trap("Resident does not exist") };
       case (_) {
@@ -610,10 +592,6 @@ actor {
   public query ({ caller }) func listAdlRecords(residentId : ResidentId) : async [AdlRecord] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can list ADL records");
-    };
-
-    if (not canAccessResident(caller, residentId)) {
-      Runtime.trap("Unauthorized: Cannot view ADL records for this resident");
     };
 
     switch (residentsDirectory.get(residentId)) {
@@ -819,10 +797,6 @@ actor {
   public query ({ caller }) func isResidentActive(residentId : ResidentId) : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can check resident status");
-    };
-
-    if (not canAccessResident(caller, residentId)) {
-      Runtime.trap("Unauthorized: Cannot access this resident");
     };
 
     switch (residentsDirectory.get(residentId)) {

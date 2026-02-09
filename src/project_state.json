@@ -2,33 +2,33 @@
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
   "summary": "New project",
-  "architectural_notes": [
-    "Frontend/backend actor initialization race condition: ResidentProfile queries run before backend actor is fully initialized (after Internet Identity), causing hang on 'Connecting to backend' right after 'loading profile'."
-  ],
+  "architectural_notes": [],
   "known_issues": [
-    "App can get stuck on 'Connecting to backend' after 'loading profile' due to ResidentProfile making backend calls before the backend actor/client is ready."
+    "Backend connection failing (stuck/blocked at “connecting to backend”).",
+    "Resident profiles are not appearing/visible to other users."
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-prevent-any-resident-profile-react-query-calls-from-executing-until-the-backend-actor-is-fully-initialized-and-stable-so-the-app-cannot-enter-a-stuck-connecting-to-backend-state-immediately-after-the-profile-finishes-loading",
-      "title": "Prevent any resident/profile React Query calls from executing until the backend actor is fully initialized and stable, so the app cannot enter a stuck “Connecting to Backend” state immediately after the profile finishes loading.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-stabilize-the-startup-gating-flow-so-backendreachabilitygate-and-profilebootstrapgate-do-not-re-trigger-in-a-loop-or-remount-in-a-way-that-re-runs-health-checks-indefinitely-after-profile-load-and-during-route-transitions-e-g-navigating-to-the-medication-tab-residentprofile-page",
-      "title": "Stabilize the startup gating flow so BackendReachabilityGate and ProfileBootstrapGate do not re-trigger in a loop (or remount in a way that re-runs health checks indefinitely) after profile load and during route transitions (e.g., navigating to the Medication tab / ResidentProfile page).",
+      "id": "feature-ensure-the-frontend-residents-dashboard-and-resident-profile-pages-correctly-display-residents-returned-by-the-backend-for-the-signed-in-user-including-residents-created-by-other-users-if-a-backend-authorization-error-occurs-show-an-english-error-message-that-clearly-indicates-the-user-does-not-have-permission-to-edit-delete-that-resident",
+      "title": "Ensure the frontend residents dashboard and resident profile pages correctly display residents returned by the backend for the signed-in user, including residents created by other users; if a backend authorization error occurs, show an English error message that clearly indicates the user does not have permission to edit/delete that resident.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix app getting stuck on “Connecting to Backend” after “Loading Profile” by eliminating actor/health-check race conditions",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Update backend authorization so that authenticated users can view all resident directory entries and load resident profiles created by other users (cross-user visibility), while keeping write operations (update, delete, toggle status, and adding clinical records) restricted to the resident owner or an admin.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "status": "pending"
+    }
+  ],
+  "projectName": "Make resident profiles visible to other users",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

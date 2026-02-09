@@ -3,6 +3,7 @@ import { useActorReady } from './useActorReady';
 import { useInternetIdentity } from './useInternetIdentity';
 import { Principal } from '@dfinity/principal';
 import { residentQueryKeys } from './residentQueryKeys';
+import { translateBackendError } from '@/lib/backendErrorMessage';
 import type { 
   VitalsRecord, 
   MarRecord, 
@@ -32,8 +33,8 @@ export function useGetCallerUserProfile() {
         return await actor.getCallerUserProfile();
       } catch (error: any) {
         // Ensure errors are thrown as Error instances with clear messages
-        const errorMessage = error?.message || String(error);
-        throw new Error(`Failed to load user profile: ${errorMessage}`);
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
       }
     },
     enabled: actorReady,
@@ -57,8 +58,8 @@ export function useSaveCallerUserProfile() {
       try {
         return await actor.saveCallerUserProfile(profile);
       } catch (error: any) {
-        const errorMessage = error?.message || String(error);
-        throw new Error(`Failed to save user profile: ${errorMessage}`);
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
       }
     },
     onSuccess: () => {
@@ -71,8 +72,7 @@ export function useSaveCallerUserProfile() {
 
 /**
  * Lightweight residents directory query for Dashboard listing.
- * Uses optimized backend endpoint with reduced payload and aggressive caching.
- * Includes compatibility fallback for older backend deployments.
+ * Uses optimized backend endpoint with reduced payload and refetch-on-mount to ensure cross-user residents appear.
  */
 export function useGetResidentsDirectory() {
   const { actorReady, actor, identity } = useActorReady();
@@ -174,8 +174,10 @@ export function useGetResidentsDirectory() {
     },
     enabled: actorReady,
     retry: false,
-    // Cache for 30 seconds to avoid refetching when navigating back to Dashboard
-    staleTime: 30_000,
+    // Reduce stale time to ensure fresh data on mount
+    staleTime: 10_000, // 10 seconds
+    // Force refetch on mount to ensure cross-user residents appear
+    refetchOnMount: 'always',
     // Disable automatic refetching on window focus/reconnect
     refetchOnWindowFocus: false,
     refetchOnReconnect: false,
@@ -219,7 +221,12 @@ export function useGetResident(residentId: ResidentId | null) {
     queryKey: residentQueryKeys.detail(principalId || 'anonymous', residentId?.toString() || ''),
     queryFn: async () => {
       if (!actor || !residentId) throw new Error('Actor or residentId not available');
-      return actor.getResident(residentId);
+      try {
+        return await actor.getResident(residentId);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     enabled: actorReady && !!residentId,
     retry: false,
@@ -239,7 +246,12 @@ export function useCreateResident() {
   return useMutation({
     mutationFn: async (request: ResidentCreateRequest) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createResident(request);
+      try {
+        return await actor.createResident(request);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: () => {
       const principalId = identity?.getPrincipal().toString();
@@ -258,7 +270,12 @@ export function useUpdateResident() {
   return useMutation({
     mutationFn: async ({ id, updateRequest }: { id: ResidentId; updateRequest: ResidentUpdateRequest }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateResident(id, updateRequest);
+      try {
+        return await actor.updateResident(id, updateRequest);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -278,7 +295,12 @@ export function useToggleResidentStatus() {
   return useMutation({
     mutationFn: async (id: ResidentId) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.toggleResidentStatus(id);
+      try {
+        return await actor.toggleResidentStatus(id);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onMutate: async (residentId) => {
       const principalId = identity?.getPrincipal().toString();
@@ -334,7 +356,12 @@ export function useDeleteResident() {
   return useMutation({
     mutationFn: async (id: ResidentId) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteResident(id);
+      try {
+        return await actor.deleteResident(id);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, residentId) => {
       const principalId = identity?.getPrincipal().toString();
@@ -355,7 +382,12 @@ export function useUpdateMedication() {
   return useMutation({
     mutationFn: async ({ residentId, medicationUpdate }: { residentId: ResidentId; medicationUpdate: MedicationUpdate }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.updateMedication(residentId, medicationUpdate);
+      try {
+        return await actor.updateMedication(residentId, medicationUpdate);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -373,7 +405,12 @@ export function useAddMedication() {
   return useMutation({
     mutationFn: async ({ residentId, medication }: { residentId: ResidentId; medication: Medication }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.addMedication(residentId, medication);
+      try {
+        return await actor.addMedication(residentId, medication);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -391,7 +428,12 @@ export function useDiscontinueMedication() {
   return useMutation({
     mutationFn: async ({ residentId, medicationId }: { residentId: ResidentId; medicationId: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.discontinueMedication(residentId, medicationId);
+      try {
+        return await actor.discontinueMedication(residentId, medicationId);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -409,7 +451,12 @@ export function useDeleteMedication() {
   return useMutation({
     mutationFn: async ({ residentId, medicationId }: { residentId: ResidentId; medicationId: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteMedication(residentId, medicationId);
+      try {
+        return await actor.deleteMedication(residentId, medicationId);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -428,7 +475,12 @@ export function useCreateVitalsEntry() {
   return useMutation({
     mutationFn: async ({ residentId, record }: { residentId: ResidentId; record: VitalsRecord }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createVitalsEntry(residentId, record);
+      try {
+        return await actor.createVitalsEntry(residentId, record);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -448,7 +500,12 @@ export function useListVitalsEntries(residentId: ResidentId | null) {
     queryKey: ['vitals', principalId || 'anonymous', residentId?.toString() || ''],
     queryFn: async () => {
       if (!actor || !residentId) throw new Error('Actor or residentId not available');
-      return actor.listVitalsEntries(residentId);
+      try {
+        return await actor.listVitalsEntries(residentId);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     enabled: actorReady && !!residentId,
     retry: false,
@@ -467,7 +524,12 @@ export function useDeleteVitalsEntry() {
   return useMutation({
     mutationFn: async ({ residentId, timestamp }: { residentId: ResidentId; timestamp: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteVitalsEntry(residentId, timestamp);
+      try {
+        return await actor.deleteVitalsEntry(residentId, timestamp);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -486,7 +548,12 @@ export function useCreateMarRecord() {
   return useMutation({
     mutationFn: async ({ residentId, record }: { residentId: ResidentId; record: MarRecord }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createMarRecord(residentId, record);
+      try {
+        return await actor.createMarRecord(residentId, record);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -506,7 +573,12 @@ export function useListMarRecords(residentId: ResidentId | null) {
     queryKey: ['mar', principalId || 'anonymous', residentId?.toString() || ''],
     queryFn: async () => {
       if (!actor || !residentId) throw new Error('Actor or residentId not available');
-      return actor.listMarRecords(residentId);
+      try {
+        return await actor.listMarRecords(residentId);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     enabled: actorReady && !!residentId,
     retry: false,
@@ -525,7 +597,12 @@ export function useDeleteMarRecord() {
   return useMutation({
     mutationFn: async ({ residentId, timestamp }: { residentId: ResidentId; timestamp: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteMarRecord(residentId, timestamp);
+      try {
+        return await actor.deleteMarRecord(residentId, timestamp);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -544,7 +621,12 @@ export function useCreateAdlRecord() {
   return useMutation({
     mutationFn: async ({ residentId, record }: { residentId: ResidentId; record: AdlRecord }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.createAdlRecord(residentId, record);
+      try {
+        return await actor.createAdlRecord(residentId, record);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -564,7 +646,12 @@ export function useListAdlRecords(residentId: ResidentId | null) {
     queryKey: ['adl', principalId || 'anonymous', residentId?.toString() || ''],
     queryFn: async () => {
       if (!actor || !residentId) throw new Error('Actor or residentId not available');
-      return actor.listAdlRecords(residentId);
+      try {
+        return await actor.listAdlRecords(residentId);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     enabled: actorReady && !!residentId,
     retry: false,
@@ -583,7 +670,12 @@ export function useDeleteAdlRecord() {
   return useMutation({
     mutationFn: async ({ residentId, timestamp }: { residentId: ResidentId; timestamp: bigint }) => {
       if (!actor) throw new Error('Actor not available');
-      return actor.deleteAdlRecord(residentId, timestamp);
+      try {
+        return await actor.deleteAdlRecord(residentId, timestamp);
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
     },
     onSuccess: (_, variables) => {
       const principalId = identity?.getPrincipal().toString();
@@ -594,14 +686,23 @@ export function useDeleteAdlRecord() {
   });
 }
 
-// Seeding
+// Seed Residents
 export function useEnsureResidentsSeeded() {
   const { actor } = useActorReady();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.ensureResidentsSeeded();
+      try {
+        return await actor.ensureResidentsSeeded();
+      } catch (error: any) {
+        const errorMessage = translateBackendError(error);
+        throw new Error(errorMessage);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['residents'] });
     },
   });
 }

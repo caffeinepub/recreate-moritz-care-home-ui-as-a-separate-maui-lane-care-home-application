@@ -1,62 +1,36 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Eliminate startup race conditions causing “Connecting to Backend” to reappear after “Loading Profile”",
+  "title": "Cross-user resident visibility: frontend directory + profile rendering and permission error messaging",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Gate all profile/resident React Query hooks so they cannot execute until the authenticated backend actor is fully available (and identity prerequisites are satisfied), preventing initial-load and ResidentProfile \"Actor not available\" errors.",
+      "id": "REQ-2",
+      "summary": "Ensure dashboard and resident profile render backend-provided residents (including cross-user) and show clear English permission errors for disallowed write actions without falling back to mock data for valid IDs.",
       "acceptanceCriteria": [
-        "When the user signs in and the app finishes “Loading Profile”, the UI proceeds into the app without switching back to “Connecting to Backend”.",
-        "No React Query request should throw an \"Actor not available\" error during initial load or when navigating to ResidentProfile.",
-        "ResidentProfile data fetching does not start until the actor is available (and any required identity prerequisites are satisfied)."
+        "After the backend change, the dashboard resident grid shows residents created by other users without requiring a hard refresh.",
+        "Attempting a disallowed action (edit/delete/toggle status) on a resident not owned by the current user results in a clear English error toast/message (e.g., indicating insufficient permission) and does not break the page.",
+        "Resident profile view continues to render using backend data when available and does not silently fall back to mock data for valid resident IDs."
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useActorReady.ts",
+          "path": "frontend/src/lib/backendErrorMessage.ts",
           "operation": "create",
-          "description": "Create a small wrapper hook around useActor/useInternetIdentity that exposes a stable boolean (e.g., actorReady) indicating when identity is present and the actor is initialized (actor exists and is not fetching). Use this as the single source of truth for query enablement. Use the authorization component’s frontend guidance for gating queries on actor readiness and identity prerequisites. Verify the component's usage instructions before implementing."
+          "description": "Add a small helper to translate backend failures (including authorization traps) into clear English UI messages (e.g., insufficient permission to edit/delete). Use this helper anywhere resident mutations/queries surface errors. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/hooks/useQueries.ts",
           "operation": "modify",
-          "description": "Update all resident/profile React Query hooks to depend on the new actorReady signal (and identity where applicable) via enabled conditions, and ensure queryFns are never invoked while actorReady is false. Keep user-facing error text in English. Use the authorization component’s recommended React Query enabled/isLoading pattern to avoid “Actor not available” during startup. Verify the component's usage instructions before implementing."
+          "description": "Update resident-related React Query hooks to (1) normalize backend authorization failures into clear English Error messages (using the new backendErrorMessage helper) for delete/toggle/update/medication writes, and (2) ensure the residents directory query does not remain stuck on a cached pre-change result (e.g., by forcing refetch-on-mount and/or reducing stale caching) so cross-user residents appear without a hard refresh. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/pages/maui/Dashboard.tsx",
+          "operation": "modify",
+          "description": "Ensure dashboard actions (delete/toggle) surface friendly permission-specific toast messages when backend rejects cross-user write attempts, using the shared backendErrorMessage helper; keep the page stable (no crashes) on auth errors. Verify the component's usage instructions before implementing."
         },
         {
           "path": "frontend/src/pages/maui/residents/ResidentProfile.tsx",
           "operation": "modify",
-          "description": "Ensure ResidentProfile does not initiate backend-backed fetching while actorReady is false (e.g., by using the updated hooks and/or guarding resident principal usage) so navigation to ResidentProfile cannot trigger actor-related errors during startup transitions. Verify the component's usage instructions before implementing."
-        }
-      ]
-    },
-    {
-      "id": "REQ-2",
-      "summary": "Make BackendReachabilityGate and ProfileBootstrapGate startup gating “sticky” after success so actor-driven invalidations/refetches do not remount or re-run full-screen health checks/profile bootstraps during route transitions, while still showing the existing unreachable error UI with Retry when the backend is actually down.",
-      "acceptanceCriteria": [
-        "After successful initial backend reachability and profile bootstrap, navigating between routes (including ResidentProfile and tabs like Medications) does not show the full-screen “Connecting to Backend” gate again unless the backend is actually unreachable.",
-        "If the backend is unreachable, the user sees the existing error UI with a working Retry button; if reachable, the app transitions to content and stays there.",
-        "Health check behavior does not cause infinite loading states; it either resolves to reachable/unreachable within its timeout and surfaces a clear error message on failure."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useHealthCheck.ts",
-          "operation": "modify",
-          "description": "Stabilize the health check query behavior to avoid repeated refetches during normal navigation (e.g., configure React Query options to prevent refetch-on-mount/focus/reconnect churn, and retain successful results for a short period). Preserve the existing timeout behavior and clear English error messaging. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/startup/BackendReachabilityGate.tsx",
-          "operation": "modify",
-          "description": "Adjust the gate UI logic so that once reachability has been confirmed, background refetches do not re-trigger the full-screen “Connecting to Backend” screen; only show the full-screen gate on first load or when the latest settled state is unreachable. Keep the existing unreachable error UI and Retry behavior. Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/components/startup/ProfileBootstrapGate.tsx",
-          "operation": "modify",
-          "description": "Prevent profile bootstrap from re-entering its full-screen loading state after it has already succeeded (e.g., retain a local “bootstrapped” latch and/or rely on React Query cache settings so route transitions do not flash/loop). Ensure Retry continues to work on real failures and keep all user-facing text in English. Use the authorization component’s profile bootstrap anti-flash guidance (enabled + isLoading/isFetched shaping). Verify the component's usage instructions before implementing."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Update QueryClient default query behaviors (where appropriate for this app) to reduce unintended automatic refetches that can re-trigger startup gates during navigation (e.g., disable refetch-on-window-focus/reconnect globally if consistent with current UX). Verify the component's usage instructions before implementing."
+          "description": "Stop silently falling back to mock resident profile data when the residentId is a valid Principal but backend data is missing/unauthorized; instead show an explicit error/not-found UI and keep rendering backend data when available. Also ensure edit/medication write attempts display clear English permission errors when rejected (and optionally disable write controls when the viewer is not the resident owner, based on backendResident.owner vs current identity). Verify the component's usage instructions before implementing."
         }
       ]
     }

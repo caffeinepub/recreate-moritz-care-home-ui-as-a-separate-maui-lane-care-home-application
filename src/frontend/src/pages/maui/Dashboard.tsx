@@ -83,7 +83,8 @@ export function Dashboard() {
       toast.success('Resident deleted successfully');
     } catch (error: any) {
       console.error('Failed to delete resident:', error);
-      toast.error(error.message || 'Failed to delete resident');
+      const errorMessage = error?.message || 'Failed to delete resident';
+      toast.error(errorMessage);
     }
   };
 
@@ -94,7 +95,8 @@ export function Dashboard() {
       toast.success('Resident status updated');
     } catch (error: any) {
       console.error('Failed to toggle resident status:', error);
-      toast.error(error.message || 'Failed to update resident status');
+      const errorMessage = error?.message || 'Failed to update resident status';
+      toast.error(errorMessage);
     }
   };
 

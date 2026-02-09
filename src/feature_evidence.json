@@ -2,33 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-prevent-any-resident-profile-react-query-calls-from-executing-until-the-backend-actor-is-fully-initialized-and-stable-so-the-app-cannot-enter-a-stuck-connecting-to-backend-state-immediately-after-the-profile-finishes-loading",
-      "featureTitle": "Prevent any resident/profile React Query calls from executing until the backend actor is fully initialized and stable, so the app cannot enter a stuck “Connecting to Backend” state immediately after the profile finishes loading.",
+      "featureId": "feature-ensure-the-frontend-residents-dashboard-and-resident-profile-pages-correctly-display-residents-returned-by-the-backend-for-the-signed-in-user-including-residents-created-by-other-users-if-a-backend-authorization-error-occurs-show-an-english-error-message-that-clearly-indicates-the-user-does-not-have-permission-to-edit-delete-that-resident",
+      "featureTitle": "Ensure the frontend residents dashboard and resident profile pages correctly display residents returned by the backend for the signed-in user, including residents created by other users; if a backend authorization error occurs, show an English error message that clearly indicates the user does not have permission to edit/delete that resident.",
       "files": [
-        "frontend/src/hooks/useActorReady.ts",
-        "frontend/src/hooks/useQueries.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0"
-      ],
-      "testIds": [
-        "REQ-1"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-stabilize-the-startup-gating-flow-so-backendreachabilitygate-and-profilebootstrapgate-do-not-re-trigger-in-a-loop-or-remount-in-a-way-that-re-runs-health-checks-indefinitely-after-profile-load-and-during-route-transitions-e-g-navigating-to-the-medication-tab-residentprofile-page",
-      "featureTitle": "Stabilize the startup gating flow so BackendReachabilityGate and ProfileBootstrapGate do not re-trigger in a loop (or remount in a way that re-runs health checks indefinitely) after profile load and during route transitions (e.g., navigating to the Medication tab / ResidentProfile page).",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/startup/BackendReachabilityGate.tsx",
-        "frontend/src/components/startup/ProfileBootstrapGate.tsx",
-        "frontend/src/hooks/useHealthCheck.ts"
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/lib/backendErrorMessage.ts",
+        "frontend/src/pages/maui/Dashboard.tsx",
+        "frontend/src/pages/maui/residents/ResidentProfile.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",

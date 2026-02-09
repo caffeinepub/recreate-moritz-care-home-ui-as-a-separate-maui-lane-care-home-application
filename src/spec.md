@@ -1,11 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the app getting stuck on “Connecting to Backend” after “Loading Profile” by ensuring React Query requests only run once the backend actor is fully initialized and by preventing startup gates/health checks from looping or remounting during navigation.
+**Goal:** Allow authenticated users to view all residents and load resident profiles created by other users, while keeping all write actions restricted to the resident owner or an admin.
 
 **Planned changes:**
-- Add a stable “actor ready” gating signal and ensure resident/profile React Query calls (including ResidentProfile-related fetching) do not execute until the actor and identity prerequisites are fully available.
-- Stabilize the startup gating flow so BackendReachabilityGate and ProfileBootstrapGate do not re-trigger, remount, or re-run health checks indefinitely after successful load or during route transitions.
-- Ensure health checks resolve deterministically (reachable/unreachable) and only show the full-screen “Connecting to Backend” gate when the backend is actually unreachable; keep existing Retry/error UI behavior.
+- Update backend read authorization to allow any authenticated user to list residents in the directory and fetch resident profile details across users.
+- Keep backend write authorization unchanged so only the resident owner or an admin can update/delete/toggle status or add clinical records for a resident.
+- Update the frontend residents dashboard and resident profile pages to display cross-user residents returned by the backend and avoid falling back to mock data for valid resident IDs.
+- Add clear English error messaging on the frontend when a user attempts a disallowed edit/delete/toggle-status action on a resident they don’t own.
 
-**User-visible outcome:** After signing in, the app proceeds into content after “Loading Profile” without reverting to “Connecting to Backend,” and navigating to ResidentProfile/Medications no longer triggers repeated full-screen connection gating or “Actor not available” errors.
+**User-visible outcome:** Users can see residents created by other users in the dashboard and open their profiles, but can only edit/delete/change status/add records for residents they own (unless they are an admin).
